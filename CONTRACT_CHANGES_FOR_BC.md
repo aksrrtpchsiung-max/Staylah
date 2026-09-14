@@ -1,4 +1,4 @@
-# Contract v0 修改说明（面向 B、C）
+# Contract v0 修改说明（2026/09/14）
 
 本次修改统一了数据库房源字段与跨模块接口。数据库仍可使用规范化的
 `listing + hdb_detail/condo_detail/landed_detail`，B 在返回 `SearchResult` 前将查询结果
