@@ -45,8 +45,9 @@ class Result(TypedDict, Generic[T]):
 
 
 class RunContext(TypedDict):
+    user_id: str
     run_id: str
-    conversation_id: str
+    conversation_id: str  # MVP 中与 LangGraph thread_id 使用同一值
     attempt_id: str | None
     trace_id: str
     call_id: str
@@ -67,8 +68,8 @@ class ChatMessage(TypedDict):
 
 class HardConstraints(TypedDict):
     currency: str
-    max_price: str | None
-    price_period: Literal['month'] | None
+    max_price: int | None
+    price_period: Literal['month', 'week', 'total'] | None
     rental_scope: Literal['whole_unit', 'room'] | None
     locations: list[str]  # 规范化地点 ID；空数组表示用户明确不限地区
     min_bedrooms: int | None
@@ -179,33 +180,57 @@ class Evidence(TypedDict):
     evidence_id: str
     field: str
     value: JsonValue
-    source_url: str
+    source_url: str | None
     observed_at: str
     excerpt: str
 
 
 class Price(TypedDict):
-    amount: str | None
+    amount: int | None
     currency: str
-    period: Literal['month'] | None
-    scope: Literal['whole_unit', 'room'] | None
+    period: Literal['month', 'week', 'total'] | None
     status: Literal['known', 'unknown', 'conflict']
     evidence_ids: list[str]
+
+
+class ListingAttributes(TypedDict):
+    property_type: Literal['hdb', 'condo', 'landed', 'apartment', 'other', 'unknown']
+    unit_layout: str | None
+    listing_scope: Literal['whole_unit', 'room', 'bedspace'] | None
+    area_sqft: int | None
+    bathrooms: int | None
+    room_type: Literal['master', 'common', 'shared', 'unknown']
+    ensuite_bathroom: bool | None
+    owner_stays: bool | None
+    cooking_policy: Literal['none', 'light', 'full', 'unknown']
+    utilities_included: bool | None
+    wifi_included: bool | None
+    visitors_allowed: bool | None
+    pets_allowed: bool | None
+    furnishing: Literal['fully', 'partially', 'unfurnished', 'unknown']
+    tenure_type: Literal['freehold', 'leasehold', 'unknown']
+    lease_years: int | None
 
 
 class Listing(TypedDict):
     listing_key: str
     source: str
     source_listing_id: str | None
-    source_url: str
+    source_url: str | None
     source_mode: Literal['mock', 'live']
     title: str
-    transaction_type: Literal['rent', 'buy']
+    transaction_type: Literal['rent', 'sale']
     price: Price
+    attributes: ListingAttributes
     bedrooms: int | None
     location_id: str | None
+    listing_status: Literal['active', 'inactive', 'unknown']
+    listed_date: str | None
     fetched_at: str
     source_updated_at: str | None
+    last_verified_at: str | None
+    raw_description: str | None
+    raw_details: list[str]
     evidence: list[Evidence]
     field_issues: list[str]
 

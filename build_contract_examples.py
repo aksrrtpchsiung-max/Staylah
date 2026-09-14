@@ -1,5 +1,5 @@
 """生成完整接口示例并检查结构；不运行尚未实现的业务函数。
-执行（Python 3.11+）：python3 docs/examples/build_contract_examples.py
+执行（Python 3.11+）：python3.11 build_contract_examples.py
 """
 import copy
 import importlib.util
@@ -9,17 +9,18 @@ from pathlib import Path
 import types
 import typing
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location('contracts_v0', ROOT / 'contracts_v0.py')
 contracts = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(contracts)
 D = copy.deepcopy
 NOW = '2026-09-09T10:00:00+08:00'
-CTX = dict(run_id='run-001', conversation_id='conv-001', attempt_id='attempt-001',
+CTX = dict(user_id='user-001', run_id='run-001', conversation_id='thread-001',
+           attempt_id='attempt-001',
            trace_id='trace-001', call_id='call-001',
            deadline_at='2026-09-09T10:02:00+08:00', source_mode='mock')
 POLICY = dict(min_matches=3, display_limit=10, max_search_attempts=3, max_repairs=1)
-HC = dict(currency='SGD', max_price='3500.00', price_period='month',
+HC = dict(currency='SGD', max_price=3500, price_period='month',
           rental_scope='whole_unit', locations=['TAMPINES'], min_bedrooms=2)
 P1 = dict(profile_id='profile-001', version=1, intent='rent', hard_constraints=HC,
           preferences=[], unresolved=[], field_sources={
@@ -38,7 +39,7 @@ QUERY = dict(profile_version=1, entities=[dict(type='location', raw_text='淡滨
 def listing(key, amount, bedrooms=2, price_status='known'):
     url = f'https://example.com/demo/{key}'
     vals = {'transaction_type': 'rent', 'price.currency': 'SGD', 'price.period': 'month',
-            'price.scope': 'whole_unit', 'location_id': 'TAMPINES'}
+            'attributes.listing_scope': 'whole_unit', 'location_id': 'TAMPINES'}
     if bedrooms is not None:
         vals['bedrooms'] = bedrooms
     if amount is not None:
@@ -48,7 +49,7 @@ def listing(key, amount, bedrooms=2, price_status='known'):
                 for field, value in vals.items()]
     price_ids = [f'{key}:price.amount'] if amount is not None else []
     if price_status == 'conflict':
-        for label, price in [('display', '3200.00'), ('body', '3800.00')]:
+        for label, price in [('display', 3200), ('body', 3800)]:
             eid = f'{key}:price.{label}'
             evidence.append(dict(evidence_id=eid, field='price.amount', value=price,
                 source_url=url, observed_at=NOW, excerpt=f'模拟同口径月租：{price} SGD'))
@@ -56,26 +57,37 @@ def listing(key, amount, bedrooms=2, price_status='known'):
     return dict(listing_key=key, source='demo_a', source_listing_id=key,
         source_url=url, source_mode='mock', title=f'模拟房源 {key}',
         transaction_type='rent', price=dict(amount=amount, currency='SGD', period='month',
-            scope='whole_unit', status=price_status, evidence_ids=price_ids),
-        bedrooms=bedrooms, location_id='TAMPINES', fetched_at=NOW, source_updated_at=None,
+            status=price_status, evidence_ids=price_ids),
+        attributes=dict(property_type='hdb', unit_layout='3br', listing_scope='whole_unit',
+            area_sqft=1000, bathrooms=2, room_type='unknown', ensuite_bathroom=None,
+            owner_stays=False, cooking_policy='full', utilities_included=False,
+            wifi_included=False, visitors_allowed=True, pets_allowed=None,
+            furnishing='partially', tenure_type='leasehold', lease_years=99),
+        bedrooms=bedrooms, location_id='TAMPINES', listing_status='active',
+        listed_date='2026-09-08', fetched_at=NOW, source_updated_at=None,
+        last_verified_at=NOW, raw_description=f'模拟房源 {key}，用于接口联调。',
+        raw_details=['整套出租', '至少两个卧室', '月租按 SGD 计价'],
         evidence=evidence, field_issues=['price.amount:conflict'] if price_status == 'conflict' else [])
 
 
-L1, L2, L3 = listing('L1', '3400.00'), listing('L2', '3500.00'), listing('L3', '3500.01')
-L4, L5, L6 = listing('L4', None, price_status='conflict'), listing('L5', '3300.00', None), listing('L6', '3300.00')
+L1, L2, L3 = listing('L1', 3400), listing('L2', 3500), listing('L3', 3501)
+L4, L5, L6 = listing('L4', None, price_status='conflict'), listing('L5', 3300, None), listing('L6', 3300)
+L6['source_url'] = None
+for item in L6['evidence']:
+    item['source_url'] = None
 GOOD = [L1, L2, L6]
 ALL = [L1, L2, L3, L4, L5, L6]
 
 
 def screened(item, verdict='pass', field=None):
-    fields = ['transaction_type', 'price.currency', 'price.period', 'price.scope',
+    fields = ['transaction_type', 'price.currency', 'price.period', 'attributes.listing_scope',
               'price.amount', 'location_id', 'bedrooms']
     checks = []
     for f in fields:
         status = verdict if f == field else 'pass'
         ids = [e['evidence_id'] for e in item['evidence'] if e['field'] == f]
         checks.append(dict(field=f, status=status,
-            reason={'pass': '本轮证据满足对应硬条件', 'fail': '月租超过 3500.00 SGD',
+            reason={'pass': '本轮证据满足对应硬条件', 'fail': '月租超过 3500 SGD',
                     'unknown': '字段冲突或缺少可确认信息'}[status], evidence_ids=ids))
     return dict(listing_key=item['listing_key'], checks=checks)
 
@@ -90,7 +102,7 @@ PLAN = dict(plan_id='plan-001', profile_version=1, attempt_id='attempt-001', int
     page_limit=3, candidate_limit=60, source_mode='mock', reason='首次按已确认硬条件搜索')
 COVERAGE = dict(queried_sources=['demo_a'], failed_sources=[], queries_completed=True,
     has_more=False, next_pages=[], truncated=False,
-    applied_filters=['transaction_type', 'price.currency', 'price.period', 'price.scope',
+    applied_filters=['transaction_type', 'price.currency', 'price.period', 'attributes.listing_scope',
                      'price.amount', 'location_id', 'bedrooms'], unsupported_filters=[])
 
 
@@ -122,8 +134,8 @@ DIRECTIVE = dict(reason_code='insufficient_candidates', strategy_changes=[dict(
     kind='next_page', query_id='q-001', cursor='page-2')], base_profile_version=1,
     evidence_listing_keys=['L1', 'L2'])
 PROPOSAL = dict(proposal_id='proposal-001', field='hard_constraints.max_price',
-    old_value='3500.00', proposed_value='3600.00',
-    reason='本次被排除的 L3 月租 3500.01；提高到 3600 可能扩大本轮匹配，仍需重新查询。',
+    old_value=3500, proposed_value=3600,
+    reason='本次被排除的 L3 月租 3501；提高到 3600 可能扩大本轮匹配，仍需重新查询。',
     evidence_listing_keys=['L3'], requires_user_confirmation=True)
 QUESTION = dict(question_id='run-001:state-7:q-1', text='是否将月租上限调整为 SGD 3600？',
     reason_code='insufficient_candidates', proposals=[PROPOSAL],
@@ -216,8 +228,8 @@ add('screen.normal', 'screen', 'normal', dict(listings=[L1,L3], profile=P1),
 add('screen.boundary', 'screen', 'boundary', dict(listings=[L2,L4,L5], profile=P1),
     dict(profile_version=1, eligible=[screened(L2)], rejected=[], needs_verification=[
         screened(L4,'unknown','price.amount'), screened(L5,'unknown','bedrooms')]),
-    checks=['3500.00 等于上限，允许通过；冲突金额与未知卧室数不能通过。'])
-badl = listing('BAD', '-1.00')
+    checks=['3500 等于上限，允许通过；冲突金额与未知卧室数不能通过。'])
+badl = listing('BAD', -1)
 add('screen.error', 'screen', 'error', dict(listings=[badl], profile=P1),
     raises=dict(type='ContractViolation', code='INVALID_INPUT', field_path='listings[0].price.amount'))
 add('screen.empty', 'screen', 'boundary', dict(listings=[], profile=P1),
@@ -241,7 +253,7 @@ add('evaluate.normal', 'evaluate', 'normal', ev_inputs, ok(EVALUATION),
 inp = D(ev_inputs); inp.update(retrieval=retrieval([]), screen_result=dict(profile_version=1, eligible=[],
     rejected=[screened(L3,'fail','price.amount')], needs_verification=[]),
     listing_snapshot=dict(snapshot_id='snapshot-001',profile_version=1,items=[L3]))
-ev0 = evaluation([]); ev0['assessment'].update(constraint_findings=['本轮 L3 因月租 3500.01 超出预算被排除。'], relaxation_proposals=[PROPOSAL])
+ev0 = evaluation([]); ev0['assessment'].update(constraint_findings=['本轮 L3 因月租 3501 超出预算被排除。'], relaxation_proposals=[PROPOSAL])
 add('evaluate.boundary', 'evaluate', 'boundary', inp, ok(ev0), checks=['不编造推荐、不自行更改预算；仅输出有依据的调整提案。'])
 inp = D(ev_inputs); inp['retrieval']['candidates'][0]['listing_key'] = 'L999'
 add('evaluate.error', 'evaluate', 'error', inp, error('INVALID_INPUT','retrieval.candidates[0].listing_key'))
@@ -355,6 +367,7 @@ def validate():
 if __name__ == '__main__':
     validate()
     dest = ROOT / 'examples' / 'function-contract-cases.json'
+    dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(dict(schema_version='0.1-draft',
         note='全部为虚构示例，函数未实现；每例独立，输入已完全展开。模型文字/分数不是固定验收答案。',
         cases=CASES),ensure_ascii=False,indent=2)+'\n')
