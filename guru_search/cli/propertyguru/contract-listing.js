@@ -34,7 +34,8 @@ function priceAmount(value) {
   if (direct !== null) return direct;
   const raw = text(value);
   if (!raw) return null;
-  const match = raw.match(/(?:S\$|SGD\s*)?(\d[\d,]*)(?:\.0+)?/i);
+  // 不把范围、每平方英尺单价或小数截断成一个确定的挂牌金额。
+  const match = raw.match(/^(?:S\$|SGD\s*|\$)?\s*(\d[\d,]*)(?:\.0+)?(?:\s*(?:\/\s*(?:mo(?:nth)?|week|wk)|per\s+(?:month|week)|pcm|pw))?$/i);
   return match ? integer(match[1]) : null;
 }
 
@@ -60,15 +61,15 @@ function normalizePropertyType(raw) {
   if (/condo|minium|executive.?condo/.test(value)) return 'condo';
   if (/landed|bungalow|terraced|semi.?detached|detached/.test(value)) return 'landed';
   if (/apartment|walk.?up/.test(value)) return 'apartment';
-  return 'other';
+  return value === 'other' ? 'other' : 'unknown';
 }
 
 function normalizeScope(raw) {
   const value = text(raw)?.toLowerCase();
   if (!value) return null;
   if (/bed.?space|shared.?room/.test(value)) return 'bedspace';
-  if (/master.?room|common.?room|\broom\b/.test(value)) return 'room';
   if (/whole.?unit|entire.?unit|full.?unit/.test(value)) return 'whole_unit';
+  if (/master.?room|common.?room|room\s+(?:rental|for rent)|room.?only|^room$/.test(value)) return 'room';
   return null;
 }
 
@@ -98,7 +99,16 @@ function normalizeTenure(raw) {
 function normalizeTransactionType(raw, fallback) {
   const value = text(raw)?.toLowerCase();
   if (/sale|buy/.test(value || '')) return 'sale';
+  if (/rent/.test(value || '')) return 'rent';
   return fallback === 'sale' ? 'sale' : 'rent';
+}
+
+function normalizePricePeriod(raw) {
+  const value = text(raw)?.toLowerCase() || '';
+  if (/\b(?:week|weekly|wk|pw)\b/.test(value)) return 'week';
+  if (/\b(?:month|monthly|mo|pcm)\b/.test(value)) return 'month';
+  if (value === 'total') return 'total';
+  return null;
 }
 
 function sourceExcerpt(label, rawValue) {
@@ -115,11 +125,11 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
   const sourceId = text(raw?.id);
   if (!sourceId) return null;
 
-  const sourceUrl = text(raw.url) || `${baseUrl}/listing/${sourceId}`;
+  const sourceUrl = new URL(text(raw.url) || `/listing/${sourceId}`, baseUrl).href;
   const listingKey = `${SOURCE}:${sourceId}`;
   const evidence = [];
   const fieldIssues = [];
-  const addEvidence = (field, value, sourceField) => {
+  const addEvidence = (field, value, sourceField, original = value) => {
     if (value === null || value === undefined || value === '') return [];
     const evidenceId = `${listingKey}:${field}`;
     evidence.push({
@@ -128,7 +138,7 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
       value,
       source_url: sourceUrl,
       observed_at: fetchedAt,
-      excerpt: sourceExcerpt(sourceField, value),
+      excerpt: sourceExcerpt(sourceField, original),
     });
     return [evidenceId];
   };
@@ -152,8 +162,9 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
 
   const bedrooms = integer(raw.bedrooms);
   const bathrooms = integer(raw.bathrooms);
-  const areaSqft = integer(firstValue(raw, ['floorArea', 'area.value', 'floorArea.value']));
-  const propertyType = normalizePropertyType(featureText || raw.propertyType);
+  const areaRaw = firstValue(raw, ['floorArea.value', 'floorArea', 'area.value']);
+  const areaSqft = integer(areaRaw);
+  const propertyType = normalizePropertyType(raw.propertyType || featureText);
   const listingScope = normalizeScope(firstValue(raw, ['listingScope', 'rentalScope', 'unitType']) || classificationText);
   const furnishingRaw = firstValue(raw, ['furnishing', 'furnishingType', 'listingFeatures.furnishing']);
   const tenureRaw = firstValue(raw, ['tenure', 'tenureType', 'propertyTenure']);
@@ -162,18 +173,25 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
   const listedDate = normalizedDate(listedDateRaw);
   if (listedDateRaw !== null && listedDate === null) fieldIssues.push('listed_date:unparseable');
   const sourceUpdatedRaw = firstValue(raw, ['updatedAt', 'sourceUpdatedAt', 'lastUpdatedAt']);
-  const sourceUpdatedAt = text(sourceUpdatedRaw)?.match(/^\d{4}-\d{2}-\d{2}/) ? text(sourceUpdatedRaw) : null;
+  const updatedText = text(sourceUpdatedRaw);
+  const sourceUpdatedAt = updatedText && /(?:Z|[+-]\d{2}:\d{2})$/i.test(updatedText)
+    && Number.isFinite(Date.parse(updatedText)) ? new Date(updatedText).toISOString() : null;
+  if (sourceUpdatedRaw !== null && sourceUpdatedAt === null) fieldIssues.push('source_updated_at:unparseable');
 
-  const priceEvidence = amount === null ? [] : addEvidence('price.amount', amount, 'price.value');
-  const currencyEvidence = addEvidence('price.currency', DEFAULT_CURRENCY, 'PropertyGuru Singapore marketplace');
-  const period = transactionType === 'rent' ? 'month' : 'total';
-  addEvidence('transaction_type', transactionType, 'typeCode');
+  const priceEvidence = amount === null ? [] : addEvidence('price.amount', amount, 'price', priceRaw);
+  const sourceCurrency = text(firstValue(raw, ['price.currency', 'currency']));
+  const currency = sourceCurrency || DEFAULT_CURRENCY;
+  const currencyEvidence = addEvidence('price.currency', currency, sourceCurrency ? 'price currency' : 'PropertyGuru Singapore marketplace');
+  const periodRaw = firstValue(raw, ['price.period', 'price.frequency', 'price.pretty', 'priceDisplay']);
+  const period = normalizePricePeriod(periodRaw) || (transactionType === 'sale' ? 'total' : null);
+  if (period === null) fieldIssues.push('price.period:unknown');
+  addEvidence('transaction_type', transactionType, raw.typeCode ? 'typeCode' : 'search page transaction type', raw.typeCode || requestedListingType);
   addEvidence('title', title, 'localizedTitle');
-  if (propertyType !== 'unknown') addEvidence('attributes.property_type', propertyType, 'listingFeatures');
-  if (listingScope !== null) addEvidence('attributes.listing_scope', listingScope, 'listing scope/title');
+  if (propertyType !== 'unknown') addEvidence('attributes.property_type', propertyType, 'propertyType/listingFeatures', raw.propertyType || featureText);
+  if (listingScope !== null) addEvidence('attributes.listing_scope', listingScope, 'listing scope/title', classificationText);
   if (bedrooms !== null) addEvidence('bedrooms', bedrooms, 'bedrooms');
   if (bathrooms !== null) addEvidence('attributes.bathrooms', bathrooms, 'bathrooms');
-  if (areaSqft !== null) addEvidence('attributes.area_sqft', areaSqft, 'floorArea');
+  if (areaSqft !== null) addEvidence('attributes.area_sqft', areaSqft, 'floorArea', areaRaw);
   const furnishing = normalizeFurnishing(furnishingRaw);
   if (furnishing !== 'unknown') addEvidence('attributes.furnishing', furnishing, 'furnishing');
   const tenureType = normalizeTenure(tenureRaw);
@@ -181,7 +199,19 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
   if (leaseYears !== null) addEvidence('attributes.lease_years', leaseYears, 'leaseYears');
   if (listedDate !== null) addEvidence('listed_date', listedDate, 'postedOn');
   if (sourceUpdatedAt !== null) addEvidence('source_updated_at', sourceUpdatedAt, 'updatedAt');
-  const periodEvidence = addEvidence('price.period', period, 'requested listing type');
+  const periodEvidence = addEvidence('price.period', period, periodRaw ? 'price label' : 'sale page', periodRaw || requestedListingType);
+
+  const flagFields = {
+    ensuite_bathroom: ['ensuiteBathroom', 'hasEnsuiteBathroom'], owner_stays: ['ownerStays', 'landlordStays'],
+    utilities_included: ['utilitiesIncluded'], wifi_included: ['wifiIncluded'],
+    visitors_allowed: ['visitorsAllowed', 'guestsAllowed'], pets_allowed: ['petsAllowed'],
+  };
+  const flags = Object.fromEntries(Object.entries(flagFields).map(([key, paths]) => {
+    const original = firstValue(raw, paths);
+    const value = yesNo(original);
+    if (value !== null) addEvidence(`attributes.${key}`, value, paths.join('/'), original);
+    return [key, value];
+  }));
 
   return {
     listing_key: listingKey,
@@ -193,7 +223,7 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
     transaction_type: transactionType,
     price: {
       amount,
-      currency: DEFAULT_CURRENCY,
+      currency,
       period,
       status: amount === null ? 'unknown' : 'known',
       evidence_ids: [...priceEvidence, ...currencyEvidence, ...periodEvidence],
@@ -205,13 +235,8 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
       area_sqft: areaSqft,
       bathrooms,
       room_type: normalizeRoomType(classificationText),
-      ensuite_bathroom: yesNo(firstValue(raw, ['ensuiteBathroom', 'hasEnsuiteBathroom'])),
-      owner_stays: yesNo(firstValue(raw, ['ownerStays', 'landlordStays'])),
+      ...flags,
       cooking_policy: 'unknown',
-      utilities_included: yesNo(firstValue(raw, ['utilitiesIncluded'])),
-      wifi_included: yesNo(firstValue(raw, ['wifiIncluded'])),
-      visitors_allowed: yesNo(firstValue(raw, ['visitorsAllowed', 'guestsAllowed'])),
-      pets_allowed: yesNo(firstValue(raw, ['petsAllowed'])),
       furnishing,
       tenure_type: tenureType,
       lease_years: leaseYears,
@@ -227,5 +252,63 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
     raw_details: [],
     evidence,
     field_issues: fieldIssues,
+  };
+}
+
+/** Sparse, observed detail facts. No request filters are used as listing facts. */
+export function buildListingDetail(raw, { sourceId, sourceUrl, fetchedAt = new Date().toISOString() }) {
+  const stripHtml = value => String(value || '').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim();
+  const details = Array.isArray(raw.detailItems) ? raw.detailItems : [];
+  const facts = [];
+  const add = (field, value, original) => {
+    if (value === null || value === undefined || value === '' || value === 'unknown') return;
+    facts.push({ field, value, excerpt: `PropertyGuru detail: ${original}` });
+  };
+  const mapping = {
+    bedrooms: ['bedrooms', integer], bedroom: ['bedrooms', integer], beds: ['bedrooms', integer],
+    bathrooms: ['attributes.bathrooms', integer], bathroom: ['attributes.bathrooms', integer],
+    floorarea: ['attributes.area_sqft', integer], sqft: ['attributes.area_sqft', integer],
+    furnishing: ['attributes.furnishing', normalizeFurnishing],
+    propertytype: ['attributes.property_type', normalizePropertyType],
+    listingscope: ['attributes.listing_scope', normalizeScope], rentalscope: ['attributes.listing_scope', normalizeScope],
+    roomtype: ['attributes.room_type', normalizeRoomType],
+    tenure: ['attributes.tenure_type', normalizeTenure], leaseyears: ['attributes.lease_years', integer],
+  };
+  // Only explicit structured labels establish these facts; prose remains in raw_description.
+  Object.assign(mapping, {
+    ensuitebathroom: ['attributes.ensuite_bathroom', yesNo], ownerstays: ['attributes.owner_stays', yesNo],
+    utilitiesincluded: ['attributes.utilities_included', yesNo], wifiincluded: ['attributes.wifi_included', yesNo],
+    visitorsallowed: ['attributes.visitors_allowed', yesNo], petsallowed: ['attributes.pets_allowed', yesNo],
+    listeddate: ['listed_date', normalizedDate],
+  });
+  const addPrice = value => {
+    const original = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    const amountRaw = typeof value === 'object' ? firstValue(value, ['value', 'pretty', 'amount']) : value;
+    add('price.amount', priceAmount(amountRaw), `price=${original}`);
+    const periodRaw = typeof value === 'object' ? firstValue(value, ['period', 'frequency', 'pretty']) : value;
+    add('price.period', normalizePricePeriod(periodRaw), `price=${original}`);
+    const currency = typeof value === 'object' ? text(value.currency) : /S\$|SGD/i.test(original) ? 'SGD' : null;
+    if (currency) add('price.currency', currency, `price=${original}`);
+  };
+  const info = raw.propertyInfo && !Array.isArray(raw.propertyInfo) ? raw.propertyInfo : {};
+  for (const entry of [...Object.entries(info).map(([label, value]) => ({ label, value })), ...details]) {
+    const label = String(entry.label || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (['price', 'askingprice', 'monthlyrent', 'rent'].includes(label)) {
+      if (entry.value !== null && entry.value !== undefined) addPrice(entry.value);
+      if (label === 'monthlyrent') add('price.period', 'month', `${entry.label}=${String(entry.value)}`);
+      continue;
+    }
+    const mapper = mapping[label];
+    if (mapper) add(mapper[0], mapper[1](entry.value), `${entry.label}=${String(entry.value)}`);
+  }
+  if (raw.subtitle) add('title', stripHtml(raw.subtitle), stripHtml(raw.subtitle));
+  const rawDetails = details.map(entry => `${entry.label || ''}: ${String(entry.value ?? '')}`);
+  for (const [key, label] of [['amenityList', 'Amenity'], ['facilityList', 'Facility'], ['nearbyMrt', 'Listing mentions nearby MRT']]) {
+    for (const value of raw[key] || []) rawDetails.push(`${label}: ${String(value)}`);
+  }
+  if (raw.locationInfo) rawDetails.push(`Location information: ${JSON.stringify(raw.locationInfo)}`);
+  return {
+    source_listing_id: String(sourceId), source_url: sourceUrl, fetched_at: fetchedAt,
+    raw_description: stripHtml(raw.description) || null, raw_details: rawDetails, facts,
   };
 }
