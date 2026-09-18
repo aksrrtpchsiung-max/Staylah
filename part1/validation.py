@@ -74,6 +74,91 @@ def validate_context(ctx: RunContext) -> None:
         if not ctx[key].strip():
             fail(f"ctx.{key}", "不能为空")
     timestamp(ctx["deadline_at"], "ctx.deadline_at")
+    if ctx['attempt_id'] is not None and not ctx['attempt_id'].strip():
+        fail('ctx.attempt_id', '不能是空字符串')
+
+
+def validate_planner_input(profile, query, previous_attempts, directive, ctx) -> None:
+    """A→1 的结构、版本与已确认条件校验；错误时不调用模型或搜索。"""
+    validate_context(ctx)
+    for schema, value, path in (
+        (contracts.UserProfile, profile, 'profile'),
+        (contracts.QueryFeatures, query, 'query'),
+        (list[contracts.AttemptSummary], previous_attempts, 'previous_attempts'),
+        (contracts.SearchDirective | None, directive, 'directive'),
+    ):
+        validate_type(schema, value, path)
+    if not profile['profile_id'].strip() or profile['version'] < 0:
+        fail('profile', '画像 ID 不能为空，版本不能为负数')
+    if query['profile_version'] != profile['version']:
+        raise ContractViolation('STATE_CONFLICT', 'query.profile_version', '查询与画像版本不一致')
+    if directive is not None and directive['base_profile_version'] != profile['version']:
+        raise ContractViolation('STATE_CONFLICT', 'directive.base_profile_version', '补搜指令与画像版本不一致')
+    if ctx['attempt_id'] is None:
+        fail('ctx.attempt_id', '计划生成需要编排层提供本轮 attempt_id')
+    if profile['intent'] is None:
+        fail('profile.intent', '请由 A 确认租房或买房意图')
+    if profile['unresolved'] or query['unresolved']:
+        fail('profile.unresolved' if profile['unresolved'] else 'query.unresolved', '需求仍有待澄清项，请交回 A')
+    if not query['semantic_query'].strip():
+        fail('query.semantic_query', '不能为空')
+    filters = profile['hard_constraints']
+    if not filters['currency'].strip():
+        fail('profile.hard_constraints.currency', '不能为空')
+    for key in ('max_price', 'min_bedrooms'):
+        if filters[key] is not None and filters[key] < 0:
+            fail('profile.hard_constraints.' + key, '不能为负数')
+    if any(not loc.strip() for loc in filters['locations']) or len(set(filters['locations'])) != len(filters['locations']):
+        fail('profile.hard_constraints.locations', '地点 ID 不能为空或重复')
+    attempts = set()
+    for index, attempt in enumerate(previous_attempts):
+        path = f'previous_attempts[{index}]'
+        if not attempt['attempt_id'].strip() or attempt['attempt_id'] in attempts:
+            fail(path + '.attempt_id', '历史轮次 ID 不能为空或重复')
+        if attempt['attempt_id'] == ctx['attempt_id']:
+            raise ContractViolation('STATE_CONFLICT', 'ctx.attempt_id', '本轮必须使用新的 attempt_id')
+        attempts.add(attempt['attempt_id'])
+        if attempt['eligible_count'] < 0 or any(not fp.strip() for fp in attempt['query_fingerprints']):
+            fail(path, '历史计数不能为负数，查询指纹不能为空')
+    if directive is not None and not directive['strategy_changes']:
+        fail('directive.strategy_changes', '补搜需要至少一项明确策略')
+
+
+def validate_plan_result(result, profile, ctx) -> None:
+    """1→2 的完整结果校验，并确保模型不能更改 A 的硬条件。"""
+    try:
+        validate_result_envelope(result, contracts.SearchPlan, ctx)
+        plan = result['data']
+        if plan is None:
+            return
+        validate_plan(plan, ctx)
+        if plan['profile_version'] != profile['version']:
+            fail('result.data.profile_version', '计划与画像版本不一致')
+        if plan['required_filters'] != profile['hard_constraints'] or plan['intent'] != profile['intent']:
+            raise ContractViolation('CONSTRAINT_CHANGE_NOT_ALLOWED', 'result.data.required_filters', '计划不能更改 A 的硬条件或交易意图')
+        if not plan['queries'] or not plan['reason'].strip():
+            fail('result.data', '计划必须包含可执行查询及原因')
+    except ContractViolation as exc:
+        if exc.code == 'CONSTRAINT_CHANGE_NOT_ALLOWED':
+            raise
+        raise ContractViolation('INVALID_OUTPUT', exc.field_path, str(exc)) from exc
+
+
+def validate_result_envelope(result, data_schema, ctx) -> None:
+    if type(result) is not dict or set(result) != {'status', 'data', 'issues', 'meta'}:
+        fail('result', '字段集合与 Result 契约不一致')
+    validate_type(typing.Literal['success', 'partial', 'error'], result['status'], 'result.status')
+    validate_type(data_schema | None, result['data'], 'result.data')
+    validate_type(list[contracts.Issue], result['issues'], 'result.issues')
+    validate_type(contracts.ResultMeta, result['meta'], 'result.meta')
+    if any(result['meta'][k] != ctx[k] for k in ('trace_id', 'call_id')):
+        fail('result.meta', '追踪标识与本次调用不一致')
+    if result['meta']['duration_ms'] < 0:
+        fail('result.meta.duration_ms', '不能为负数')
+    if (result['status'] == 'error') != (result['data'] is None):
+        fail('result.data', 'error 不携带数据；success/partial 必须携带数据')
+    if (result['status'] == 'success') != (not result['issues']):
+        fail('result.issues', 'success 不携带问题，partial/error 必须说明原因')
 
 
 def validate_plan(plan: SearchPlan, ctx: RunContext) -> None:
@@ -146,22 +231,7 @@ def validate_listing(item: Listing) -> None:
 def validate_search_result(result, plan: SearchPlan, ctx: RunContext) -> None:
     """检查给 C 的完整返回值；输出问题统一使用 INVALID_OUTPUT。"""
     try:
-        if type(result) is not dict or set(result) != {'status', 'data', 'issues', 'meta'}:
-            fail('result', '字段集合与 Result 契约不一致')
-        validate_type(typing.Literal['success', 'partial', 'error'], result['status'], 'result.status')
-        validate_type(contracts.SearchResult | None, result['data'], 'result.data')
-        validate_type(list[contracts.Issue], result['issues'], 'result.issues')
-        validate_type(contracts.ResultMeta, result['meta'], 'result.meta')
-        if any(result['meta'][k] != ctx[k] for k in ('trace_id', 'call_id')):
-            fail('result.meta', '追踪标识与本次调用不一致')
-        if result['meta']['duration_ms'] < 0:
-            fail('result.meta.duration_ms', '不能为负数')
-        if (result['status'] == 'error') != (result['data'] is None):
-            fail('result.data', 'error 不携带数据；success/partial 必须携带数据')
-        if result['status'] != 'success' and not result['issues']:
-            fail('result.issues', 'partial/error 必须说明未完成的原因')
-        if result['status'] == 'success' and result['issues']:
-            fail('result.issues', '存在未解决问题时不能返回 success')
+        validate_result_envelope(result, contracts.SearchResult, ctx)
         data = result['data']
         if data is None:
             return

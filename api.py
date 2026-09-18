@@ -5,12 +5,53 @@ from time import monotonic
 
 from dotenv import dotenv_values
 
-from contracts_v0 import ContractViolation, Result, RunContext, SearchPlan, SearchResult
+from contracts_v0 import (
+    AttemptSummary, ContractViolation, QueryFeatures, Result, RunContext,
+    SearchDirective, SearchPlan, SearchResult, UserProfile,
+)
 from graph import SearchService
-from part1.validation import validate_plan
+from part1.validation import validate_plan, validate_planner_input
 from execution.budget import remaining_seconds
 from part45.aggregation import error_result
 from providers.base import ProviderError, issue
+
+
+def create_live_planner_service(*, env_file=None, model=None, settings=None):
+    """构造 1 的独立服务；计划生成不依赖浏览器或 OneMap 凭据。"""
+    from config import create_chat_model, load_model_settings, load_search_plan_settings
+    from dataclasses import replace
+    from part1.planner import SearchPlanner
+    path = Path(env_file) if env_file is not None else Path(__file__).resolve().with_name('.env')
+    model_settings = load_model_settings(path) if model is None else None
+    return SearchPlanner(
+        model=model if model is not None else create_chat_model(replace(
+            model_settings, max_tokens=min(model_settings.max_tokens, 512))),
+        settings=settings if settings is not None else load_search_plan_settings(path),
+        model_timeout_seconds=model_settings.timeout_seconds if model_settings else 60)
+
+
+async def build_search_plan(profile: UserProfile, query: QueryFeatures,
+                            previous_attempts: list[AttemptSummary], directive: SearchDirective | None,
+                            *, ctx: RunContext) -> Result[SearchPlan]:
+    """公开 A→1 接口；只有通过校验的计划才可进入 search。"""
+    from config import ModelConfigurationError
+    started = monotonic()
+    try:
+        validate_planner_input(profile, query, previous_attempts, directive, ctx)
+        remaining_seconds(ctx)
+        result = await create_live_planner_service().build_search_plan(
+            profile, query, previous_attempts, directive, ctx=ctx)
+        result['meta']['duration_ms'] = max(0, int((monotonic() - started) * 1000))
+        return result
+    except ContractViolation as exc:
+        problem = issue(exc.code, str(exc), field_path=exc.field_path, source=None)
+    except ModelConfigurationError as exc:
+        problem = issue('MODEL_UNAVAILABLE', str(exc), source='model')
+    except ProviderError as exc:
+        problem = exc.issue
+    except Exception:
+        problem = issue('INTERNAL_ERROR', '计划服务初始化或调用失败', source=None)
+    return error_result(problem, ctx, started)
 
 
 def create_live_search_service(*, env_file=None, model=None) -> SearchService:

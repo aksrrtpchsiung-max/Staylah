@@ -21,6 +21,34 @@ DEFAULT_MODEL = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
 DEFAULT_ENV_FILE = Path(__file__).resolve().with_name(".env")
 
 
+@dataclass(frozen=True)
+class SearchPlanSettings:
+    """整次 search 的额度；默认和现有真实搜索示例一致。"""
+
+    sources: tuple[str, ...] = ('propertyguru',)
+    page_limit: int = 1
+    candidate_limit: int = 2
+
+    def __post_init__(self):
+        if not self.sources or len(set(self.sources)) != len(self.sources) or any(
+                not isinstance(s, str) or not s.strip() for s in self.sources):
+            raise ValueError('sources 必须包含不重复的已注册来源名称')
+        for name in ('page_limit', 'candidate_limit'):
+            if type(getattr(self, name)) is not int or getattr(self, name) <= 0:
+                raise ValueError(name + ' 必须是正整数')
+
+
+def load_search_plan_settings(env_file=DEFAULT_ENV_FILE) -> SearchPlanSettings:
+    values = dict(dotenv_values(env_file, interpolate=False)) if env_file else {}
+    values.update(os.environ)
+    try:
+        return SearchPlanSettings(
+            page_limit=int(values.get('SEARCH_PAGE_LIMIT') or '1'),
+            candidate_limit=int(values.get('SEARCH_CANDIDATE_LIMIT') or '2'))
+    except (ValueError, TypeError):
+        raise ModelConfigurationError('SEARCH_PAGE_LIMIT 和 SEARCH_CANDIDATE_LIMIT 必须是正整数') from None
+
+
 class ModelConfigurationError(ValueError):
     """本地模型配置缺失或不可用；错误信息不包含密钥。"""
 

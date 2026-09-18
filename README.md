@@ -144,7 +144,7 @@ Provider 和额度对象留在服务/节点闭包中，不放入可序列化图�
 搜索业务子图已经接通：`supervisor → execute → supervisor → aggregate → END`。
 管理层从合法任务中选择一项，执行 3a 的搜索/详情或 3b 的地址定位。
 搜索结束后汇总为契约规定的 `Result[SearchResult]`，不修改 A 给出的硬条件。
-`part1/planner.py` 的计划生成以及 3c/3d 尚不属于本次实现。
+`part1/planner.py` 的计划生成现已接通，见下面的完整联调说明；3c/3d 尚未实现。
 
 ```bash
 .venv/bin/python -m part2.supervisor
@@ -287,3 +287,85 @@ result = await service.search(plan, ctx=ctx)
 唯一问题为 `BUDGET_EXHAUSTED`，并保留 `pg:v1:1:1` 续页游标。
 另对这三套房源在两次真实调用中的观测做合并检查，证据碰撞改名、价格引用与重复合并幂等性均通过。
 这次验收覆盖有候选且额度截断的实际链路；未用虚拟响应伪造空结果或外部服务故障。
+
+详情读取优先使用搜索页返回的完整房源链接。固定加载等待结束后，适配器还会有界等待
+`__NEXT_DATA__` 中的实际详情数据；持续未就绪返回 `TEMPORARY_UNAVAILABLE`，由现有管理层
+在截止时间内最多重试一次。不能读取的数据不会被当成成功详情或虚构地址。
+
+## 1 制定计划与完整联调
+
+`api.build_search_plan(profile, query, previous_attempts, directive, *, ctx)` 现已实现。
+四项业务输入分别来自 A 的 `UserProfile`、`QueryFeatures`、历史 `AttemptSummary` 数组和
+可选的 `SearchDirective`，字段严格遵守 `contracts_v0.py`。
+
+计划模块使用 LangGraph 的 `propose_queries → materialize_plan` 两个节点。真实网关模型
+根据需求选择已有地点/别名的查询表述和顺序；代码复制已确认硬条件、绑定来源、轮次及额度，
+再校验 `Result[SearchPlan]`。模型不生成房源，输入或计划有问题时返回 `error`，不进入搜索。
+画像、查询及补搜指令版本必须一致；本轮 `ctx.attempt_id` 必须非空且不与历史轮次重复。
+未澄清的需求返回 A，计划生成不执行 `prepare_query`，也不保存后续搜索无法读取的私有画像缓存。
+
+```python
+from api import build_search_plan, search
+
+plan_result = await build_search_plan(profile, query, previous_attempts, directive, ctx=plan_ctx)
+if plan_result['status'] == 'success':
+    # 两次 ctx 保持相同 attempt_id、source_mode、trace_id 与 deadline_at，使用不同 call_id。
+    result = await search(plan_result['data'], ctx=search_ctx)
+```
+
+可通过 `.env` 或进程环境配置整次搜索的额度，默认与 `test_search.py` 一致：
+
+```dotenv
+SEARCH_PAGE_LIMIT=1
+SEARCH_CANDIDATE_LIMIT=2
+```
+
+这些不是每个查询的单独额度。增大候选数会增加真实详情、定位和模型调用次数。
+默认 live 服务只注册 `propertyguru`，不凭模型输出注册其他来源。
+复用模型连接时可用 `api.create_live_planner_service()`；独立计划生成不要求 OneMap 或浏览器就绪。
+
+按 `test_search.py` 的风格，`test_all.py` 中列出四组完整输入：
+Tampines 整租、Clementi 单间、Punggol 家庭整租、Bishan 买房。可以直接修改
+`search_input_1` 到 `search_input_4`，每组都包含四项计划输入，而不是手写 `SearchPlan`。
+
+```bash
+.venv/bin/python test_all.py
+# 保存实际输入、生成的计划以及 search 完整返回值：
+.venv/bin/python test_all.py --output /tmp/falcon-test-all-live.json
+# 只运行一组，或只测试计划生成：
+.venv/bin/python test_all.py --case 1
+.venv/bin/python test_all.py --plan-only
+# 模块自己的 __main__ 使用同四组真实计划输入：
+.venv/bin/python -m part1.planner
+```
+
+所有结果都来自实际模型、guru_search 和 OneMap，不注入虚拟房源、坐标或模型回复。
+联调验证计划输出与搜索输入一致、硬条件和输入保持不变、公开输出通过校验，且实际房源包含
+详情及定位证据。额度截断的 `partial` 可以通过联调；来源失败、模型降级和缺少证据不会算通过。
+每组输出 `Result[SearchResult]`，其中房源是交给 C 筛选推荐的候选；本模块不实现 C 的推荐排序，
+也不将未支持的硬条件宣称为已满足。默认执行全部四组，失败退出非零。
+
+2026-09-19 本机实际执行 `test_all.py` 全部四组通过：每组真实生成计划并取得两套房源，
+均包含详情和 OneMap 定位证据；计划原样进入 search，模型没有降级。四组搜索均因两候选额度
+返回 `partial`，唯一问题是 `BUDGET_EXHAUSTED`。另使用真实返回的续页游标，在独立进程验证了
+历史查询恢复，并验证重复的已执行别名返回 `NO_NEW_QUERY`；没有用虚拟响应替代真实调用。
+
+### 历史与补搜
+
+`SearchDirective` 支持保持条件的续页、同一实体别名和已注册来源切换。为了在 v0 的四项输入内
+恢复原查询，`execution.history.query_fingerprint(plan, query)` 返回可还原的 `search:v1:` 字符串，
+供 A 写入 `AttemptSummary.query_fingerprints`。调用方应记录实际执行过的查询及游标，不把尚未
+执行的计划查询当作已执行；`eligible_count` 仍由后续筛选给出，不能拿搜索候选数代替。
+
+```python
+from execution.history import query_fingerprint
+
+# executed_query 来自实际执行记录，cursor 使用该次执行的起始游标。
+fp = query_fingerprint(plan, executed_query)
+# 下一轮 directive 使用 search_result['data']['coverage']['next_pages'] 中的真实游标。
+```
+
+指纹包含查询文本、来源、游标及条件，不包含连接或密钥。续页从传入历史恢复，不依赖内存中的
+旧计划；相同来源、文本和游标不会因更换查询 ID 被重复执行。旧式不含文本的历史指纹仍可用于
+相同 ID 的查重，但无法独立恢复续页，缺信息时明确返回问题给 A。没有可执行新查询返回
+`NO_NEW_QUERY`；来源未注册返回 `SOURCE_UNAVAILABLE`，不会自动放宽条件。

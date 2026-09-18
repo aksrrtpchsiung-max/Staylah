@@ -58,9 +58,9 @@ class GuruSearchProvider:
             codes = (("AUTH_REQUIRED", ("AUTH_REQUIRED", "LOGIN_WALL", "CAPTCHA")),
                      ("RATE_LIMITED", ("RATE_LIMIT", "429")),
                      ("TIMEOUT", ("TIMEOUT", "TIMED OUT")),
+                     ("TEMPORARY_UNAVAILABLE", ("SESSION_BUSY", "TEMPORARY_UNAVAILABLE")),
                      ("PARSE_ERROR", ("PARSE_ERROR", "COULD NOT FIND LISTING", "PAGE DID NOT LOAD")),
                      ("INVALID_INPUT", ("CODE: ARGUMENT", '"CODE": "ARGUMENT"', "INVALID ARGUMENT")),
-                     ("TEMPORARY_UNAVAILABLE", ("SESSION_BUSY",)),
                      ("SOURCE_UNAVAILABLE", ("EXTENSION NOT CONNECTED", "BROWSER BRIDGE", "EXTENSION_NOT_CONNECTED")))
             code = next((code for code, words in codes if any(word in message for word in words)),
                         "SOURCE_UNAVAILABLE")
@@ -159,7 +159,10 @@ class GuruSearchProvider:
             raise ProviderError(issue("PARSE_ERROR", f"搜索结果无法解析：{exc}")) from exc
 
     async def read_detail(self, listing: Listing, *, ctx: RunContext) -> ListingDetail:
-        identifier = listing["source_listing_id"] or listing["source_url"]
+        # 搜索已给出真实详情链接时直接使用，避免再次依赖无 slug 的数字 ID 跳转。
+        url = listing['source_url'] or ''
+        identifier = (url if url.startswith('https://www.propertyguru.com.sg/listing/')
+                      else listing['source_listing_id'])
         if not identifier:
             raise ProviderError(issue("INVALID_INPUT", "房源缺少来源 ID 和链接"))
         payload = await self._call(["detail", identifier, "--output-mode", "structured"], ctx)

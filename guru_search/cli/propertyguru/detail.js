@@ -32,6 +32,22 @@ cli({
     await page.goto(url, { settleMs: 2000 });
     await page.wait(2);
 
+    // Some detail responses expose their embedded payload later than the fixed settle time.
+    // Wait for the actual payload; never turn an unloaded page into an empty successful detail.
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const ready = await page.evaluate(() => {
+        const embedded = document.getElementById('__NEXT_DATA__')?.textContent;
+        try {
+          const data = embedded ? JSON.parse(embedded) : window.__NEXT_DATA__;
+          return Boolean(data?.props?.pageProps?.pageData?.data);
+        } catch {
+          return false;
+        }
+      });
+      if (ready || attempt === 3) break;
+      await page.wait(1);
+    }
+
     const data = await page.evaluate(() => {
       try {
         if (/verify (?:that )?you are human|complete the captcha|checking your browser/i.test(document.body?.innerText || '')) {
@@ -40,7 +56,7 @@ cli({
         const embedded = document.getElementById('__NEXT_DATA__')?.textContent;
         const nextData = embedded ? JSON.parse(embedded) : window.__NEXT_DATA__;
         const d = nextData?.props?.pageProps?.pageData?.data;
-        if (!d) return { error: 'page did not load properly' };
+        if (!d) return { error: 'TEMPORARY_UNAVAILABLE: detail page data not ready' };
 
         const desc = d.descriptionBlockData;
         const details = d.detailsData;
