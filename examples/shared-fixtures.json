@@ -1,51 +1,111 @@
 {
   "profile_empty": {
     "profile_id": "profile-001",
+    "user_id": "user-001",
+    "conversation_id": "thread-001",
     "version": 0,
+    "confirmed_version": null,
+    "status": "draft",
     "intent": null,
-    "hard_constraints": {
-      "currency": "SGD",
-      "max_price": null,
-      "price_period": null,
-      "rental_scope": null,
-      "locations": [],
-      "min_bedrooms": null
-    },
-    "preferences": [],
+    "user_context": [],
+    "listing_constraints": [],
+    "derived_data_requirements": [],
+    "open_data_requirements": [],
     "unresolved": [
       "intent",
-      "hard_constraints.max_price",
-      "hard_constraints.price_period",
-      "hard_constraints.rental_scope",
-      "hard_constraints.locations"
+      "listing_constraints.price.amount",
+      "listing_constraints.attributes.listing_scope",
+      "derived_data_requirements.location"
     ],
-    "field_sources": {}
+    "field_sources": {},
+    "created_at": "2026-09-09T10:00:00+08:00",
+    "updated_at": "2026-09-09T10:00:00+08:00",
+    "last_user_message_at": "2026-09-09T10:00:00+08:00",
+    "confirmed_at": null
   },
   "profile_ready": {
     "profile_id": "profile-001",
+    "user_id": "user-001",
+    "conversation_id": "thread-001",
     "version": 1,
+    "confirmed_version": 1,
+    "status": "confirmed",
     "intent": "rent",
-    "hard_constraints": {
-      "currency": "SGD",
-      "max_price": 3500,
-      "price_period": "month",
-      "rental_scope": "whole_unit",
-      "locations": [
-        "TAMPINES"
-      ],
-      "min_bedrooms": 2
-    },
-    "preferences": [],
+    "user_context": [],
+    "listing_constraints": [
+      {
+        "constraint_id": "constraint-price",
+        "field_path": "price.amount",
+        "operator": "lte",
+        "value": 3500,
+        "strength": "hard",
+        "priority": "high",
+        "source": {
+          "message_id": "msg-001",
+          "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+          "start": 0,
+          "end": 31
+        }
+      },
+      {
+        "constraint_id": "constraint-scope",
+        "field_path": "attributes.listing_scope",
+        "operator": "eq",
+        "value": "whole_unit",
+        "strength": "hard",
+        "priority": "high",
+        "source": {
+          "message_id": "msg-001",
+          "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+          "start": 0,
+          "end": 31
+        }
+      },
+      {
+        "constraint_id": "constraint-bedrooms",
+        "field_path": "bedrooms",
+        "operator": "gte",
+        "value": 2,
+        "strength": "hard",
+        "priority": "high",
+        "source": {
+          "message_id": "msg-001",
+          "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+          "start": 0,
+          "end": 31
+        }
+      }
+    ],
+    "derived_data_requirements": [
+      {
+        "requirement_id": "requirement-location",
+        "category": "accessibility",
+        "target": "淡滨尼",
+        "metric": "residential_area",
+        "operator": "eq",
+        "value": true,
+        "unit": null,
+        "strength": "hard",
+        "priority": "high",
+        "source": {
+          "message_id": "msg-001",
+          "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+          "start": 0,
+          "end": 31
+        }
+      }
+    ],
+    "open_data_requirements": [],
     "unresolved": [],
     "field_sources": {
       "intent": "msg-001",
-      "hard_constraints.currency": "msg-001",
-      "hard_constraints.max_price": "msg-001",
-      "hard_constraints.price_period": "msg-001",
-      "hard_constraints.rental_scope": "msg-001",
-      "hard_constraints.locations": "msg-001",
-      "hard_constraints.min_bedrooms": "msg-001"
-    }
+      "listing_constraints": "msg-001",
+      "derived_data_requirements": "msg-001"
+    },
+    "created_at": "2026-09-09T10:00:00+08:00",
+    "updated_at": "2026-09-09T10:00:00+08:00",
+    "last_user_message_at": "2026-09-09T10:00:00+08:00",
+    "confirmed_at": "2026-09-09T10:00:00+08:00"
   },
   "query": {
     "profile_version": 1,

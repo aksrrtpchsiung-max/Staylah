@@ -4,6 +4,37 @@
 `listing + hdb_detail/condo_detail/landed_detail`，B 在返回 `SearchResult` 前将查询结果
 转换为 `contracts_v0.Listing`；C 只依赖 contract，不直接依赖数据库子表。
 
+## A：conversation 画像与用户确认
+
+- 原 `UserProfile` 更名为 `ConversationProfile`。一条 conversation 只有一个 profile；
+  `user_id` 仅用于归属和权限，不代表跨 conversation 的长期用户画像。
+- LLM 每轮先生成 `ProfileChange`，由确定性服务合并为 draft profile；LLM 不直接覆盖
+  已确认版本。
+- 用户需求分为三组：
+  - `user_context`：人数、是否有孩子、工作地点等本轮找房背景；
+  - `listing_constraints`：针对允许查询的 Listing 字段的条件；
+  - `derived_data_requirements`：通勤、学校、环境、可达性等需要 B 取数或计算的数据。
+- A 必须通过 `RequirementConfirmation` 让用户确认。只有
+  `confirmed_version == version` 的 profile 才能创建 `RequirementRequest` 交给 B。
+- 用户修订条件会产生新的 draft version，必须重新确认。
+
+## A 到 B：唯一公开边界
+
+- A 只调用 `fulfill_requirements(request, ctx)`，不向 B 提供 SQL、CLI 命令、Provider、
+  `QueryFeatures` 或 `SearchPlan`。
+- `RequirementRequest` 只包含已确认的意图、用户背景、Listing 条件、派生数据需求和
+  非阻塞开放需求。
+- 无法映射到已知字段或派生类别的条件进入 `open_data_requirements`，固定使用
+  `handling="best_effort"`。它只能用于补充验证或排序，不能阻塞 B 返回核心条件已匹配的房源。
+- B 通过 `RequirementFulfillment` 返回已完成、部分完成或需要澄清，并报告每条派生需求
+  是 fulfilled、unsupported 还是 unverified。
+- B 无法处理开放需求时，将其 ID 写入 `skipped_best_effort_requirement_ids`。这不会单独把
+  `status` 降为 `partial`，也不能把已有房源结果改成“没有符合要求的房源”。
+- `completed` 表示核心检索已完成，可以同时包含被跳过的开放需求；`partial` 只用于核心
+  检索或受支持派生需求未完整执行；`needs_clarification` 只用于缺少会阻断核心检索的信息。
+- B 需要澄清时只返回结构化 `Clarification`；由 A 负责继续与用户对话。
+- `prepare_query`、`build_search_plan` 和 `search` 保留为 B 的内部 contract，不是 A 需要构造的对象。
+
 ## B：数据获取与检索
 
 ### 需要修改的输出

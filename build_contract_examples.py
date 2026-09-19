@@ -22,15 +22,34 @@ CTX = dict(user_id='user-001', run_id='run-001', conversation_id='thread-001',
 POLICY = dict(min_matches=3, display_limit=10, max_search_attempts=3, max_repairs=1)
 HC = dict(currency='SGD', max_price=3500, price_period='month',
           rental_scope='whole_unit', locations=['TAMPINES'], min_bedrooms=2)
-P1 = dict(profile_id='profile-001', version=1, intent='rent', hard_constraints=HC,
-          preferences=[], unresolved=[], field_sources={
-              p: 'msg-001' for p in ['intent'] + ['hard_constraints.' + k for k in HC]})
+SRC = dict(message_id='msg-001', text='整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。',
+           start=0, end=31)
+LISTING_CONSTRAINTS = [
+    dict(constraint_id='constraint-price', field_path='price.amount', operator='lte',
+         value=3500, strength='hard', priority='high', source=SRC),
+    dict(constraint_id='constraint-scope', field_path='attributes.listing_scope', operator='eq',
+         value='whole_unit', strength='hard', priority='high', source=SRC),
+    dict(constraint_id='constraint-bedrooms', field_path='bedrooms', operator='gte',
+         value=2, strength='hard', priority='high', source=SRC),
+]
+DERIVED_REQUIREMENTS = [dict(requirement_id='requirement-location', category='accessibility',
+    target='淡滨尼', metric='residential_area', operator='eq', value=True, unit=None,
+    strength='hard', priority='high', source=SRC)]
+P1 = dict(profile_id='profile-001', user_id='user-001', conversation_id='thread-001',
+          version=1, confirmed_version=1, status='confirmed', intent='rent', user_context=[],
+          listing_constraints=LISTING_CONSTRAINTS,
+          derived_data_requirements=DERIVED_REQUIREMENTS, open_data_requirements=[],
+          unresolved=[], field_sources={
+              'intent': 'msg-001', 'listing_constraints': 'msg-001',
+              'derived_data_requirements': 'msg-001'}, created_at=NOW, updated_at=NOW,
+          last_user_message_at=NOW, confirmed_at=NOW)
 P0 = D(P1)
-P0.update(version=0, intent=None, field_sources={}, unresolved=[
-    'intent', 'hard_constraints.max_price', 'hard_constraints.price_period',
-    'hard_constraints.rental_scope', 'hard_constraints.locations'])
-P0['hard_constraints'].update(max_price=None, price_period=None, rental_scope=None,
-                              locations=[], min_bedrooms=None)
+P0.update(version=0, confirmed_version=None, status='draft', intent=None,
+          user_context=[], listing_constraints=[], derived_data_requirements=[],
+          open_data_requirements=[],
+          field_sources={}, unresolved=['intent', 'listing_constraints.price.amount',
+          'listing_constraints.attributes.listing_scope', 'derived_data_requirements.location'],
+          confirmed_at=None)
 QUERY = dict(profile_version=1, entities=[dict(type='location', raw_text='淡滨尼',
     canonical_id='TAMPINES', aliases=['Tampines', '淡滨尼'])],
     semantic_query='Tampines 整套出租 月租不超过 SGD 3500 至少两个卧室', unresolved=[])
@@ -133,7 +152,7 @@ PASS = dict(passed=True, issues=[])
 DIRECTIVE = dict(reason_code='insufficient_candidates', strategy_changes=[dict(
     kind='next_page', query_id='q-001', cursor='page-2')], base_profile_version=1,
     evidence_listing_keys=['L1', 'L2'])
-PROPOSAL = dict(proposal_id='proposal-001', field='hard_constraints.max_price',
+PROPOSAL = dict(proposal_id='proposal-001', field='listing_constraints.price.amount',
     old_value=3500, proposed_value=3600,
     reason='本次被排除的 L3 月租 3501；提高到 3600 可能扩大本轮匹配，仍需重新查询。',
     evidence_listing_keys=['L3'], requires_user_confirmation=True)
@@ -168,26 +187,71 @@ def add(id, fn, category, inputs, output=None, raises=None, dependency=None, che
         assertions=checks or [])))
 
 
-patch = [dict(field='intent', value='rent', source_message_id='msg-001')] + [
-    dict(field='hard_constraints.' + k, value=v, source_message_id='msg-001') for k, v in HC.items()]
-OB = dict(base_profile_version=0, profile_patch=patch, missing_required_fields=[], questions=[], ready_for_search=True)
+patch = [
+    dict(operation='set', field='intent', value='rent', source_message_id='msg-001'),
+    dict(operation='set', field='listing_constraints', value=LISTING_CONSTRAINTS,
+         source_message_id='msg-001'),
+    dict(operation='set', field='derived_data_requirements', value=DERIVED_REQUIREMENTS,
+         source_message_id='msg-001'),
+]
+DRAFT = D(P1)
+DRAFT.update(confirmed_version=None, status='pending_confirmation', confirmed_at=None)
+CONFIRMATION = dict(confirmation_id='confirm-profile-001-v1', profile_id='profile-001',
+                    profile_version=1,
+                    summary='整套租房；月租最多 SGD 3500；淡滨尼；至少两个卧室。',
+                    status='pending')
+OB = dict(base_profile_version=0, profile_patch=patch, draft_profile=DRAFT,
+          missing_required_fields=[], questions=[], confirmation=CONFIRMATION,
+          next_action='ask_confirmation')
 ob_inputs = dict(request=dict(message_id='msg-001', text='整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。'),
                  profile=P0, messages=[], ctx=CTX)
 add('onboard.normal', 'onboard', 'normal', ob_inputs, ok(OB), checks=['不修改输入 profile；由 ProfileService 提交 patch 后 version 从 0 变为 1。'])
 inp, out = D(ob_inputs), D(OB)
 inp['request']['text'] = '整套租房，按 SGD 月租找淡滨尼，至少两个卧室，预算还没确定。'
-out['profile_patch'] = [x for x in out['profile_patch'] if x['field'] != 'hard_constraints.max_price']
-out.update(missing_required_fields=['hard_constraints.max_price'],
-    questions=[dict(field='hard_constraints.max_price', text='你的月租预算上限是多少 SGD？')], ready_for_search=False)
+out['profile_patch'][1]['value'] = [x for x in LISTING_CONSTRAINTS if x['field_path'] != 'price.amount']
+out['draft_profile']['listing_constraints'] = D(out['profile_patch'][1]['value'])
+out['draft_profile']['status'] = 'draft'
+out['draft_profile']['unresolved'] = ['listing_constraints.price.amount']
+out.update(missing_required_fields=['listing_constraints.price.amount'],
+    questions=[dict(field='listing_constraints.price.amount', text='你的月租预算范围是多少 SGD？')],
+    confirmation=None, next_action='ask_clarification')
 add('onboard.boundary', 'onboard', 'boundary', inp, ok(out), checks=['缺失预算是正常澄清结果，不是 error。'])
 inp = D(ob_inputs); inp['request']['text'] = '   '
 add('onboard.error', 'onboard', 'error', inp, error('INVALID_INPUT', 'request.text'))
 
+confirm_reply = dict(confirmation_id='confirm-profile-001-v1', message_id='msg-002',
+                     action='confirm', text=None)
+confirm_out = dict(profile=P1, ready_for_handoff=True, confirmation=None, questions=[])
+add('confirm_requirements.normal', 'confirm_requirements', 'normal',
+    dict(reply=confirm_reply, profile=DRAFT, ctx=CTX), ok(confirm_out),
+    checks=['只有与当前 draft version 匹配的确认才能产生 ready_for_handoff=true。'])
+correction_reply = dict(confirmation_id='confirm-profile-001-v1', message_id='msg-002',
+                        action='correct', text='预算改成最多 SGD 3000。')
+corrected = D(DRAFT)
+corrected.update(version=2, status='pending_confirmation', updated_at=NOW,
+                 last_user_message_at=NOW)
+corrected['listing_constraints'][0]['value'] = 3000
+confirmation2 = dict(confirmation_id='confirm-profile-001-v2', profile_id='profile-001',
+                     profile_version=2,
+                     summary='整套租房；月租最多 SGD 3000；淡滨尼；至少两个卧室。',
+                     status='pending')
+correction_out = dict(profile=corrected, ready_for_handoff=False,
+                      confirmation=confirmation2, questions=[])
+add('confirm_requirements.boundary', 'confirm_requirements', 'boundary',
+    dict(reply=correction_reply, profile=DRAFT, ctx=CTX), ok(correction_out),
+    checks=['用户修订产生新 draft version，必须再次确认，不能直接交给 B。'])
+stale_reply = D(confirm_reply); stale_reply['confirmation_id'] = 'confirm-profile-001-v0'
+add('confirm_requirements.error', 'confirm_requirements', 'error',
+    dict(reply=stale_reply, profile=DRAFT, ctx=CTX),
+    error('STATE_CONFLICT', 'reply.confirmation_id'))
+
 add('prepare_query.normal', 'prepare_query', 'normal', dict(profile=P1, ctx=CTX), ok(QUERY))
-amb = D(P1); amb['hard_constraints']['locations'] = []; amb['unresolved'] = ['hard_constraints.locations:裕廊的具体范围']
+amb = D(P1)
+amb['derived_data_requirements'][0]['target'] = '裕廊'
+amb['unresolved'] = ['derived_data_requirements.location:裕廊的具体范围']
 qamb = D(QUERY); qamb.update(entities=[dict(type='location', raw_text='裕廊', canonical_id=None, aliases=[])],
     semantic_query='裕廊 整套出租 月租不超过 SGD 3500 至少两个卧室',
-    unresolved=[dict(field='hard_constraints.locations', text='裕廊指裕廊东、裕廊西，还是两者都可以？')])
+    unresolved=[dict(field='derived_data_requirements.location', text='裕廊指裕廊东、裕廊西，还是两者都可以？')])
 add('prepare_query.boundary', 'prepare_query', 'boundary', dict(profile=amb, ctx=CTX), ok(qamb),
     checks=['本例词表返回两个候选；不能虚构唯一地点 ID，不进入计划生成。'])
 badp = D(P1); badp['version'] = -1
@@ -206,6 +270,44 @@ inp = D(plan_inputs); inp['query']['profile_version'] = 0
 add('build_search_plan.error', 'build_search_plan', 'error', inp, error('STATE_CONFLICT', 'query.profile_version'))
 
 search_out = dict(plan_id='plan-001', profile_version=1, items=ALL, coverage=COVERAGE)
+REQ_REQUEST = dict(request_id='requirement-request-001', schema_version='0.3-draft',
+    conversation_id='thread-001', profile_id='profile-001', profile_version=1,
+    intent='rent', user_context=[], listing_constraints=LISTING_CONSTRAINTS,
+    derived_data_requirements=DERIVED_REQUIREMENTS, open_data_requirements=[],
+    unresolved_fields=[], confirmed_at=NOW)
+REQ_COVERAGE = dict(fulfilled_requirement_ids=['requirement-location'],
+                    unsupported_requirement_ids=[], unverified_requirement_ids=[],
+                    skipped_best_effort_requirement_ids=[])
+fulfillment = dict(request_id='requirement-request-001', profile_version=1,
+                   status='completed', search_result=search_out,
+                   coverage=REQ_COVERAGE, clarification_questions=[])
+add('fulfill_requirements.normal', 'fulfill_requirements', 'normal',
+    dict(request=REQ_REQUEST, ctx=CTX), ok(fulfillment),
+    checks=['A 只提交已确认的数据需求；B 在内部决定 provider 与 SearchPlan。'])
+needs_detail = D(fulfillment)
+needs_detail.update(status='needs_clarification', search_result=None,
+                    clarification_questions=[dict(field='derived_data_requirements[0].value',
+                        text='可接受的最长通勤时间是多少分钟？')])
+needs_detail['coverage'].update(fulfilled_requirement_ids=[],
+                                unverified_requirement_ids=['requirement-location'])
+add('fulfill_requirements.boundary', 'fulfill_requirements', 'boundary',
+    dict(request=REQ_REQUEST, ctx=CTX), ok(needs_detail),
+    checks=['B 只返回结构化澄清请求，由 A 负责与用户对话。'])
+best_effort_request = D(REQ_REQUEST)
+best_effort_request['open_data_requirements'] = [dict(
+    requirement_id='requirement-open-tennis', description='附近有网球场',
+    handling='best_effort', strength='soft', priority='medium', source=SRC)]
+best_effort_fulfillment = D(fulfillment)
+best_effort_fulfillment['coverage']['skipped_best_effort_requirement_ids'] = [
+    'requirement-open-tennis']
+add('fulfill_requirements.best_effort_skipped', 'fulfill_requirements', 'boundary',
+    dict(request=best_effort_request, ctx=CTX), ok(best_effort_fulfillment),
+    checks=['跳过无法处理的开放需求不改变 completed 状态，不阻止返回已匹配房源。'])
+unconfirmed_request = D(REQ_REQUEST); unconfirmed_request['profile_version'] = 0
+add('fulfill_requirements.error', 'fulfill_requirements', 'error',
+    dict(request=unconfirmed_request, ctx=CTX),
+    error('INVALID_STATE', 'request.profile_version'))
+
 add('search.normal', 'search', 'normal', dict(plan=PLAN, ctx=CTX), ok(search_out),
     dependency=dict(provider_responses={'demo_a': dict(status='success', items=ALL+[D(L1)], has_more=False)}),
     checks=['相同来源、相同 listing_key 的重复 L1 只返回一次。'])
@@ -305,6 +407,8 @@ add('decide_next.declined', 'decide_next', 'boundary', dict(state=st,policy=POLI
 def check_type(tp, value, path='value', bindings=None):
     """检查本契约所用类型；不替代金额范围、证据语义等业务校验。"""
     bindings = bindings or {}
+    if isinstance(tp, str):
+        tp = eval(tp, vars(contracts))
     if isinstance(tp, typing.TypeVar):
         return check_type(bindings[tp], value, path, bindings)
     if isinstance(tp, typing.ForwardRef):
@@ -368,13 +472,14 @@ if __name__ == '__main__':
     validate()
     dest = ROOT / 'examples' / 'function-contract-cases.json'
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(json.dumps(dict(schema_version='0.1-draft',
+    dest.write_text(json.dumps(dict(schema_version='0.3-draft',
         note='全部为虚构示例，函数未实现；每例独立，输入已完全展开。模型文字/分数不是固定验收答案。',
         cases=CASES),ensure_ascii=False,indent=2)+'\n')
     fixture_dest = ROOT / 'examples' / 'shared-fixtures.json'
     fixture_dest.write_text(json.dumps(dict(profile_empty=P0,profile_ready=P1,query=QUERY,
         listings=ALL,screen_result=SCREEN,retrieval_result=RETRIEVAL,snapshot=SNAPSHOT,
         evaluation=EVALUATION,policy=POLICY),ensure_ascii=False,indent=2)+'\n')
-    print(f'已验证 {len(CASES)} 个示例的签名绑定、类型结构、返回封装和 9 个函数的三类覆盖。')
+    function_count = len({case['function'] for case in CASES})
+    print(f'已验证 {len(CASES)} 个示例的签名绑定、类型结构、返回封装和 {function_count} 个函数的三类覆盖。')
     print('业务函数未执行；金额范围、模型质量、真实来源与恢复行为尚未测试。')
     print(dest)

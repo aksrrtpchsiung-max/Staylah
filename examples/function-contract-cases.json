@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.1-draft",
+  "schema_version": "0.3-draft",
   "note": "全部为虚构示例，函数未实现；每例独立，输入已完全展开。模型文字/分数不是固定验收答案。",
   "cases": [
     {
@@ -13,25 +13,27 @@
         },
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 0,
+          "confirmed_version": null,
+          "status": "draft",
           "intent": null,
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": null,
-            "price_period": null,
-            "rental_scope": null,
-            "locations": [],
-            "min_bedrooms": null
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [],
+          "derived_data_requirements": [],
+          "open_data_requirements": [],
           "unresolved": [
             "intent",
-            "hard_constraints.max_price",
-            "hard_constraints.price_period",
-            "hard_constraints.rental_scope",
-            "hard_constraints.locations"
+            "listing_constraints.price.amount",
+            "listing_constraints.attributes.listing_scope",
+            "derived_data_requirements.location"
           ],
-          "field_sources": {}
+          "field_sources": {},
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": null
         },
         "messages": [],
         "ctx": {
@@ -53,46 +55,179 @@
             "base_profile_version": 0,
             "profile_patch": [
               {
+                "operation": "set",
                 "field": "intent",
                 "value": "rent",
                 "source_message_id": "msg-001"
               },
               {
-                "field": "hard_constraints.currency",
-                "value": "SGD",
-                "source_message_id": "msg-001"
-              },
-              {
-                "field": "hard_constraints.max_price",
-                "value": 3500,
-                "source_message_id": "msg-001"
-              },
-              {
-                "field": "hard_constraints.price_period",
-                "value": "month",
-                "source_message_id": "msg-001"
-              },
-              {
-                "field": "hard_constraints.rental_scope",
-                "value": "whole_unit",
-                "source_message_id": "msg-001"
-              },
-              {
-                "field": "hard_constraints.locations",
+                "operation": "set",
+                "field": "listing_constraints",
                 "value": [
-                  "TAMPINES"
+                  {
+                    "constraint_id": "constraint-price",
+                    "field_path": "price.amount",
+                    "operator": "lte",
+                    "value": 3500,
+                    "strength": "hard",
+                    "priority": "high",
+                    "source": {
+                      "message_id": "msg-001",
+                      "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                      "start": 0,
+                      "end": 31
+                    }
+                  },
+                  {
+                    "constraint_id": "constraint-scope",
+                    "field_path": "attributes.listing_scope",
+                    "operator": "eq",
+                    "value": "whole_unit",
+                    "strength": "hard",
+                    "priority": "high",
+                    "source": {
+                      "message_id": "msg-001",
+                      "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                      "start": 0,
+                      "end": 31
+                    }
+                  },
+                  {
+                    "constraint_id": "constraint-bedrooms",
+                    "field_path": "bedrooms",
+                    "operator": "gte",
+                    "value": 2,
+                    "strength": "hard",
+                    "priority": "high",
+                    "source": {
+                      "message_id": "msg-001",
+                      "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                      "start": 0,
+                      "end": 31
+                    }
+                  }
                 ],
                 "source_message_id": "msg-001"
               },
               {
-                "field": "hard_constraints.min_bedrooms",
-                "value": 2,
+                "operation": "set",
+                "field": "derived_data_requirements",
+                "value": [
+                  {
+                    "requirement_id": "requirement-location",
+                    "category": "accessibility",
+                    "target": "淡滨尼",
+                    "metric": "residential_area",
+                    "operator": "eq",
+                    "value": true,
+                    "unit": null,
+                    "strength": "hard",
+                    "priority": "high",
+                    "source": {
+                      "message_id": "msg-001",
+                      "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                      "start": 0,
+                      "end": 31
+                    }
+                  }
+                ],
                 "source_message_id": "msg-001"
               }
             ],
+            "draft_profile": {
+              "profile_id": "profile-001",
+              "user_id": "user-001",
+              "conversation_id": "thread-001",
+              "version": 1,
+              "confirmed_version": null,
+              "status": "pending_confirmation",
+              "intent": "rent",
+              "user_context": [],
+              "listing_constraints": [
+                {
+                  "constraint_id": "constraint-price",
+                  "field_path": "price.amount",
+                  "operator": "lte",
+                  "value": 3500,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                },
+                {
+                  "constraint_id": "constraint-scope",
+                  "field_path": "attributes.listing_scope",
+                  "operator": "eq",
+                  "value": "whole_unit",
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                },
+                {
+                  "constraint_id": "constraint-bedrooms",
+                  "field_path": "bedrooms",
+                  "operator": "gte",
+                  "value": 2,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                }
+              ],
+              "derived_data_requirements": [
+                {
+                  "requirement_id": "requirement-location",
+                  "category": "accessibility",
+                  "target": "淡滨尼",
+                  "metric": "residential_area",
+                  "operator": "eq",
+                  "value": true,
+                  "unit": null,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                }
+              ],
+              "open_data_requirements": [],
+              "unresolved": [],
+              "field_sources": {
+                "intent": "msg-001",
+                "listing_constraints": "msg-001",
+                "derived_data_requirements": "msg-001"
+              },
+              "created_at": "2026-09-09T10:00:00+08:00",
+              "updated_at": "2026-09-09T10:00:00+08:00",
+              "last_user_message_at": "2026-09-09T10:00:00+08:00",
+              "confirmed_at": null
+            },
             "missing_required_fields": [],
             "questions": [],
-            "ready_for_search": true
+            "confirmation": {
+              "confirmation_id": "confirm-profile-001-v1",
+              "profile_id": "profile-001",
+              "profile_version": 1,
+              "summary": "整套租房；月租最多 SGD 3500；淡滨尼；至少两个卧室。",
+              "status": "pending"
+            },
+            "next_action": "ask_confirmation"
           },
           "issues": [],
           "meta": {
@@ -117,25 +252,27 @@
         },
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 0,
+          "confirmed_version": null,
+          "status": "draft",
           "intent": null,
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": null,
-            "price_period": null,
-            "rental_scope": null,
-            "locations": [],
-            "min_bedrooms": null
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [],
+          "derived_data_requirements": [],
+          "open_data_requirements": [],
           "unresolved": [
             "intent",
-            "hard_constraints.max_price",
-            "hard_constraints.price_period",
-            "hard_constraints.rental_scope",
-            "hard_constraints.locations"
+            "listing_constraints.price.amount",
+            "listing_constraints.attributes.listing_scope",
+            "derived_data_requirements.location"
           ],
-          "field_sources": {}
+          "field_sources": {},
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": null
         },
         "messages": [],
         "ctx": {
@@ -157,48 +294,154 @@
             "base_profile_version": 0,
             "profile_patch": [
               {
+                "operation": "set",
                 "field": "intent",
                 "value": "rent",
                 "source_message_id": "msg-001"
               },
               {
-                "field": "hard_constraints.currency",
-                "value": "SGD",
-                "source_message_id": "msg-001"
-              },
-              {
-                "field": "hard_constraints.price_period",
-                "value": "month",
-                "source_message_id": "msg-001"
-              },
-              {
-                "field": "hard_constraints.rental_scope",
-                "value": "whole_unit",
-                "source_message_id": "msg-001"
-              },
-              {
-                "field": "hard_constraints.locations",
+                "operation": "set",
+                "field": "listing_constraints",
                 "value": [
-                  "TAMPINES"
+                  {
+                    "constraint_id": "constraint-scope",
+                    "field_path": "attributes.listing_scope",
+                    "operator": "eq",
+                    "value": "whole_unit",
+                    "strength": "hard",
+                    "priority": "high",
+                    "source": {
+                      "message_id": "msg-001",
+                      "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                      "start": 0,
+                      "end": 31
+                    }
+                  },
+                  {
+                    "constraint_id": "constraint-bedrooms",
+                    "field_path": "bedrooms",
+                    "operator": "gte",
+                    "value": 2,
+                    "strength": "hard",
+                    "priority": "high",
+                    "source": {
+                      "message_id": "msg-001",
+                      "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                      "start": 0,
+                      "end": 31
+                    }
+                  }
                 ],
                 "source_message_id": "msg-001"
               },
               {
-                "field": "hard_constraints.min_bedrooms",
-                "value": 2,
+                "operation": "set",
+                "field": "derived_data_requirements",
+                "value": [
+                  {
+                    "requirement_id": "requirement-location",
+                    "category": "accessibility",
+                    "target": "淡滨尼",
+                    "metric": "residential_area",
+                    "operator": "eq",
+                    "value": true,
+                    "unit": null,
+                    "strength": "hard",
+                    "priority": "high",
+                    "source": {
+                      "message_id": "msg-001",
+                      "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                      "start": 0,
+                      "end": 31
+                    }
+                  }
+                ],
                 "source_message_id": "msg-001"
               }
             ],
+            "draft_profile": {
+              "profile_id": "profile-001",
+              "user_id": "user-001",
+              "conversation_id": "thread-001",
+              "version": 1,
+              "confirmed_version": null,
+              "status": "draft",
+              "intent": "rent",
+              "user_context": [],
+              "listing_constraints": [
+                {
+                  "constraint_id": "constraint-scope",
+                  "field_path": "attributes.listing_scope",
+                  "operator": "eq",
+                  "value": "whole_unit",
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                },
+                {
+                  "constraint_id": "constraint-bedrooms",
+                  "field_path": "bedrooms",
+                  "operator": "gte",
+                  "value": 2,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                }
+              ],
+              "derived_data_requirements": [
+                {
+                  "requirement_id": "requirement-location",
+                  "category": "accessibility",
+                  "target": "淡滨尼",
+                  "metric": "residential_area",
+                  "operator": "eq",
+                  "value": true,
+                  "unit": null,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                }
+              ],
+              "open_data_requirements": [],
+              "unresolved": [
+                "listing_constraints.price.amount"
+              ],
+              "field_sources": {
+                "intent": "msg-001",
+                "listing_constraints": "msg-001",
+                "derived_data_requirements": "msg-001"
+              },
+              "created_at": "2026-09-09T10:00:00+08:00",
+              "updated_at": "2026-09-09T10:00:00+08:00",
+              "last_user_message_at": "2026-09-09T10:00:00+08:00",
+              "confirmed_at": null
+            },
             "missing_required_fields": [
-              "hard_constraints.max_price"
+              "listing_constraints.price.amount"
             ],
             "questions": [
               {
-                "field": "hard_constraints.max_price",
-                "text": "你的月租预算上限是多少 SGD？"
+                "field": "listing_constraints.price.amount",
+                "text": "你的月租预算范围是多少 SGD？"
               }
             ],
-            "ready_for_search": false
+            "confirmation": null,
+            "next_action": "ask_clarification"
           },
           "issues": [],
           "meta": {
@@ -223,25 +466,27 @@
         },
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 0,
+          "confirmed_version": null,
+          "status": "draft",
           "intent": null,
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": null,
-            "price_period": null,
-            "rental_scope": null,
-            "locations": [],
-            "min_bedrooms": null
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [],
+          "derived_data_requirements": [],
+          "open_data_requirements": [],
           "unresolved": [
             "intent",
-            "hard_constraints.max_price",
-            "hard_constraints.price_period",
-            "hard_constraints.rental_scope",
-            "hard_constraints.locations"
+            "listing_constraints.price.amount",
+            "listing_constraints.attributes.listing_scope",
+            "derived_data_requirements.location"
           ],
-          "field_sources": {}
+          "field_sources": {},
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": null
         },
         "messages": [],
         "ctx": {
@@ -280,35 +525,651 @@
       "assertions": []
     },
     {
+      "id": "confirm_requirements.normal",
+      "function": "confirm_requirements",
+      "category": "normal",
+      "input": {
+        "reply": {
+          "confirmation_id": "confirm-profile-001-v1",
+          "message_id": "msg-002",
+          "action": "confirm",
+          "text": null
+        },
+        "profile": {
+          "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
+          "version": 1,
+          "confirmed_version": null,
+          "status": "pending_confirmation",
+          "intent": "rent",
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
+          "unresolved": [],
+          "field_sources": {
+            "intent": "msg-001",
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": null
+        },
+        "ctx": {
+          "user_id": "user-001",
+          "run_id": "run-001",
+          "conversation_id": "thread-001",
+          "attempt_id": "attempt-001",
+          "trace_id": "trace-001",
+          "call_id": "call-001",
+          "deadline_at": "2026-09-09T10:02:00+08:00",
+          "source_mode": "mock"
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "status": "success",
+          "data": {
+            "profile": {
+              "profile_id": "profile-001",
+              "user_id": "user-001",
+              "conversation_id": "thread-001",
+              "version": 1,
+              "confirmed_version": 1,
+              "status": "confirmed",
+              "intent": "rent",
+              "user_context": [],
+              "listing_constraints": [
+                {
+                  "constraint_id": "constraint-price",
+                  "field_path": "price.amount",
+                  "operator": "lte",
+                  "value": 3500,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                },
+                {
+                  "constraint_id": "constraint-scope",
+                  "field_path": "attributes.listing_scope",
+                  "operator": "eq",
+                  "value": "whole_unit",
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                },
+                {
+                  "constraint_id": "constraint-bedrooms",
+                  "field_path": "bedrooms",
+                  "operator": "gte",
+                  "value": 2,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                }
+              ],
+              "derived_data_requirements": [
+                {
+                  "requirement_id": "requirement-location",
+                  "category": "accessibility",
+                  "target": "淡滨尼",
+                  "metric": "residential_area",
+                  "operator": "eq",
+                  "value": true,
+                  "unit": null,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                }
+              ],
+              "open_data_requirements": [],
+              "unresolved": [],
+              "field_sources": {
+                "intent": "msg-001",
+                "listing_constraints": "msg-001",
+                "derived_data_requirements": "msg-001"
+              },
+              "created_at": "2026-09-09T10:00:00+08:00",
+              "updated_at": "2026-09-09T10:00:00+08:00",
+              "last_user_message_at": "2026-09-09T10:00:00+08:00",
+              "confirmed_at": "2026-09-09T10:00:00+08:00"
+            },
+            "ready_for_handoff": true,
+            "confirmation": null,
+            "questions": []
+          },
+          "issues": [],
+          "meta": {
+            "trace_id": "trace-001",
+            "call_id": "call-001",
+            "duration_ms": 10
+          }
+        }
+      },
+      "assertions": [
+        "只有与当前 draft version 匹配的确认才能产生 ready_for_handoff=true。"
+      ]
+    },
+    {
+      "id": "confirm_requirements.boundary",
+      "function": "confirm_requirements",
+      "category": "boundary",
+      "input": {
+        "reply": {
+          "confirmation_id": "confirm-profile-001-v1",
+          "message_id": "msg-002",
+          "action": "correct",
+          "text": "预算改成最多 SGD 3000。"
+        },
+        "profile": {
+          "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
+          "version": 1,
+          "confirmed_version": null,
+          "status": "pending_confirmation",
+          "intent": "rent",
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
+          "unresolved": [],
+          "field_sources": {
+            "intent": "msg-001",
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": null
+        },
+        "ctx": {
+          "user_id": "user-001",
+          "run_id": "run-001",
+          "conversation_id": "thread-001",
+          "attempt_id": "attempt-001",
+          "trace_id": "trace-001",
+          "call_id": "call-001",
+          "deadline_at": "2026-09-09T10:02:00+08:00",
+          "source_mode": "mock"
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "status": "success",
+          "data": {
+            "profile": {
+              "profile_id": "profile-001",
+              "user_id": "user-001",
+              "conversation_id": "thread-001",
+              "version": 2,
+              "confirmed_version": null,
+              "status": "pending_confirmation",
+              "intent": "rent",
+              "user_context": [],
+              "listing_constraints": [
+                {
+                  "constraint_id": "constraint-price",
+                  "field_path": "price.amount",
+                  "operator": "lte",
+                  "value": 3000,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                },
+                {
+                  "constraint_id": "constraint-scope",
+                  "field_path": "attributes.listing_scope",
+                  "operator": "eq",
+                  "value": "whole_unit",
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                },
+                {
+                  "constraint_id": "constraint-bedrooms",
+                  "field_path": "bedrooms",
+                  "operator": "gte",
+                  "value": 2,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                }
+              ],
+              "derived_data_requirements": [
+                {
+                  "requirement_id": "requirement-location",
+                  "category": "accessibility",
+                  "target": "淡滨尼",
+                  "metric": "residential_area",
+                  "operator": "eq",
+                  "value": true,
+                  "unit": null,
+                  "strength": "hard",
+                  "priority": "high",
+                  "source": {
+                    "message_id": "msg-001",
+                    "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                    "start": 0,
+                    "end": 31
+                  }
+                }
+              ],
+              "open_data_requirements": [],
+              "unresolved": [],
+              "field_sources": {
+                "intent": "msg-001",
+                "listing_constraints": "msg-001",
+                "derived_data_requirements": "msg-001"
+              },
+              "created_at": "2026-09-09T10:00:00+08:00",
+              "updated_at": "2026-09-09T10:00:00+08:00",
+              "last_user_message_at": "2026-09-09T10:00:00+08:00",
+              "confirmed_at": null
+            },
+            "ready_for_handoff": false,
+            "confirmation": {
+              "confirmation_id": "confirm-profile-001-v2",
+              "profile_id": "profile-001",
+              "profile_version": 2,
+              "summary": "整套租房；月租最多 SGD 3000；淡滨尼；至少两个卧室。",
+              "status": "pending"
+            },
+            "questions": []
+          },
+          "issues": [],
+          "meta": {
+            "trace_id": "trace-001",
+            "call_id": "call-001",
+            "duration_ms": 10
+          }
+        }
+      },
+      "assertions": [
+        "用户修订产生新 draft version，必须再次确认，不能直接交给 B。"
+      ]
+    },
+    {
+      "id": "confirm_requirements.error",
+      "function": "confirm_requirements",
+      "category": "error",
+      "input": {
+        "reply": {
+          "confirmation_id": "confirm-profile-001-v0",
+          "message_id": "msg-002",
+          "action": "confirm",
+          "text": null
+        },
+        "profile": {
+          "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
+          "version": 1,
+          "confirmed_version": null,
+          "status": "pending_confirmation",
+          "intent": "rent",
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
+          "unresolved": [],
+          "field_sources": {
+            "intent": "msg-001",
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": null
+        },
+        "ctx": {
+          "user_id": "user-001",
+          "run_id": "run-001",
+          "conversation_id": "thread-001",
+          "attempt_id": "attempt-001",
+          "trace_id": "trace-001",
+          "call_id": "call-001",
+          "deadline_at": "2026-09-09T10:02:00+08:00",
+          "source_mode": "mock"
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "status": "error",
+          "data": null,
+          "issues": [
+            {
+              "code": "STATE_CONFLICT",
+              "message": "示例：STATE_CONFLICT",
+              "field_path": "reply.confirmation_id",
+              "source": null,
+              "retryable": false,
+              "retry_after_seconds": null
+            }
+          ],
+          "meta": {
+            "trace_id": "trace-001",
+            "call_id": "call-001",
+            "duration_ms": 10
+          }
+        }
+      },
+      "assertions": []
+    },
+    {
       "id": "prepare_query.normal",
       "function": "prepare_query",
       "category": "normal",
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "ctx": {
           "user_id": "user-001",
@@ -358,29 +1219,89 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "裕廊",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [
-            "hard_constraints.locations:裕廊的具体范围"
+            "derived_data_requirements.location:裕廊的具体范围"
           ],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "ctx": {
           "user_id": "user-001",
@@ -410,7 +1331,7 @@
             "semantic_query": "裕廊 整套出租 月租不超过 SGD 3500 至少两个卧室",
             "unresolved": [
               {
-                "field": "hard_constraints.locations",
+                "field": "derived_data_requirements.location",
                 "text": "裕廊指裕廊东、裕廊西，还是两者都可以？"
               }
             ]
@@ -434,29 +1355,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": -1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "ctx": {
           "user_id": "user-001",
@@ -500,29 +1479,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "query": {
           "profile_version": 1,
@@ -602,29 +1639,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "query": {
           "profile_version": 1,
@@ -729,29 +1824,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "query": {
           "profile_version": 0,
@@ -792,6 +1945,1860 @@
               "code": "STATE_CONFLICT",
               "message": "示例：STATE_CONFLICT",
               "field_path": "query.profile_version",
+              "source": null,
+              "retryable": false,
+              "retry_after_seconds": null
+            }
+          ],
+          "meta": {
+            "trace_id": "trace-001",
+            "call_id": "call-001",
+            "duration_ms": 10
+          }
+        }
+      },
+      "assertions": []
+    },
+    {
+      "id": "fulfill_requirements.normal",
+      "function": "fulfill_requirements",
+      "category": "normal",
+      "input": {
+        "request": {
+          "request_id": "requirement-request-001",
+          "schema_version": "0.3-draft",
+          "conversation_id": "thread-001",
+          "profile_id": "profile-001",
+          "profile_version": 1,
+          "intent": "rent",
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
+          "unresolved_fields": [],
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
+        },
+        "ctx": {
+          "user_id": "user-001",
+          "run_id": "run-001",
+          "conversation_id": "thread-001",
+          "attempt_id": "attempt-001",
+          "trace_id": "trace-001",
+          "call_id": "call-001",
+          "deadline_at": "2026-09-09T10:02:00+08:00",
+          "source_mode": "mock"
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "status": "success",
+          "data": {
+            "request_id": "requirement-request-001",
+            "profile_version": 1,
+            "status": "completed",
+            "search_result": {
+              "plan_id": "plan-001",
+              "profile_version": 1,
+              "items": [
+                {
+                  "listing_key": "L1",
+                  "source": "demo_a",
+                  "source_listing_id": "L1",
+                  "source_url": "https://example.com/demo/L1",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L1",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3400,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L1:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L1，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L1:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L1:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L1:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L1:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L1:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L1:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L1:price.amount",
+                      "field": "price.amount",
+                      "value": 3400,
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3400"
+                    }
+                  ],
+                  "field_issues": []
+                },
+                {
+                  "listing_key": "L2",
+                  "source": "demo_a",
+                  "source_listing_id": "L2",
+                  "source_url": "https://example.com/demo/L2",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L2",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3500,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L2:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L2，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L2:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L2:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L2:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L2:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L2:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L2:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L2:price.amount",
+                      "field": "price.amount",
+                      "value": 3500,
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3500"
+                    }
+                  ],
+                  "field_issues": []
+                },
+                {
+                  "listing_key": "L3",
+                  "source": "demo_a",
+                  "source_listing_id": "L3",
+                  "source_url": "https://example.com/demo/L3",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L3",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3501,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L3:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L3，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L3:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L3:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L3:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L3:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L3:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L3:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L3:price.amount",
+                      "field": "price.amount",
+                      "value": 3501,
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3501"
+                    }
+                  ],
+                  "field_issues": []
+                },
+                {
+                  "listing_key": "L4",
+                  "source": "demo_a",
+                  "source_listing_id": "L4",
+                  "source_url": "https://example.com/demo/L4",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L4",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": null,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "conflict",
+                    "evidence_ids": [
+                      "L4:price.display",
+                      "L4:price.body"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L4，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L4:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L4:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L4:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L4:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L4:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L4:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L4:price.display",
+                      "field": "price.amount",
+                      "value": 3200,
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟同口径月租：3200 SGD"
+                    },
+                    {
+                      "evidence_id": "L4:price.body",
+                      "field": "price.amount",
+                      "value": 3800,
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟同口径月租：3800 SGD"
+                    }
+                  ],
+                  "field_issues": [
+                    "price.amount:conflict"
+                  ]
+                },
+                {
+                  "listing_key": "L5",
+                  "source": "demo_a",
+                  "source_listing_id": "L5",
+                  "source_url": "https://example.com/demo/L5",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L5",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3300,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L5:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": null,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L5，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L5:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L5:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L5:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L5:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L5:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L5:price.amount",
+                      "field": "price.amount",
+                      "value": 3300,
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3300"
+                    }
+                  ],
+                  "field_issues": []
+                },
+                {
+                  "listing_key": "L6",
+                  "source": "demo_a",
+                  "source_listing_id": "L6",
+                  "source_url": null,
+                  "source_mode": "mock",
+                  "title": "模拟房源 L6",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3300,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L6:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L6，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L6:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L6:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L6:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L6:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L6:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L6:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L6:price.amount",
+                      "field": "price.amount",
+                      "value": 3300,
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3300"
+                    }
+                  ],
+                  "field_issues": []
+                }
+              ],
+              "coverage": {
+                "queried_sources": [
+                  "demo_a"
+                ],
+                "failed_sources": [],
+                "queries_completed": true,
+                "has_more": false,
+                "next_pages": [],
+                "truncated": false,
+                "applied_filters": [
+                  "transaction_type",
+                  "price.currency",
+                  "price.period",
+                  "attributes.listing_scope",
+                  "price.amount",
+                  "location_id",
+                  "bedrooms"
+                ],
+                "unsupported_filters": []
+              }
+            },
+            "coverage": {
+              "fulfilled_requirement_ids": [
+                "requirement-location"
+              ],
+              "unsupported_requirement_ids": [],
+              "unverified_requirement_ids": [],
+              "skipped_best_effort_requirement_ids": []
+            },
+            "clarification_questions": []
+          },
+          "issues": [],
+          "meta": {
+            "trace_id": "trace-001",
+            "call_id": "call-001",
+            "duration_ms": 10
+          }
+        }
+      },
+      "assertions": [
+        "A 只提交已确认的数据需求；B 在内部决定 provider 与 SearchPlan。"
+      ]
+    },
+    {
+      "id": "fulfill_requirements.boundary",
+      "function": "fulfill_requirements",
+      "category": "boundary",
+      "input": {
+        "request": {
+          "request_id": "requirement-request-001",
+          "schema_version": "0.3-draft",
+          "conversation_id": "thread-001",
+          "profile_id": "profile-001",
+          "profile_version": 1,
+          "intent": "rent",
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
+          "unresolved_fields": [],
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
+        },
+        "ctx": {
+          "user_id": "user-001",
+          "run_id": "run-001",
+          "conversation_id": "thread-001",
+          "attempt_id": "attempt-001",
+          "trace_id": "trace-001",
+          "call_id": "call-001",
+          "deadline_at": "2026-09-09T10:02:00+08:00",
+          "source_mode": "mock"
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "status": "success",
+          "data": {
+            "request_id": "requirement-request-001",
+            "profile_version": 1,
+            "status": "needs_clarification",
+            "search_result": null,
+            "coverage": {
+              "fulfilled_requirement_ids": [],
+              "unsupported_requirement_ids": [],
+              "unverified_requirement_ids": [
+                "requirement-location"
+              ],
+              "skipped_best_effort_requirement_ids": []
+            },
+            "clarification_questions": [
+              {
+                "field": "derived_data_requirements[0].value",
+                "text": "可接受的最长通勤时间是多少分钟？"
+              }
+            ]
+          },
+          "issues": [],
+          "meta": {
+            "trace_id": "trace-001",
+            "call_id": "call-001",
+            "duration_ms": 10
+          }
+        }
+      },
+      "assertions": [
+        "B 只返回结构化澄清请求，由 A 负责与用户对话。"
+      ]
+    },
+    {
+      "id": "fulfill_requirements.best_effort_skipped",
+      "function": "fulfill_requirements",
+      "category": "boundary",
+      "input": {
+        "request": {
+          "request_id": "requirement-request-001",
+          "schema_version": "0.3-draft",
+          "conversation_id": "thread-001",
+          "profile_id": "profile-001",
+          "profile_version": 1,
+          "intent": "rent",
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [
+            {
+              "requirement_id": "requirement-open-tennis",
+              "description": "附近有网球场",
+              "handling": "best_effort",
+              "strength": "soft",
+              "priority": "medium",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "unresolved_fields": [],
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
+        },
+        "ctx": {
+          "user_id": "user-001",
+          "run_id": "run-001",
+          "conversation_id": "thread-001",
+          "attempt_id": "attempt-001",
+          "trace_id": "trace-001",
+          "call_id": "call-001",
+          "deadline_at": "2026-09-09T10:02:00+08:00",
+          "source_mode": "mock"
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "status": "success",
+          "data": {
+            "request_id": "requirement-request-001",
+            "profile_version": 1,
+            "status": "completed",
+            "search_result": {
+              "plan_id": "plan-001",
+              "profile_version": 1,
+              "items": [
+                {
+                  "listing_key": "L1",
+                  "source": "demo_a",
+                  "source_listing_id": "L1",
+                  "source_url": "https://example.com/demo/L1",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L1",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3400,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L1:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L1，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L1:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L1:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L1:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L1:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L1:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L1:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L1:price.amount",
+                      "field": "price.amount",
+                      "value": 3400,
+                      "source_url": "https://example.com/demo/L1",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3400"
+                    }
+                  ],
+                  "field_issues": []
+                },
+                {
+                  "listing_key": "L2",
+                  "source": "demo_a",
+                  "source_listing_id": "L2",
+                  "source_url": "https://example.com/demo/L2",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L2",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3500,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L2:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L2，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L2:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L2:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L2:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L2:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L2:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L2:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L2:price.amount",
+                      "field": "price.amount",
+                      "value": 3500,
+                      "source_url": "https://example.com/demo/L2",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3500"
+                    }
+                  ],
+                  "field_issues": []
+                },
+                {
+                  "listing_key": "L3",
+                  "source": "demo_a",
+                  "source_listing_id": "L3",
+                  "source_url": "https://example.com/demo/L3",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L3",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3501,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L3:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L3，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L3:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L3:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L3:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L3:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L3:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L3:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L3:price.amount",
+                      "field": "price.amount",
+                      "value": 3501,
+                      "source_url": "https://example.com/demo/L3",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3501"
+                    }
+                  ],
+                  "field_issues": []
+                },
+                {
+                  "listing_key": "L4",
+                  "source": "demo_a",
+                  "source_listing_id": "L4",
+                  "source_url": "https://example.com/demo/L4",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L4",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": null,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "conflict",
+                    "evidence_ids": [
+                      "L4:price.display",
+                      "L4:price.body"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L4，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L4:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L4:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L4:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L4:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L4:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L4:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L4:price.display",
+                      "field": "price.amount",
+                      "value": 3200,
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟同口径月租：3200 SGD"
+                    },
+                    {
+                      "evidence_id": "L4:price.body",
+                      "field": "price.amount",
+                      "value": 3800,
+                      "source_url": "https://example.com/demo/L4",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟同口径月租：3800 SGD"
+                    }
+                  ],
+                  "field_issues": [
+                    "price.amount:conflict"
+                  ]
+                },
+                {
+                  "listing_key": "L5",
+                  "source": "demo_a",
+                  "source_listing_id": "L5",
+                  "source_url": "https://example.com/demo/L5",
+                  "source_mode": "mock",
+                  "title": "模拟房源 L5",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3300,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L5:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": null,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L5，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L5:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L5:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L5:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L5:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L5:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L5:price.amount",
+                      "field": "price.amount",
+                      "value": 3300,
+                      "source_url": "https://example.com/demo/L5",
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3300"
+                    }
+                  ],
+                  "field_issues": []
+                },
+                {
+                  "listing_key": "L6",
+                  "source": "demo_a",
+                  "source_listing_id": "L6",
+                  "source_url": null,
+                  "source_mode": "mock",
+                  "title": "模拟房源 L6",
+                  "transaction_type": "rent",
+                  "price": {
+                    "amount": 3300,
+                    "currency": "SGD",
+                    "period": "month",
+                    "status": "known",
+                    "evidence_ids": [
+                      "L6:price.amount"
+                    ]
+                  },
+                  "attributes": {
+                    "property_type": "hdb",
+                    "unit_layout": "3br",
+                    "listing_scope": "whole_unit",
+                    "area_sqft": 1000,
+                    "bathrooms": 2,
+                    "room_type": "unknown",
+                    "ensuite_bathroom": null,
+                    "owner_stays": false,
+                    "cooking_policy": "full",
+                    "utilities_included": false,
+                    "wifi_included": false,
+                    "visitors_allowed": true,
+                    "pets_allowed": null,
+                    "furnishing": "partially",
+                    "tenure_type": "leasehold",
+                    "lease_years": 99
+                  },
+                  "bedrooms": 2,
+                  "location_id": "TAMPINES",
+                  "listing_status": "active",
+                  "listed_date": "2026-09-08",
+                  "fetched_at": "2026-09-09T10:00:00+08:00",
+                  "source_updated_at": null,
+                  "last_verified_at": "2026-09-09T10:00:00+08:00",
+                  "raw_description": "模拟房源 L6，用于接口联调。",
+                  "raw_details": [
+                    "整套出租",
+                    "至少两个卧室",
+                    "月租按 SGD 计价"
+                  ],
+                  "evidence": [
+                    {
+                      "evidence_id": "L6:transaction_type",
+                      "field": "transaction_type",
+                      "value": "rent",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：transaction_type=rent"
+                    },
+                    {
+                      "evidence_id": "L6:price.currency",
+                      "field": "price.currency",
+                      "value": "SGD",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.currency=SGD"
+                    },
+                    {
+                      "evidence_id": "L6:price.period",
+                      "field": "price.period",
+                      "value": "month",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.period=month"
+                    },
+                    {
+                      "evidence_id": "L6:attributes.listing_scope",
+                      "field": "attributes.listing_scope",
+                      "value": "whole_unit",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：attributes.listing_scope=whole_unit"
+                    },
+                    {
+                      "evidence_id": "L6:location_id",
+                      "field": "location_id",
+                      "value": "TAMPINES",
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：location_id=TAMPINES"
+                    },
+                    {
+                      "evidence_id": "L6:bedrooms",
+                      "field": "bedrooms",
+                      "value": 2,
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：bedrooms=2"
+                    },
+                    {
+                      "evidence_id": "L6:price.amount",
+                      "field": "price.amount",
+                      "value": 3300,
+                      "source_url": null,
+                      "observed_at": "2026-09-09T10:00:00+08:00",
+                      "excerpt": "模拟页面：price.amount=3300"
+                    }
+                  ],
+                  "field_issues": []
+                }
+              ],
+              "coverage": {
+                "queried_sources": [
+                  "demo_a"
+                ],
+                "failed_sources": [],
+                "queries_completed": true,
+                "has_more": false,
+                "next_pages": [],
+                "truncated": false,
+                "applied_filters": [
+                  "transaction_type",
+                  "price.currency",
+                  "price.period",
+                  "attributes.listing_scope",
+                  "price.amount",
+                  "location_id",
+                  "bedrooms"
+                ],
+                "unsupported_filters": []
+              }
+            },
+            "coverage": {
+              "fulfilled_requirement_ids": [
+                "requirement-location"
+              ],
+              "unsupported_requirement_ids": [],
+              "unverified_requirement_ids": [],
+              "skipped_best_effort_requirement_ids": [
+                "requirement-open-tennis"
+              ]
+            },
+            "clarification_questions": []
+          },
+          "issues": [],
+          "meta": {
+            "trace_id": "trace-001",
+            "call_id": "call-001",
+            "duration_ms": 10
+          }
+        }
+      },
+      "assertions": [
+        "跳过无法处理的开放需求不改变 completed 状态，不阻止返回已匹配房源。"
+      ]
+    },
+    {
+      "id": "fulfill_requirements.error",
+      "function": "fulfill_requirements",
+      "category": "error",
+      "input": {
+        "request": {
+          "request_id": "requirement-request-001",
+          "schema_version": "0.3-draft",
+          "conversation_id": "thread-001",
+          "profile_id": "profile-001",
+          "profile_version": 0,
+          "intent": "rent",
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
+          "unresolved_fields": [],
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
+        },
+        "ctx": {
+          "user_id": "user-001",
+          "run_id": "run-001",
+          "conversation_id": "thread-001",
+          "attempt_id": "attempt-001",
+          "trace_id": "trace-001",
+          "call_id": "call-001",
+          "deadline_at": "2026-09-09T10:02:00+08:00",
+          "source_mode": "mock"
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "status": "error",
+          "data": null,
+          "issues": [
+            {
+              "code": "INVALID_STATE",
+              "message": "示例：INVALID_STATE",
+              "field_path": "request.profile_version",
               "source": null,
               "retryable": false,
               "retry_after_seconds": null
@@ -4122,29 +7129,87 @@
         ],
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         }
       },
       "dependency_fixture": {},
@@ -4618,29 +7683,87 @@
         ],
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         }
       },
       "dependency_fixture": {},
@@ -4957,29 +8080,87 @@
         ],
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         }
       },
       "dependency_fixture": {},
@@ -5000,29 +8181,87 @@
         "listings": [],
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         }
       },
       "dependency_fixture": {},
@@ -6300,29 +9539,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "retrieval": {
           "profile_version": 1,
@@ -7523,29 +10820,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "retrieval": {
           "profile_version": 1,
@@ -7797,7 +11152,7 @@
               "relaxation_proposals": [
                 {
                   "proposal_id": "proposal-001",
-                  "field": "hard_constraints.max_price",
+                  "field": "listing_constraints.price.amount",
                   "old_value": 3500,
                   "proposed_value": 3600,
                   "reason": "本次被排除的 L3 月租 3501；提高到 3600 可能扩大本轮匹配，仍需重新查询。",
@@ -7828,29 +11183,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "retrieval": {
           "profile_version": 1,
@@ -8991,29 +12404,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "evaluation": {
           "profile_version": 1,
@@ -9782,29 +13253,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "evaluation": {
           "profile_version": 1,
@@ -10523,29 +14052,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "evaluation": {
           "profile_version": 1,
@@ -11326,29 +14913,87 @@
       "input": {
         "profile": {
           "profile_id": "profile-001",
+          "user_id": "user-001",
+          "conversation_id": "thread-001",
           "version": 1,
+          "confirmed_version": 1,
+          "status": "confirmed",
           "intent": "rent",
-          "hard_constraints": {
-            "currency": "SGD",
-            "max_price": 3500,
-            "price_period": "month",
-            "rental_scope": "whole_unit",
-            "locations": [
-              "TAMPINES"
-            ],
-            "min_bedrooms": 2
-          },
-          "preferences": [],
+          "user_context": [],
+          "listing_constraints": [
+            {
+              "constraint_id": "constraint-price",
+              "field_path": "price.amount",
+              "operator": "lte",
+              "value": 3500,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-scope",
+              "field_path": "attributes.listing_scope",
+              "operator": "eq",
+              "value": "whole_unit",
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            },
+            {
+              "constraint_id": "constraint-bedrooms",
+              "field_path": "bedrooms",
+              "operator": "gte",
+              "value": 2,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "derived_data_requirements": [
+            {
+              "requirement_id": "requirement-location",
+              "category": "accessibility",
+              "target": "淡滨尼",
+              "metric": "residential_area",
+              "operator": "eq",
+              "value": true,
+              "unit": null,
+              "strength": "hard",
+              "priority": "high",
+              "source": {
+                "message_id": "msg-001",
+                "text": "整套租房，SGD 月租最多3500，淡滨尼，至少两个卧室。",
+                "start": 0,
+                "end": 31
+              }
+            }
+          ],
+          "open_data_requirements": [],
           "unresolved": [],
           "field_sources": {
             "intent": "msg-001",
-            "hard_constraints.currency": "msg-001",
-            "hard_constraints.max_price": "msg-001",
-            "hard_constraints.price_period": "msg-001",
-            "hard_constraints.rental_scope": "msg-001",
-            "hard_constraints.locations": "msg-001",
-            "hard_constraints.min_bedrooms": "msg-001"
-          }
+            "listing_constraints": "msg-001",
+            "derived_data_requirements": "msg-001"
+          },
+          "created_at": "2026-09-09T10:00:00+08:00",
+          "updated_at": "2026-09-09T10:00:00+08:00",
+          "last_user_message_at": "2026-09-09T10:00:00+08:00",
+          "confirmed_at": "2026-09-09T10:00:00+08:00"
         },
         "evaluation": {
           "profile_version": 1,
@@ -12199,7 +15844,7 @@
             "proposals": [
               {
                 "proposal_id": "proposal-001",
-                "field": "hard_constraints.max_price",
+                "field": "listing_constraints.price.amount",
                 "old_value": 3500,
                 "proposed_value": 3600,
                 "reason": "本次被排除的 L3 月租 3501；提高到 3600 可能扩大本轮匹配，仍需重新查询。",
@@ -12239,7 +15884,7 @@
             "proposals": [
               {
                 "proposal_id": "proposal-001",
-                "field": "hard_constraints.max_price",
+                "field": "listing_constraints.price.amount",
                 "old_value": 3500,
                 "proposed_value": 3600,
                 "reason": "本次被排除的 L3 月租 3501；提高到 3600 可能扩大本轮匹配，仍需重新查询。",
