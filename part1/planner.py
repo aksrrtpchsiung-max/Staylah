@@ -73,11 +73,12 @@ def _location_options(profile, query, source):
 
 
 def _history(profile, attempts, ctx):
-    records, legacy = [], set()
+    records, seen, legacy = [], set(), set()
     for index, attempt in enumerate(attempts):
         for value in attempt['query_fingerprints']:
             if not value.startswith('search:v1:'):
-                legacy.add(value)
+                if attempt['status'] != 'error':
+                    legacy.add(value)
                 continue
             path = f'previous_attempts[{index}].query_fingerprints'
             try:
@@ -97,13 +98,16 @@ def _history(profile, attempts, ctx):
                 if record['intent'] != profile['intent'] or record['required_filters'] != profile['hard_constraints']:
                     raise ContractViolation('STATE_CONFLICT', path, '同一画像版本的历史硬条件与当前画像冲突')
                 records.append(record['query'])
-    return records, legacy
+                # 失败历史仍可恢复查询和校验条件，但不能阻止来源恢复后的重试。
+                if attempt['status'] != 'error':
+                    seen.add(_identity(record['query']))
+    return records, seen, legacy
 
 
 def _make_menu(profile, query, attempts, directive, ctx, settings):
     source = settings.sources[0]
     base = _location_options(profile, query, source)
-    history, legacy = _history(profile, attempts, ctx)
+    history, seen, legacy = _history(profile, attempts, ctx)
     groups = base
     if directive is not None:
         groups = {}
@@ -132,7 +136,6 @@ def _make_menu(profile, query, attempts, directive, ctx, settings):
                                               source=change['source'], field_path=path + '.source'))
                 for key, options in _location_options(profile, query, change['source']).items():
                     groups[f'{index}:{key}'] = options
-    seen = {_identity(q) for q in history}
     menu, group_ids = {}, {}
     for group, options in groups.items():
         available = []
@@ -258,5 +261,63 @@ class SearchPlanner:
 
 if __name__ == '__main__':
     # 与 test_all 共用四组真实 A→1 输入，只运行本模块时不访问房源来源。
-    from test_all import run_all
-    raise SystemExit(asyncio.run(run_all(plan_only=True)))
+    import argparse
+    from execution.history import query_fingerprint
+    from part1.validation import validate_search_result
+    from test_all import INPUTS, run_all
+
+    parser = argparse.ArgumentParser(description='计划生成的真实模型验收，不访问房源浏览器')
+    parser.add_argument('--failed-searches', type=Path, help='至少三组真实失败的 {input:{plan,ctx},output} 记录')
+    parser.add_argument('--planner-inputs', type=Path, help='包含对应真实 A 输入的 test_all 输出记录')
+    parser.add_argument('--output', type=Path, help='保存本次真实模型输入输出')
+    args = parser.parse_args()
+    if bool(args.failed_searches) != bool(args.planner_inputs):
+        parser.error('--failed-searches 和 --planner-inputs 必须一起提供')
+
+    cases = INPUTS
+    if args.failed_searches:
+        try:
+            failures = json.loads(args.failed_searches.read_text())
+            requests = json.loads(args.planner_inputs.read_text())
+            if type(failures) is not list or len(failures) < 3 or type(requests) is not list:
+                raise ValueError('需要至少三组真实失败记录及对应的 A 输入')
+            cases = []
+            for record in failures:
+                plan, ctx = record['input']['plan'], record['input']['ctx']
+                result = record['output']
+                validate_plan(plan, ctx)
+                validate_search_result(result, plan, ctx)
+                if (result['status'] != 'error' or plan['source_mode'] != 'live'
+                        or len(plan['queries']) != 1
+                        or not any(p['source'] == plan['queries'][0]['source'] for p in result['issues'])):
+                    raise ValueError('只接受能够确认原查询执行失败的真实单查询 live 记录')
+                original = next(r['input'] for r in requests
+                    if r['input']['profile']['version'] == plan['profile_version']
+                    and r['input']['profile']['intent'] == plan['intent']
+                    and r['input']['profile']['hard_constraints'] == plan['required_filters'])
+                case = deepcopy({key: original[key] for key in ('profile', 'query', 'previous_attempts', 'directive')})
+                if case['directive'] is not None or case['previous_attempts']:
+                    raise ValueError('回放入口要求对应原始 A 输入尚未携带补搜指令或历史')
+                failed_query = plan['queries'][0]
+                attempt = dict(attempt_id=plan['attempt_id'], status=result['status'], eligible_count=0,
+                    query_fingerprints=[query_fingerprint(plan, failed_query)])
+                case['previous_attempts'] = [attempt]
+                replay_ctx = dict(ctx, attempt_id='retry-' + uuid4().hex)
+                validate_planner_input(**case, ctx=replay_ctx)
+                menu, _ = _make_menu(case['profile'], case['query'], [attempt], None,
+                                     replay_ctx, SearchPlanSettings(sources=(failed_query['source'],)))
+                if _identity(failed_query) not in {_identity(q) for q in menu}:
+                    raise ValueError('真实失败的原查询仍被错误去重')
+                history, seen, _ = _history(case['profile'], [attempt], replay_ctx)
+                if failed_query not in history or seen:
+                    raise ValueError('失败历史未保留，或仍被当成有效页面')
+                old = (f"{failed_query['source']}|{failed_query['query_id']}|"
+                       f"cursor:{failed_query['cursor'] or 'null'}|profile:{plan['profile_version']}")
+                _, _, legacy = _history(case['profile'], [dict(attempt, query_fingerprints=[old])], replay_ctx)
+                if legacy:
+                    raise ValueError('旧式失败指纹仍参与去重')
+                cases.append(case)
+            print(f'真实失败历史回放通过 {len(cases)}/{len(failures)}；开始实际模型验收。', flush=True)
+        except (OSError, ValueError, TypeError, KeyError, StopIteration, ProviderError) as exc:
+            parser.error(f'真实历史回放失败：{exc}')
+    raise SystemExit(asyncio.run(run_all(plan_only=True, cases=cases, output=args.output)))

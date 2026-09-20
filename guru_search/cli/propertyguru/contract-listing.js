@@ -50,8 +50,21 @@ function yesNo(value) {
 function normalizedDate(value) {
   const raw = text(value);
   if (!raw) return null;
-  const match = raw.match(/^(\d{4}-\d{2}-\d{2})(?:[tT ][\d:.+-]+)?$/);
-  return match ? match[1] : null;
+  const iso = raw.match(/^(\d{4}-\d{2}-\d{2})(?:[tT ][\d:.+-]+[zZ]?)?$/);
+  let result = iso?.[1] || null;
+  if (!result) {
+    const listed = raw.match(/^(?:Listed on\s+)?(\d{1,2})\s+([a-z]+)\s+(\d{4})$/i);
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const fullMonths = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    if (!listed) return null;
+    const monthName = listed[2].toLowerCase();
+    const month = months.indexOf(monthName) >= 0 ? months.indexOf(monthName) : fullMonths.indexOf(monthName);
+    if (month < 0) return null;
+    result = `${listed[3]}-${String(month + 1).padStart(2, '0')}-${listed[1].padStart(2, '0')}`;
+  }
+  // 不让日期解析器把无效的月底日期自动滚到下个月。
+  const parsed = new Date(`${result}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === result ? result : null;
 }
 
 function normalizePropertyType(raw) {
@@ -82,11 +95,38 @@ function normalizeRoomType(raw) {
 }
 
 function normalizeFurnishing(raw) {
-  const value = text(raw)?.toLowerCase();
-  if (/fully/.test(value || '')) return 'fully';
-  if (/partial/.test(value || '')) return 'partially';
-  if (/unfurnished/.test(value || '')) return 'unfurnished';
+  const value = text(raw)?.toLowerCase().replace(/\s+/g, ' ');
+  if (/^fully(?: furnished)?$/.test(value || '')) return 'fully';
+  if (/^partial(?:ly)?(?: furnished)?$/.test(value || '')) return 'partially';
+  if (value === 'unfurnished') return 'unfurnished';
   return 'unknown';
+}
+
+const DETAIL_BOOLEAN_STATEMENTS = {
+  owner_stays: { 'staying with owner': true, 'no owner stays': false },
+  utilities_included: { 'utilities included': true, 'utilities not included': false },
+  wifi_included: { 'wi-fi included': true, 'wi-fi not included': false, 'wifi included': true, 'wifi not included': false },
+  visitors_allowed: { 'visitors allowed': true, 'visitors not allowed': false },
+  pets_allowed: { 'pets allowed': true, 'pets not allowed': false },
+};
+
+function detailBoolean(field, value) {
+  const statement = text(value)?.toLowerCase().replace(/\s+/g, ' ');
+  const choices = DETAIL_BOOLEAN_STATEMENTS[field];
+  return Object.hasOwn(choices, statement) ? choices[statement] : null;
+}
+
+function normalizeCooking(value) {
+  const statement = text(value)?.toLowerCase().replace(/\s+/g, ' ');
+  if (/^(?:none|no cooking|cooking not allowed)$/.test(statement || '')) return 'none';
+  if (/^light(?: cooking(?: allowed)?)?$/.test(statement || '')) return 'light';
+  if (/^full(?: cooking(?: allowed)?)?$/.test(statement || '')) return 'full';
+  return 'unknown';
+}
+
+function tenureYears(value) {
+  const match = text(value)?.match(/^(\d+)[-\s]+years?\s+lease(?:hold)?$/i);
+  return match ? integer(match[1]) : null;
 }
 
 function normalizeTenure(raw) {
@@ -280,7 +320,43 @@ export function buildListingDetail(raw, { sourceId, sourceUrl, fetchedAt = new D
     utilitiesincluded: ['attributes.utilities_included', yesNo], wifiincluded: ['attributes.wifi_included', yesNo],
     visitorsallowed: ['attributes.visitors_allowed', yesNo], petsallowed: ['attributes.pets_allowed', yesNo],
     listeddate: ['listed_date', normalizedDate],
+    cookingpolicy: ['attributes.cooking_policy', normalizeCooking],
   });
+  for (const field of Object.keys(DETAIL_BOOLEAN_STATEMENTS)) {
+    mapping[field.replace(/_/g, '')] = [`attributes.${field}`, value => yesNo(value) ?? detailBoolean(field, value)];
+  }
+  // 真实 metatable 常只给图标名称。复用图标必须同时核对明确原文：
+  // document-with-lines-o 也表示 TOP / Listing ID，people-behind-o 也表示 Not tenanted。
+  const iconMapping = {
+    'furnished-o': [['attributes.furnishing', normalizeFurnishing]],
+    'calendar-time-o': [['listed_date', value => /^Listed on\s+/i.test(text(value) || '') ? normalizedDate(value) : null]],
+    'people-o': [['attributes.owner_stays', value => detailBoolean('owner_stays', value)]],
+    'document-with-lines-o': [['attributes.utilities_included', value => detailBoolean('utilities_included', value)]],
+    'wifi-2-f': [['attributes.wifi_included', value => detailBoolean('wifi_included', value)]],
+    'people-behind-o': [['attributes.visitors_allowed', value => detailBoolean('visitors_allowed', value)]],
+    'pet-o': [['attributes.pets_allowed', value => detailBoolean('pets_allowed', value)]],
+    'cooker-o': [['attributes.cooking_policy', normalizeCooking]],
+    'home-open-o': [['attributes.property_type', normalizePropertyType]],
+    'room-o': [
+      ['attributes.room_type', normalizeRoomType], ['attributes.listing_scope', normalizeScope],
+      ['attributes.ensuite_bathroom', value => {
+        const match = text(value)?.match(/\((shared bath|ensuite bath)\)$/i);
+        return match ? match[1].toLowerCase() === 'ensuite bath' : null;
+      }],
+    ],
+    'ruler-o': [['attributes.area_sqft', value => {
+      const match = text(value)?.match(/^([\d,]+(?:\.0+)?)\s+sqft\s+floor area$/i);
+      return match ? integer(match[1]) : null;
+    }]],
+    'calendar-days-o': [
+      ['attributes.tenure_type', value => {
+        if (tenureYears(value) !== null) return 'leasehold';
+        const match = text(value)?.match(/^(freehold|leasehold)(?: tenure)?$/i);
+        return match ? match[1].toLowerCase() : 'unknown';
+      }],
+      ['attributes.lease_years', tenureYears],
+    ],
+  };
   const addPrice = value => {
     const original = typeof value === 'object' ? JSON.stringify(value) : String(value);
     const amountRaw = typeof value === 'object' ? firstValue(value, ['value', 'pretty', 'amount']) : value;
@@ -298,8 +374,12 @@ export function buildListingDetail(raw, { sourceId, sourceUrl, fetchedAt = new D
       if (label === 'monthlyrent') add('price.period', 'month', `${entry.label}=${String(entry.value)}`);
       continue;
     }
-    const mapper = mapping[label];
-    if (mapper) add(mapper[0], mapper[1](entry.value), `${entry.label}=${String(entry.value)}`);
+    const icon = text(entry.icon || entry.label)?.toLowerCase();
+    const mappers = Object.hasOwn(mapping, label) ? [mapping[label]]
+      : Object.hasOwn(iconMapping, icon) ? iconMapping[icon] : [];
+    for (const [field, parse] of mappers) {
+      add(field, parse(entry.value), `${entry.label || entry.icon}=${String(entry.value)}`);
+    }
   }
   if (raw.subtitle) add('title', stripHtml(raw.subtitle), stripHtml(raw.subtitle));
   const rawDetails = details.map(entry => `${entry.label || ''}: ${String(entry.value ?? '')}`);

@@ -78,7 +78,8 @@ cli({
         // Extract detail items as key-value pairs
         const detailItems = (details?.metatable?.items || []).map(i => ({
           label: i.label || i.title || i.icon || '',
-          value: i.value || '',
+          icon: i.icon || '',
+          value: i.value ?? '',
         }));
 
         // Extract amenities

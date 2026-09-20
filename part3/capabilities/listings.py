@@ -212,8 +212,53 @@ if __name__ == '__main__':
     from uuid import uuid4
     from providers.guru_search import GuruSearchProvider
 
+    def verify_observed_details(listing):
+        """对照真实页面明确条目验收字段和证据，不预设房源或服务响应。"""
+        observed = {
+            ('furnished-o', 'Fully furnished'): ('attributes.furnishing', 'fully'),
+            ('furnished-o', 'Unfurnished'): ('attributes.furnishing', 'unfurnished'),
+            ('people-o', 'Staying with owner'): ('attributes.owner_stays', True),
+            ('people-o', 'No Owner Stays'): ('attributes.owner_stays', False),
+            ('document-with-lines-o', 'Utilities included'): ('attributes.utilities_included', True),
+            ('wifi-2-f', 'Wi-Fi included'): ('attributes.wifi_included', True),
+            ('cooker-o', 'No cooking'): ('attributes.cooking_policy', 'none'),
+            ('people-behind-o', 'Visitors not allowed'): ('attributes.visitors_allowed', False),
+            ('pet-o', 'Pets not allowed'): ('attributes.pets_allowed', False),
+            ('room-o', 'Common room (Shared bath)'): ('attributes.ensuite_bathroom', False),
+            ('calendar-days-o', '99-year lease'): ('attributes.lease_years', 99),
+        }
+        checked, failures = 0, []
+        for raw in listing['raw_details']:
+            label, separator, value = raw.partition(':')
+            if not separator:
+                continue
+            label, value = label.strip(), value.strip()
+            expected = observed.get((label, value))
+            if label == 'calendar-time-o' and value.startswith('Listed on '):
+                try:
+                    date = datetime.strptime(value.removeprefix('Listed on '), '%d %b %Y').date().isoformat()
+                except ValueError:
+                    failures.append('挂牌日期原文格式变化，需要检查：' + raw)
+                    continue
+                expected = ('listed_date', date)
+            if expected is None:
+                continue
+            field, value = expected
+            actual = listing
+            for key in field.split('.'):
+                actual = actual[key]
+            checked += 1
+            if type(actual) is not type(value) or actual != value:
+                failures.append(f'{field} 未保留明确详情事实：{raw}')
+            if not any(e['field'] == field and type(e['value']) is type(value) and e['value'] == value
+                       and ':detail:' in e['evidence_id'] for e in listing['evidence']):
+                failures.append(f'{field} 缺少对应详情证据：{raw}')
+        if not checked:
+            failures.append('没有取得可验证的明确详情条目')
+        return checked, failures
+
     parser = argparse.ArgumentParser(description='3a 的真实搜索/详情检查；输入 SearchPlan，输出实际 Result')
-    parser.add_argument('--input', type=Path, help='包含一个或多个 {plan, ctx} 的 JSON 文件')
+    parser.add_argument('--input', type=Path, help='包含至少三组真实 {plan, ctx} 的 JSON 文件')
     parser.add_argument('--output', type=Path, help='保存真实输入输出记录')
     args = parser.parse_args()
 
@@ -221,6 +266,8 @@ if __name__ == '__main__':
         if args.input:
             payload = json.loads(args.input.read_text())
             cases = payload if isinstance(payload, list) else [payload]
+            if len(cases) < 3:
+                parser.error('需要至少三组真实业务输入')
         else:
             cases=[]
             for area, maximum in [('Tampines', 4000), ('Clementi', 4500), ('Punggol', 4000)]:
@@ -238,15 +285,25 @@ if __name__ == '__main__':
         passed=0
         for case in cases:
             plan, ctx=case['plan'], case['ctx']
+            if ctx['source_mode'] != 'live':
+                parser.error('验收只接受 live 输入，不使用虚拟响应')
             cap=ListingsCapability(GuruSearchProvider(), SearchBudget(plan, ctx))
             output=await cap.search_page(plan, plan['queries'][0]['query_id'], ctx=ctx)
             details=[]
             if output['data']:
                 for item in output['data']['items']:
                     details.append(await cap.read_detail(item, ctx=ctx))
-            accepted=bool(output['data'] and output['data']['items'] and details and all(x['status']=='success' for x in details))
+            failures, checked_facts = [], 0
+            for detail in details:
+                if detail['data'] is not None:
+                    checked, problems = verify_observed_details(detail['data'])
+                    checked_facts += checked
+                    failures.extend(detail['data']['listing_key'] + ': ' + problem for problem in problems)
+            accepted=bool(output['data'] and output['data']['items'] and details
+                          and all(x['status']=='success' for x in details) and not failures)
             passed+=accepted
-            record=dict(input=case, search_output=output, detail_outputs=details, live_verified=accepted)
+            record=dict(input=case, search_output=output, detail_outputs=details,
+                        checked_detail_facts=checked_facts, failures=failures, live_verified=accepted)
             records.append(record)
             print(json.dumps(record, ensure_ascii=False), flush=True)
         if args.output:

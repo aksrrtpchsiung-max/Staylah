@@ -66,7 +66,77 @@ class ChatMessage(TypedDict):
     text: str
 
 
+class SourceReference(TypedDict):
+    """记录结构化字段所依据的逐字用户原文。"""
+    message_id: str
+    text: str
+    start: int
+    end: int
+
+
+QueryableListingField = Literal[
+    'transaction_type',
+    'price.amount', 'price.currency', 'price.period',
+    'attributes.property_type', 'attributes.unit_layout',
+    'attributes.listing_scope', 'attributes.area_sqft',
+    'attributes.bathrooms', 'attributes.room_type',
+    'attributes.ensuite_bathroom', 'attributes.owner_stays',
+    'attributes.cooking_policy', 'attributes.utilities_included',
+    'attributes.wifi_included', 'attributes.visitors_allowed',
+    'attributes.pets_allowed', 'attributes.furnishing',
+    'attributes.tenure_type', 'attributes.lease_years',
+    'bedrooms', 'listed_date',
+]
+
+
+class ProfileFact(TypedDict):
+    """保存本 conversation 中与找房有关、但不属于房源事实的用户背景。"""
+    field: Literal['household.occupant_count', 'household.has_children',
+                   'household.planning_children', 'occupant.workplace',
+                   'occupant.school']
+    value: JsonValue
+    source: SourceReference
+
+
+class ListingConstraint(TypedDict):
+    """表达用户对可查询 Listing 字段的期望，不伪造真实房源。"""
+    constraint_id: str
+    field_path: QueryableListingField
+    operator: Literal['eq', 'neq', 'lt', 'lte', 'gt', 'gte', 'between',
+                      'in', 'contains']
+    value: JsonValue
+    strength: Literal['hard', 'soft']
+    priority: Literal['high', 'medium', 'low']
+    source: SourceReference
+
+
+class DerivedDataRequirement(TypedDict):
+    """表达需要 B 通过数据库、地图或工具获取的派生数据。"""
+    requirement_id: str
+    category: Literal['commute', 'nearby_amenity', 'environment', 'accessibility']
+    target: str | None
+    metric: str
+    operator: Literal['eq', 'lte', 'gte', 'between', 'minimize', 'maximize',
+                      'preferred']
+    value: JsonValue
+    unit: str | None
+    strength: Literal['hard', 'soft']
+    priority: Literal['high', 'medium', 'low']
+    source: SourceReference
+
+
+class OpenDataRequirement(TypedDict):
+    """保存非阻塞需求；即使 strength=hard，handling 也禁止 B 用它阻断核心结果。"""
+    requirement_id: str
+    description: str
+    handling: Literal['best_effort']
+    strength: Literal['hard', 'soft']
+    priority: Literal['high', 'medium', 'low']
+    source: SourceReference
+
+
 class HardConstraints(TypedDict):
+    """保存 B 内部 SearchPlan 使用的已解析过滤条件。"""
     currency: str
     max_price: int | None
     price_period: Literal['month', 'week', 'total'] | None
@@ -75,40 +145,97 @@ class HardConstraints(TypedDict):
     min_bedrooms: int | None
 
 
-class Preference(TypedDict):
-    field: str
-    value: JsonValue
-    priority: Literal['high', 'medium', 'low']
-    source_message_id: str
-
-
-class UserProfile(TypedDict):
+class ConversationProfile(TypedDict):
+    """保存一个 conversation 独立拥有、可确认和恢复的找房需求画像。"""
     profile_id: str
+    user_id: str  # 仅用于归属和权限，不表示跨 conversation 的长期用户画像
+    conversation_id: str
     version: int
+    confirmed_version: int | None
+    status: Literal['draft', 'pending_confirmation', 'confirmed', 'idle']
     intent: Literal['rent', 'buy'] | None
-    hard_constraints: HardConstraints
-    preferences: list[Preference]
+    user_context: list[ProfileFact]
+    listing_constraints: list[ListingConstraint]
+    derived_data_requirements: list[DerivedDataRequirement]
+    open_data_requirements: list[OpenDataRequirement]
     unresolved: list[str]
     field_sources: dict[str, str]  # 字段路径 -> 用户消息 ID
+    created_at: str
+    updated_at: str
+    last_user_message_at: str
+    confirmed_at: str | None
+
+
+ProfilePatchField = Literal[
+    'intent', 'user_context', 'listing_constraints',
+    'derived_data_requirements', 'open_data_requirements', 'unresolved',
+]
 
 
 class ProfileChange(TypedDict):
-    field: str
+    """描述 LLM 提议、尚未提交到 ConversationProfile 的单项修改。"""
+    operation: Literal['set', 'append', 'remove']
+    field: ProfilePatchField
     value: JsonValue
     source_message_id: str
 
 
 class Clarification(TypedDict):
+    """描述需要由 A 向用户提出的结构化澄清问题。"""
     field: str
     text: str
 
 
+class RequirementConfirmation(TypedDict):
+    """保存等待用户确认的需求摘要及其绑定版本。"""
+    confirmation_id: str
+    profile_id: str
+    profile_version: int
+    summary: str
+    status: Literal['pending', 'confirmed', 'rejected', 'cancelled']
+
+
 class OnboardResult(TypedDict):
+    """返回候选 patch、草稿画像以及下一步澄清或确认动作。"""
     base_profile_version: int
     profile_patch: list[ProfileChange]
+    draft_profile: ConversationProfile
     missing_required_fields: list[str]
     questions: list[Clarification]
-    ready_for_search: bool
+    confirmation: RequirementConfirmation | None
+    next_action: Literal['ask_clarification', 'ask_confirmation']
+
+
+class ConfirmationReply(TypedDict):
+    """表示用户对指定需求版本的确认、修改或取消。"""
+    confirmation_id: str
+    message_id: str
+    action: Literal['confirm', 'correct', 'cancel']
+    text: str | None
+
+
+class ConfirmationResult(TypedDict):
+    """返回确认后的画像，或需要再次确认的修订草稿。"""
+    profile: ConversationProfile
+    ready_for_handoff: bool
+    confirmation: RequirementConfirmation | None
+    questions: list[Clarification]
+
+
+class RequirementRequest(TypedDict):
+    """定义 A 在用户确认后发送给 B 的唯一公开请求。"""
+    request_id: str
+    schema_version: Literal['0.3-draft']
+    conversation_id: str
+    profile_id: str
+    profile_version: int
+    intent: Literal['rent', 'buy']
+    user_context: list[ProfileFact]
+    listing_constraints: list[ListingConstraint]
+    derived_data_requirements: list[DerivedDataRequirement]
+    open_data_requirements: list[OpenDataRequirement]
+    unresolved_fields: list[str]
+    confirmed_at: str
 
 
 class Entity(TypedDict):
@@ -251,6 +378,24 @@ class SearchResult(TypedDict):
     profile_version: int
     items: list[Listing]
     coverage: Coverage
+
+
+class RequirementCoverage(TypedDict):
+    """说明 B 对 A 所提交数据需求的覆盖情况。"""
+    fulfilled_requirement_ids: list[str]
+    unsupported_requirement_ids: list[str]
+    unverified_requirement_ids: list[str]
+    skipped_best_effort_requirement_ids: list[str]
+
+
+class RequirementFulfillment(TypedDict):
+    """定义 B 的统一响应；跳过开放需求不得阻止返回已匹配房源。"""
+    request_id: str
+    profile_version: int
+    status: Literal['completed', 'partial', 'needs_clarification']
+    search_result: SearchResult | None
+    coverage: RequirementCoverage
+    clarification_questions: list[Clarification]
 
 
 class ConstraintCheck(TypedDict):
@@ -398,27 +543,43 @@ class RouteDecision(TypedDict):
 
 # 依赖（模型、词表、Provider 注册表等）由服务构造时注入，业务参数不携带连接。
 # 下列仅是签名；不提供假实现。
-async def onboard(request: UserMessage, profile: UserProfile,
+async def onboard(request: UserMessage, profile: ConversationProfile,
                   messages: list[ChatMessage], *, ctx: RunContext) -> Result[OnboardResult]:
+    """由 A 提取本轮 patch，并生成等待用户确认的草稿画像。"""
     raise NotImplementedError
 
 
-async def prepare_query(profile: UserProfile, *, ctx: RunContext) -> Result[QueryFeatures]:
+async def confirm_requirements(reply: ConfirmationReply, profile: ConversationProfile,
+                               *, ctx: RunContext) -> Result[ConfirmationResult]:
+    """由 A 处理用户确认、修订或取消，并控制是否允许交给 B。"""
     raise NotImplementedError
 
 
-async def build_search_plan(profile: UserProfile, query: QueryFeatures,
+async def fulfill_requirements(request: RequirementRequest, *,
+                               ctx: RunContext) -> Result[RequirementFulfillment]:
+    """作为 B 的唯一公开入口；B 内部自行选择数据库、CLI 或其他工具。"""
+    raise NotImplementedError
+
+
+async def prepare_query(profile: ConversationProfile, *, ctx: RunContext) -> Result[QueryFeatures]:
+    """由 B 内部把确认画像转换为实体与语义查询特征。"""
+    raise NotImplementedError
+
+
+async def build_search_plan(profile: ConversationProfile, query: QueryFeatures,
                             previous_attempts: list[AttemptSummary],
                             directive: SearchDirective | None, *,
                             ctx: RunContext) -> Result[SearchPlan]:
+    """由 B 内部选择数据源并构建搜索计划。"""
     raise NotImplementedError
 
 
 async def search(plan: SearchPlan, *, ctx: RunContext) -> Result[SearchResult]:
+    """由 B 内部执行搜索计划并返回统一房源结构。"""
     raise NotImplementedError
 
 
-def screen(listings: list[Listing], profile: UserProfile) -> ScreenResult:
+def screen(listings: list[Listing], profile: ConversationProfile) -> ScreenResult:
     raise NotImplementedError
 
 
@@ -427,14 +588,14 @@ async def retrieve(query: QueryFeatures, eligible_listings: list[Listing], *,
     raise NotImplementedError
 
 
-async def evaluate(profile: UserProfile, retrieval: RetrievalResult,
+async def evaluate(profile: ConversationProfile, retrieval: RetrievalResult,
                    screen_result: ScreenResult, listing_snapshot: ListingSnapshot,
                    coverage: Coverage, repair_context: ReviewResult | None, *,
                    policy: RoutingPolicy, ctx: RunContext) -> Result[EvaluationResult]:
     raise NotImplementedError
 
 
-async def review(profile: UserProfile, evaluation: EvaluationResult,
+async def review(profile: ConversationProfile, evaluation: EvaluationResult,
                  listing_snapshot: ListingSnapshot, *, policy: RoutingPolicy,
                  ctx: RunContext) -> Result[ReviewResult]:
     raise NotImplementedError
