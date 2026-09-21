@@ -58,7 +58,8 @@ configure_bedrock_evaluation_review_model()
 `evaluation_next_action` 与 `evaluation_next_reason_code`。`decide_next()` 会优先采用这一建议；
 但若 review 未通过、次数用尽、用户取消或超时，它会拒绝执行不安全的建议。
 
-没有 API Key、网络失败或模型返回格式不符合约定时，三个 LLM 步骤都会回退到可解释的本地逻辑，
-返回 `status="partial"`。`retrieve()` 的 issue 是 `RETRIEVAL_DEGRADED`；`evaluate()` 与
-`review()` 的 issue 是 `MODEL_UNAVAILABLE`。无论何时，`screen` 的硬条件和事实证据检查都不会被
-LLM 覆盖。
+没有 API Key、网络失败或模型返回格式不符合约定时，`retrieve()` 与 `evaluate()` 会回退到
+可解释的本地逻辑并返回 `status="partial"`；对应 issue 分别是 `RETRIEVAL_DEGRADED` 和
+`MODEL_UNAVAILABLE`。`review()` 必须完成独立模型审查，否则返回 `status="error"`、
+`MODEL_UNAVAILABLE`，不能伪造 `passed=true`。无论何时，`screen` 的硬条件和事实证据检查都不会
+被 LLM 覆盖。

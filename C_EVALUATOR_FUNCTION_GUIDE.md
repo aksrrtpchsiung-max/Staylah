@@ -33,26 +33,46 @@ global.anthropic.claude-sonnet-4-5-20250929-v1:0
 ### 输入
 
 ```python
-screen(listings: list[Listing], profile: UserProfile) -> ScreenResult
+screen(listings: list[Listing], profile: ConversationProfile) -> ScreenResult
 ```
 
 - `listings`：B 返回的标准化房源列表。
-- `profile`：A 从用户对话中整理出的条件，例如预算、目标地点和整租/单间。
+- `profile`：A 已让用户确认的 `ConversationProfile`。C 只接受
+  `status="confirmed"` 且 `confirmed_version == version` 的画像。
 
 ### 如何判断
 
-每套房源都会调用 `_hard_constraint_checks(listing, profile)`，逐项检查：
+每套房源都会调用 `_hard_constraint_checks(listing, profile)`。它先检查租/买意图，
+然后遍历 `profile.listing_constraints` 中所有 `strength="hard"` 的约束。
+
+新 contract 用统一结构表达条件，例如：
+
+```python
+{
+    "field_path": "price.amount",
+    "operator": "lte",
+    "value": 3500,
+    "strength": "hard",
+    "priority": "high",
+}
+```
+
+代码支持 `eq`、`neq`、`lt`、`lte`、`gt`、`gte`、`between`、`in` 和
+`contains`。因此不是把预算、面积、家具等每个字段分别写死，而是读取字段路径并执行对应运算。
 
 | 硬条件 | 判断方式 |
 | --- | --- |
 | 租或买 | 用户租房时要求 `transaction_type == "rent"`；买房时要求 `"sale"` |
-| 币种 | 房源币种是否与用户要求一致 |
-| 计价周期 | 用户要求月租时，房源是否也是按月报价 |
-| 出租范围 | `whole_unit`（整租）或 `room`（单间）是否匹配 |
-| 预算 | 已知月租是否小于等于 `max_price` |
-| 地点 | `location_id` 是否在用户的规范化地点列表中 |
-| 卧室数 | 卧室数是否大于等于 `min_bedrooms` |
+| 币种 | 如果存在 `price.currency eq "SGD"`，检查币种是否一致 |
+| 计价周期 | 如果存在 `price.period eq "month"`，检查是否按月报价 |
+| 出租范围 | `attributes.listing_scope eq "whole_unit"` 等约束 |
+| 预算 | `price.amount lte 3500` 等约束 |
+| 卧室数 | `bedrooms gte 2` 等约束 |
+| 其他房源字段 | 面积、卫生间、家具、做饭、宠物、产权等都使用同一套运算逻辑 |
 | 房源状态 | `inactive` 一定不能推荐；`unknown` 需要核实 |
+
+地点、通勤、附近设施等在新 contract 中属于 `derived_data_requirements`，由 B 获取或计算；
+当前 `Listing` 没有相应派生结果字段时，C 不会凭空用 `location_id` 替代这些要求。
 
 每项都会产生一个 `ConstraintCheck`：
 
@@ -207,7 +227,7 @@ await evaluate(
 
 其中：
 
-- `profile`：硬条件和软偏好，例如“有家具”是高优先级偏好；
+- `profile`：已确认的 `ConversationProfile`。`listing_constraints` 同时包含 hard 和 soft 条件；
 - `retrieval`：上一阶段的相关度排名；
 - `screen_result`：三类房源（合格、拒绝、待核实）；
 - `listing_snapshot`：当前轮房源的完整快照；
@@ -296,7 +316,7 @@ Wi-Fi、水电、房东同住等属性
 模型主要综合两类信号：
 
 1. `retrieve` 的相关度、关键词命中和排序；
-2. 用户的软偏好，例如家具、做饭、Wi-Fi、房型等。
+2. `listing_constraints` 中 `strength="soft"` 的偏好，例如家具、做饭、Wi-Fi、房型等。
 
 它只能在已通过硬条件的候选中选择。因此，LLM 的角色是“在合格选项中做更像人类的偏好排序”，不是替代规则筛选。
 
@@ -444,11 +464,13 @@ LLM 找到的问题和代码检查到的问题会合并、去重。
 
 ### LLM 不可用时
 
-仍会完成本地规则和证据审查，但返回：
+本地规则仍会先执行，但由于独立模型审查没有完成，函数不能返回一个虚假的
+`passed=true`，而是返回：
 
 ```text
-status = "partial"
+status = "error"
 issue  = "MODEL_UNAVAILABLE"
+data   = null
 ```
 
 ---
