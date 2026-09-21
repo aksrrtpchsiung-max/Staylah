@@ -475,6 +475,10 @@ class Assessment(TypedDict):
     constraint_findings: list[str]
     search_directive: SearchDirective | None
     relaxation_proposals: list[RelaxationProposal]
+    # C 的 evaluate 由模型基于 screen/retrieve 决定的建议路线。实际执行前仍会由
+    # review 和 decide_next 做状态、次数和用户意愿的边界检查。
+    next_action: Literal['publish', 'research', 'ask_user', 'finish']
+    next_reason_code: str
 
 
 class EvaluationResult(TypedDict):
@@ -532,6 +536,9 @@ class DecisionState(TypedDict):
     failure_code: str | None
     search_directive: SearchDirective | None
     pending_question: PendingQuestion | None
+    # 编排层从 EvaluationResult.assessment 复制而来；None 表示旧调用方尚未提供。
+    evaluation_next_action: Literal['publish', 'research', 'ask_user', 'finish'] | None
+    evaluation_next_reason_code: str | None
 
 
 class RouteDecision(TypedDict):

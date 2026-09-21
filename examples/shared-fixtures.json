@@ -1911,7 +1911,9 @@
     "assessment": {
       "constraint_findings": [],
       "search_directive": null,
-      "relaxation_proposals": []
+      "relaxation_proposals": [],
+      "next_action": "publish",
+      "next_reason_code": "enough_matches"
     }
   },
   "policy": {

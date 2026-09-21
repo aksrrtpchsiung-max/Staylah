@@ -144,7 +144,8 @@ def evaluation(items):
             unknowns=['实际当前可租状态尚未向经纪人核实']) for i, x in enumerate(items)],
         summary=f'本次展示 {len(items)} 套候选，顺序仅为接口示例。',
         limitations=['模拟数据；仅覆盖本次查询；来源状态不等于独立核实']),
-        assessment=dict(constraint_findings=[], search_directive=None, relaxation_proposals=[]))
+        assessment=dict(constraint_findings=[], search_directive=None, relaxation_proposals=[],
+                        next_action='publish', next_reason_code='enough_matches'))
 
 
 EVALUATION = evaluation(GOOD)
@@ -163,7 +164,8 @@ QUESTION = dict(question_id='run-001:state-7:q-1', text='是否将月租上限�
 STATE = dict(run_id='run-001', state_version=7, profile_version=1, current_profile_version=1,
     cancelled=False, user_declined=False, deadline_exhausted=False, search_status='success',
     search_attempts_used=1, repairs_used=0, eligible_count=3, review=PASS, failure_code=None,
-    search_directive=None, pending_question=None)
+    search_directive=None, pending_question=None,
+    evaluation_next_action=None, evaluation_next_reason_code=None)
 CASES = []
 
 
