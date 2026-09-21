@@ -1,0 +1,14 @@
+flowchart TB
+    U["经纪人 / 用户"] --> WEB["独立 Web 应用<br/>聊天、需求面板、推荐、关注任务"]
+    WEB <-->|HTTPS + SSE| API["API 服务<br/>身份校验、业务接口、事件回放"]
+    API <-->|业务读写、提交任务| DB[("PostgreSQL<br/>偏好、聊天、运行、证据快照、推荐、任务")]
+    DB -->|领取持久化任务| WORKER["Worker<br/>在线任务优先 + 定时任务执行"]
+    SCHED["调度循环<br/>到期关注规则"] -->|事务创建任务| DB
+    WORKER --> AGENT["单一 Agent 工作流<br/>Onboard / Rough-screening / Review"]
+    AGENT <-->|提取需求、规划、排序、解释| LLM["LLM API"]
+    AGENT <-->|有类型的调用与结果| TOOLS["工具与服务层<br/>权限、参数、预算、硬条件、证据"]
+    TOOLS <-->|实时搜索和详情| PROVIDER["ListingProvider 适配器"]
+    PROVIDER <-->|API 或受控浏览器运行环境| SOURCE["外部房源来源"]
+    TOOLS <-->|按需补充地理证据| MAP["地图 / 通勤接口"]
+    TOOLS <-->|保存业务结果和执行证据| DB
+    AGENT -.->|执行 checkpoint| DB

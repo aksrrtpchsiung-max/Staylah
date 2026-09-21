@@ -1,0 +1,15 @@
+.venv/
+.venv-agent/
+.langgraph_api/
+.agent-server/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+.DS_Store
+.vscode/
+.mock-data-backup/
+propertyguru-mock-v0.zip
+can-rent-lah/

@@ -1,0 +1,1774 @@
+[
+  {
+    "case": "ordinary",
+    "database": {
+      "listing_key": "propertyguru:mock-000001",
+      "id": "bf034d70-01b0-524e-8d8e-2ff240d9cccb",
+      "fields": {
+        "source_listing_id": "mock-000001",
+        "source_url": null,
+        "source": "propertyguru",
+        "property_type": "hdb",
+        "transaction_type": "rent",
+        "listing_scope": "whole_unit",
+        "room_type": "unknown",
+        "unit_layout": "studio",
+        "price_sgd": 1950,
+        "price_period": "month",
+        "area_sqft": 200,
+        "psf_sgd": 9.75,
+        "psf_basis": "floor",
+        "bedrooms": 0,
+        "bathrooms": 1,
+        "ensuite_bathroom": null,
+        "owner_stays": null,
+        "cooking_policy": "unknown",
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "fully",
+        "title": "[MOCK] Jurong East HDB 000001",
+        "address": "Mock Block 197, Jurong East Test Avenue",
+        "postal_code": null,
+        "latitude": 1.348359,
+        "longitude": 103.732618,
+        "tenure_type": "leasehold",
+        "lease_years": 99,
+        "inclusivity_statement": null,
+        "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: hdb. Rental scope: whole_unit.\nAsking price: SGD 1950 per month.\nReported bedrooms: 0.\nUnit layout: studio.\nFloor area: 200 sqft.\nFurnishing: fully.",
+        "raw_details": [
+          "property_type: hdb",
+          "listing_scope: whole_unit",
+          "furnishing: fully",
+          "tenure_type: leasehold",
+          "lease_years: 99"
+        ],
+        "extra_attributes": {
+          "is_synthetic": true,
+          "source_mode": "mock",
+          "prototype_id": "P09",
+          "location_id": "JURONG_EAST",
+          "area_basis": "floor",
+          "rental_lease_months": 24,
+          "available_from": null,
+          "source_updated_at": "2026-09-08T12:00:00+08:00",
+          "scenario": "ordinary",
+          "verification_method": "simulated_confirmation",
+          "address_precision": "synthetic",
+          "postal_code_is_synthetic": true,
+          "price_status": "known",
+          "field_issues": [],
+          "conflicts": {},
+          "normalization_notes": [
+            "Source bedroom value -1 with explicit Studio text becomes studio layout and 0 separate bedrooms; this is a fixture normalization convention."
+          ],
+          "source_bedroom_value": -1,
+          "field_state": {
+            "block": "synthetic_known",
+            "town": "synthetic_known",
+            "flat_type": "synthetic_known",
+            "hdb_model": "synthetic_known",
+            "floor_range": "unknown",
+            "lease_commencement_year": "unknown",
+            "development_name": "not_applicable",
+            "top_year": "not_applicable",
+            "floor_level": "not_applicable",
+            "facilities": "not_applicable",
+            "landed_type": "not_applicable",
+            "land_area_sqft": "not_applicable",
+            "built_up_area_sqft": "not_applicable",
+            "storeys": "not_applicable",
+            "ensuite_bathroom": "not_applicable",
+            "owner_stays": "unknown",
+            "utilities_included": "unknown",
+            "wifi_included": "unknown",
+            "visitors_allowed": "unknown",
+            "pets_allowed": "unknown",
+            "room_type": "not_applicable"
+          }
+        },
+        "listing_status": "active",
+        "listed_date": "2026-07-08",
+        "fetched_at": "2026-09-14T12:00:00+08:00",
+        "last_verified_at": "2026-09-12T11:00:00+08:00",
+        "created_at": "2026-09-14T10:00:00+08:00",
+        "updated_at": "2026-09-14T12:00:00+08:00",
+        "block": "197",
+        "town": "JURONG_EAST",
+        "hdb_model": "1-Room / Studio",
+        "flat_type": "1-room",
+        "floor_range": null,
+        "lease_commencement_year": null,
+        "development_name": null,
+        "top_year": null,
+        "floor_level": null,
+        "facilities": null,
+        "landed_type": null,
+        "land_area_sqft": null,
+        "built_up_area_sqft": null,
+        "storeys": null
+      }
+    },
+    "contract": {
+      "listing_key": "propertyguru:mock-000001",
+      "source": "propertyguru",
+      "source_listing_id": "mock-000001",
+      "source_url": null,
+      "source_mode": "mock",
+      "title": "[MOCK] Jurong East HDB 000001",
+      "transaction_type": "rent",
+      "price": {
+        "amount": 1950,
+        "currency": "SGD",
+        "period": "month",
+        "status": "known",
+        "evidence_ids": [
+          "propertyguru:mock-000001:e:price.currency:0",
+          "propertyguru:mock-000001:e:price.period:0",
+          "propertyguru:mock-000001:e:price.amount:0"
+        ]
+      },
+      "attributes": {
+        "property_type": "hdb",
+        "unit_layout": "studio",
+        "listing_scope": "whole_unit",
+        "area_sqft": 200,
+        "bathrooms": 1,
+        "room_type": "unknown",
+        "ensuite_bathroom": null,
+        "owner_stays": null,
+        "cooking_policy": "unknown",
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "fully",
+        "tenure_type": "leasehold",
+        "lease_years": 99
+      },
+      "bedrooms": 0,
+      "location_id": "JURONG_EAST",
+      "listing_status": "active",
+      "listed_date": "2026-07-08",
+      "fetched_at": "2026-09-14T12:00:00+08:00",
+      "source_updated_at": "2026-09-08T12:00:00+08:00",
+      "last_verified_at": "2026-09-12T11:00:00+08:00",
+      "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: hdb. Rental scope: whole_unit.\nAsking price: SGD 1950 per month.\nReported bedrooms: 0.\nUnit layout: studio.\nFloor area: 200 sqft.\nFurnishing: fully.",
+      "raw_details": [
+        "property_type: hdb",
+        "listing_scope: whole_unit",
+        "furnishing: fully",
+        "tenure_type: leasehold",
+        "lease_years: 99"
+      ],
+      "evidence": [
+        {
+          "evidence_id": "propertyguru:mock-000001:e:title:0",
+          "field": "title",
+          "value": "[MOCK] Jurong East HDB 000001",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports title = \"[MOCK] Jurong East HDB 000001\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:transaction_type:0",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports transaction_type = \"rent\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:price.currency:0",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.currency = \"SGD\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:price.period:0",
+          "field": "price.period",
+          "value": "month",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.period = \"month\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:price.amount:0",
+          "field": "price.amount",
+          "value": 1950,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.amount = 1950."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:bedrooms:0",
+          "field": "bedrooms",
+          "value": 0,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports bedrooms = 0."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:location_id:0",
+          "field": "location_id",
+          "value": "JURONG_EAST",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports location_id = \"JURONG_EAST\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:listing_status:0",
+          "field": "listing_status",
+          "value": "active",
+          "source_url": null,
+          "observed_at": "2026-09-12T11:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports listing_status = \"active\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:attributes.property_type:0",
+          "field": "attributes.property_type",
+          "value": "hdb",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.property_type = \"hdb\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:attributes.unit_layout:0",
+          "field": "attributes.unit_layout",
+          "value": "studio",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.unit_layout = \"studio\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:attributes.listing_scope:0",
+          "field": "attributes.listing_scope",
+          "value": "whole_unit",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.listing_scope = \"whole_unit\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:attributes.area_sqft:0",
+          "field": "attributes.area_sqft",
+          "value": 200,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.area_sqft = 200."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:attributes.bathrooms:0",
+          "field": "attributes.bathrooms",
+          "value": 1,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.bathrooms = 1."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:attributes.furnishing:0",
+          "field": "attributes.furnishing",
+          "value": "fully",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.furnishing = \"fully\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:attributes.tenure_type:0",
+          "field": "attributes.tenure_type",
+          "value": "leasehold",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.tenure_type = \"leasehold\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000001:e:attributes.lease_years:0",
+          "field": "attributes.lease_years",
+          "value": 99,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.lease_years = 99."
+        }
+      ],
+      "field_issues": []
+    }
+  },
+  {
+    "case": "conflicting_price",
+    "database": {
+      "listing_key": "propertyguru:mock-000904",
+      "id": "7a718f16-891e-5534-88a7-a1a2def85aa8",
+      "fields": {
+        "source_listing_id": "mock-000904",
+        "source_url": null,
+        "source": "propertyguru",
+        "property_type": "hdb",
+        "transaction_type": "rent",
+        "listing_scope": "whole_unit",
+        "room_type": "unknown",
+        "unit_layout": "2_bedroom",
+        "price_sgd": null,
+        "price_period": "month",
+        "area_sqft": 720,
+        "psf_sgd": null,
+        "psf_basis": null,
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "ensuite_bathroom": null,
+        "owner_stays": null,
+        "cooking_policy": "unknown",
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "fully",
+        "title": "[MOCK] Clementi HDB 000904",
+        "address": "Mock Block 574, Clementi Test Avenue",
+        "postal_code": "000001",
+        "latitude": 1.314863,
+        "longitude": 103.7655,
+        "tenure_type": "leasehold",
+        "lease_years": 99,
+        "inclusivity_statement": "All prospective tenants are welcome.",
+        "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: hdb. Rental scope: whole_unit.\nThe structured price says SGD 3200/month; an older headline says SGD 3800/month. Confirm before quoting a price.\nReported bedrooms: 2.\nUnit layout: 2_bedroom.\nFloor area: 720 sqft.\nFurnishing: fully.",
+        "raw_details": [
+          "property_type: hdb",
+          "listing_scope: whole_unit",
+          "furnishing: fully",
+          "tenure_type: leasehold",
+          "lease_years: 99",
+          "All prospective tenants are welcome."
+        ],
+        "extra_attributes": {
+          "is_synthetic": true,
+          "source_mode": "mock",
+          "prototype_id": "P01",
+          "location_id": "CLEMENTI",
+          "area_basis": "floor",
+          "rental_lease_months": 24,
+          "available_from": null,
+          "source_updated_at": "2026-09-13T12:00:00+08:00",
+          "scenario": "conflicting_price",
+          "verification_method": "simulated_confirmation",
+          "address_precision": "synthetic",
+          "postal_code_is_synthetic": true,
+          "price_status": "conflict",
+          "field_issues": [
+            "price.amount"
+          ],
+          "conflicts": {
+            "price.amount": [
+              3200,
+              3800
+            ]
+          },
+          "normalization_notes": [],
+          "field_state": {
+            "block": "synthetic_known",
+            "town": "synthetic_known",
+            "flat_type": "synthetic_known",
+            "hdb_model": "synthetic_known",
+            "floor_range": "unknown",
+            "lease_commencement_year": "unknown",
+            "development_name": "not_applicable",
+            "top_year": "not_applicable",
+            "floor_level": "not_applicable",
+            "facilities": "not_applicable",
+            "landed_type": "not_applicable",
+            "land_area_sqft": "not_applicable",
+            "built_up_area_sqft": "not_applicable",
+            "storeys": "not_applicable",
+            "ensuite_bathroom": "not_applicable",
+            "owner_stays": "unknown",
+            "utilities_included": "unknown",
+            "wifi_included": "unknown",
+            "visitors_allowed": "unknown",
+            "pets_allowed": "unknown",
+            "room_type": "not_applicable"
+          }
+        },
+        "listing_status": "active",
+        "listed_date": "2026-08-24",
+        "fetched_at": "2026-09-14T12:00:00+08:00",
+        "last_verified_at": "2026-09-13T12:00:00+08:00",
+        "created_at": "2026-09-14T10:00:00+08:00",
+        "updated_at": "2026-09-14T12:00:00+08:00",
+        "block": "574",
+        "town": "CLEMENTI",
+        "hdb_model": "3NG (Modified)",
+        "flat_type": "3-room",
+        "floor_range": null,
+        "lease_commencement_year": null,
+        "development_name": null,
+        "top_year": null,
+        "floor_level": null,
+        "facilities": null,
+        "landed_type": null,
+        "land_area_sqft": null,
+        "built_up_area_sqft": null,
+        "storeys": null
+      }
+    },
+    "contract": {
+      "listing_key": "propertyguru:mock-000904",
+      "source": "propertyguru",
+      "source_listing_id": "mock-000904",
+      "source_url": null,
+      "source_mode": "mock",
+      "title": "[MOCK] Clementi HDB 000904",
+      "transaction_type": "rent",
+      "price": {
+        "amount": null,
+        "currency": "SGD",
+        "period": "month",
+        "status": "conflict",
+        "evidence_ids": [
+          "propertyguru:mock-000904:e:price.currency:0",
+          "propertyguru:mock-000904:e:price.period:0",
+          "propertyguru:mock-000904:e:price.amount:0",
+          "propertyguru:mock-000904:e:price.amount:1"
+        ]
+      },
+      "attributes": {
+        "property_type": "hdb",
+        "unit_layout": "2_bedroom",
+        "listing_scope": "whole_unit",
+        "area_sqft": 720,
+        "bathrooms": 2,
+        "room_type": "unknown",
+        "ensuite_bathroom": null,
+        "owner_stays": null,
+        "cooking_policy": "unknown",
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "fully",
+        "tenure_type": "leasehold",
+        "lease_years": 99
+      },
+      "bedrooms": 2,
+      "location_id": "CLEMENTI",
+      "listing_status": "active",
+      "listed_date": "2026-08-24",
+      "fetched_at": "2026-09-14T12:00:00+08:00",
+      "source_updated_at": "2026-09-13T12:00:00+08:00",
+      "last_verified_at": "2026-09-13T12:00:00+08:00",
+      "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: hdb. Rental scope: whole_unit.\nThe structured price says SGD 3200/month; an older headline says SGD 3800/month. Confirm before quoting a price.\nReported bedrooms: 2.\nUnit layout: 2_bedroom.\nFloor area: 720 sqft.\nFurnishing: fully.",
+      "raw_details": [
+        "property_type: hdb",
+        "listing_scope: whole_unit",
+        "furnishing: fully",
+        "tenure_type: leasehold",
+        "lease_years: 99",
+        "All prospective tenants are welcome."
+      ],
+      "evidence": [
+        {
+          "evidence_id": "propertyguru:mock-000904:e:title:0",
+          "field": "title",
+          "value": "[MOCK] Clementi HDB 000904",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports title = \"[MOCK] Clementi HDB 000904\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:transaction_type:0",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports transaction_type = \"rent\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:price.currency:0",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.currency = \"SGD\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:price.period:0",
+          "field": "price.period",
+          "value": "month",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.period = \"month\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:price.amount:0",
+          "field": "price.amount",
+          "value": 3200,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture conflicting source 1 explicitly reports price.amount = 3200."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:price.amount:1",
+          "field": "price.amount",
+          "value": 3800,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture conflicting source 2 explicitly reports price.amount = 3800."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:bedrooms:0",
+          "field": "bedrooms",
+          "value": 2,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports bedrooms = 2."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:location_id:0",
+          "field": "location_id",
+          "value": "CLEMENTI",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports location_id = \"CLEMENTI\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:listing_status:0",
+          "field": "listing_status",
+          "value": "active",
+          "source_url": null,
+          "observed_at": "2026-09-13T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports listing_status = \"active\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:attributes.property_type:0",
+          "field": "attributes.property_type",
+          "value": "hdb",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.property_type = \"hdb\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:attributes.unit_layout:0",
+          "field": "attributes.unit_layout",
+          "value": "2_bedroom",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.unit_layout = \"2_bedroom\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:attributes.listing_scope:0",
+          "field": "attributes.listing_scope",
+          "value": "whole_unit",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.listing_scope = \"whole_unit\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:attributes.area_sqft:0",
+          "field": "attributes.area_sqft",
+          "value": 720,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.area_sqft = 720."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:attributes.bathrooms:0",
+          "field": "attributes.bathrooms",
+          "value": 2,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.bathrooms = 2."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:attributes.furnishing:0",
+          "field": "attributes.furnishing",
+          "value": "fully",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.furnishing = \"fully\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:attributes.tenure_type:0",
+          "field": "attributes.tenure_type",
+          "value": "leasehold",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.tenure_type = \"leasehold\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000904:e:attributes.lease_years:0",
+          "field": "attributes.lease_years",
+          "value": 99,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.lease_years = 99."
+        }
+      ],
+      "field_issues": [
+        "price.amount"
+      ]
+    }
+  },
+  {
+    "case": "room_zero_bedrooms",
+    "database": {
+      "listing_key": "propertyguru:mock-000912",
+      "id": "908726fe-a78a-5332-af0a-a0a69432d465",
+      "fields": {
+        "source_listing_id": "mock-000912",
+        "source_url": null,
+        "source": "propertyguru",
+        "property_type": "hdb",
+        "transaction_type": "rent",
+        "listing_scope": "room",
+        "room_type": "common",
+        "unit_layout": null,
+        "price_sgd": 1000,
+        "price_period": "month",
+        "area_sqft": 120,
+        "psf_sgd": 8.33,
+        "psf_basis": "room",
+        "bedrooms": 0,
+        "bathrooms": 2,
+        "ensuite_bathroom": false,
+        "owner_stays": true,
+        "cooking_policy": "none",
+        "utilities_included": true,
+        "wifi_included": true,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "fully",
+        "title": "[MOCK] Clementi HDB 000912",
+        "address": "Mock Block 512, Clementi Test Avenue",
+        "postal_code": "000001",
+        "latitude": 1.319531,
+        "longitude": 103.772087,
+        "tenure_type": "leasehold",
+        "lease_years": 99,
+        "inclusivity_statement": null,
+        "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: hdb. Rental scope: room.\nAsking price: SGD 1000 per month.\nReported bedrooms: 0.\nRoom area: 120 sqft.\nOwner stays in the property: yes.\nEnsuite bathroom: no.\nUtilities included: yes.\nWi-Fi included: yes.\nCooking is not allowed.\nFurnishing: fully.",
+        "raw_details": [
+          "property_type: hdb",
+          "listing_scope: room",
+          "furnishing: fully",
+          "tenure_type: leasehold",
+          "lease_years: 99"
+        ],
+        "extra_attributes": {
+          "is_synthetic": true,
+          "source_mode": "mock",
+          "prototype_id": "P01",
+          "location_id": "CLEMENTI",
+          "area_basis": "room",
+          "rental_lease_months": null,
+          "available_from": null,
+          "source_updated_at": "2026-09-13T12:00:00+08:00",
+          "scenario": "room_zero_bedrooms",
+          "verification_method": "simulated_confirmation",
+          "address_precision": "synthetic",
+          "postal_code_is_synthetic": true,
+          "price_status": "known",
+          "field_issues": [
+            "bedrooms"
+          ],
+          "conflicts": {},
+          "normalization_notes": [
+            "Source search bedroom count is zero; this denotes a room listing, not a studio."
+          ],
+          "field_state": {
+            "block": "synthetic_known",
+            "town": "synthetic_known",
+            "flat_type": "unknown",
+            "hdb_model": "synthetic_known",
+            "floor_range": "unknown",
+            "lease_commencement_year": "unknown",
+            "development_name": "not_applicable",
+            "top_year": "not_applicable",
+            "floor_level": "not_applicable",
+            "facilities": "not_applicable",
+            "landed_type": "not_applicable",
+            "land_area_sqft": "not_applicable",
+            "built_up_area_sqft": "not_applicable",
+            "storeys": "not_applicable",
+            "ensuite_bathroom": "synthetic_known",
+            "owner_stays": "synthetic_known",
+            "utilities_included": "synthetic_known",
+            "wifi_included": "synthetic_known",
+            "visitors_allowed": "unknown",
+            "pets_allowed": "unknown"
+          }
+        },
+        "listing_status": "active",
+        "listed_date": "2026-08-30",
+        "fetched_at": "2026-09-14T12:00:00+08:00",
+        "last_verified_at": "2026-09-13T12:00:00+08:00",
+        "created_at": "2026-09-14T10:00:00+08:00",
+        "updated_at": "2026-09-14T12:00:00+08:00",
+        "block": "512",
+        "town": "CLEMENTI",
+        "hdb_model": "3NG (Modified)",
+        "flat_type": null,
+        "floor_range": null,
+        "lease_commencement_year": null,
+        "development_name": null,
+        "top_year": null,
+        "floor_level": null,
+        "facilities": null,
+        "landed_type": null,
+        "land_area_sqft": null,
+        "built_up_area_sqft": null,
+        "storeys": null
+      }
+    },
+    "contract": {
+      "listing_key": "propertyguru:mock-000912",
+      "source": "propertyguru",
+      "source_listing_id": "mock-000912",
+      "source_url": null,
+      "source_mode": "mock",
+      "title": "[MOCK] Clementi HDB 000912",
+      "transaction_type": "rent",
+      "price": {
+        "amount": 1000,
+        "currency": "SGD",
+        "period": "month",
+        "status": "known",
+        "evidence_ids": [
+          "propertyguru:mock-000912:e:price.currency:0",
+          "propertyguru:mock-000912:e:price.period:0",
+          "propertyguru:mock-000912:e:price.amount:0"
+        ]
+      },
+      "attributes": {
+        "property_type": "hdb",
+        "unit_layout": null,
+        "listing_scope": "room",
+        "area_sqft": 120,
+        "bathrooms": 2,
+        "room_type": "common",
+        "ensuite_bathroom": false,
+        "owner_stays": true,
+        "cooking_policy": "none",
+        "utilities_included": true,
+        "wifi_included": true,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "fully",
+        "tenure_type": "leasehold",
+        "lease_years": 99
+      },
+      "bedrooms": 0,
+      "location_id": "CLEMENTI",
+      "listing_status": "active",
+      "listed_date": "2026-08-30",
+      "fetched_at": "2026-09-14T12:00:00+08:00",
+      "source_updated_at": "2026-09-13T12:00:00+08:00",
+      "last_verified_at": "2026-09-13T12:00:00+08:00",
+      "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: hdb. Rental scope: room.\nAsking price: SGD 1000 per month.\nReported bedrooms: 0.\nRoom area: 120 sqft.\nOwner stays in the property: yes.\nEnsuite bathroom: no.\nUtilities included: yes.\nWi-Fi included: yes.\nCooking is not allowed.\nFurnishing: fully.",
+      "raw_details": [
+        "property_type: hdb",
+        "listing_scope: room",
+        "furnishing: fully",
+        "tenure_type: leasehold",
+        "lease_years: 99"
+      ],
+      "evidence": [
+        {
+          "evidence_id": "propertyguru:mock-000912:e:title:0",
+          "field": "title",
+          "value": "[MOCK] Clementi HDB 000912",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports title = \"[MOCK] Clementi HDB 000912\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:transaction_type:0",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports transaction_type = \"rent\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:price.currency:0",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.currency = \"SGD\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:price.period:0",
+          "field": "price.period",
+          "value": "month",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.period = \"month\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:price.amount:0",
+          "field": "price.amount",
+          "value": 1000,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.amount = 1000."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:bedrooms:0",
+          "field": "bedrooms",
+          "value": 0,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports bedrooms = 0."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:location_id:0",
+          "field": "location_id",
+          "value": "CLEMENTI",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports location_id = \"CLEMENTI\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:listing_status:0",
+          "field": "listing_status",
+          "value": "active",
+          "source_url": null,
+          "observed_at": "2026-09-13T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports listing_status = \"active\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.property_type:0",
+          "field": "attributes.property_type",
+          "value": "hdb",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.property_type = \"hdb\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.listing_scope:0",
+          "field": "attributes.listing_scope",
+          "value": "room",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.listing_scope = \"room\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.area_sqft:0",
+          "field": "attributes.area_sqft",
+          "value": 120,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.area_sqft = 120."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.bathrooms:0",
+          "field": "attributes.bathrooms",
+          "value": 2,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.bathrooms = 2."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.room_type:0",
+          "field": "attributes.room_type",
+          "value": "common",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.room_type = \"common\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.ensuite_bathroom:0",
+          "field": "attributes.ensuite_bathroom",
+          "value": false,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.ensuite_bathroom = false."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.owner_stays:0",
+          "field": "attributes.owner_stays",
+          "value": true,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.owner_stays = true."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.cooking_policy:0",
+          "field": "attributes.cooking_policy",
+          "value": "none",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.cooking_policy = \"none\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.utilities_included:0",
+          "field": "attributes.utilities_included",
+          "value": true,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.utilities_included = true."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.wifi_included:0",
+          "field": "attributes.wifi_included",
+          "value": true,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.wifi_included = true."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.furnishing:0",
+          "field": "attributes.furnishing",
+          "value": "fully",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.furnishing = \"fully\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.tenure_type:0",
+          "field": "attributes.tenure_type",
+          "value": "leasehold",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.tenure_type = \"leasehold\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000912:e:attributes.lease_years:0",
+          "field": "attributes.lease_years",
+          "value": 99,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.lease_years = 99."
+        }
+      ],
+      "field_issues": [
+        "bedrooms"
+      ]
+    }
+  },
+  {
+    "case": "studio_zero_bedrooms",
+    "database": {
+      "listing_key": "propertyguru:mock-000913",
+      "id": "b0217acd-4794-5e58-838a-416836c8beb3",
+      "fields": {
+        "source_listing_id": "mock-000913",
+        "source_url": null,
+        "source": "propertyguru",
+        "property_type": "condo",
+        "transaction_type": "rent",
+        "listing_scope": "whole_unit",
+        "room_type": "unknown",
+        "unit_layout": "studio",
+        "price_sgd": 2900,
+        "price_period": "month",
+        "area_sqft": 420,
+        "psf_sgd": 6.9,
+        "psf_basis": "floor",
+        "bedrooms": 0,
+        "bathrooms": 1,
+        "ensuite_bathroom": null,
+        "owner_stays": null,
+        "cooking_policy": "unknown",
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "fully",
+        "title": "[MOCK] Clementi CONDO 000913",
+        "address": "Mock Building 000913, Clementi Test Avenue",
+        "postal_code": "000001",
+        "latitude": 1.319476,
+        "longitude": 103.768066,
+        "tenure_type": "leasehold",
+        "lease_years": 99,
+        "inclusivity_statement": null,
+        "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: condo. Rental scope: whole_unit.\nAsking price: SGD 2900 per month.\nReported bedrooms: 0.\nUnit layout: studio.\nFloor area: 420 sqft.\nFurnishing: fully.",
+        "raw_details": [
+          "property_type: condo",
+          "listing_scope: whole_unit",
+          "furnishing: fully",
+          "tenure_type: leasehold",
+          "lease_years: 99"
+        ],
+        "extra_attributes": {
+          "is_synthetic": true,
+          "source_mode": "mock",
+          "prototype_id": "P01",
+          "location_id": "CLEMENTI",
+          "area_basis": "floor",
+          "rental_lease_months": 24,
+          "available_from": null,
+          "source_updated_at": "2026-09-13T12:00:00+08:00",
+          "scenario": "studio_zero_bedrooms",
+          "verification_method": "simulated_confirmation",
+          "address_precision": "synthetic",
+          "postal_code_is_synthetic": true,
+          "price_status": "known",
+          "field_issues": [],
+          "conflicts": {},
+          "normalization_notes": [],
+          "field_state": {
+            "block": "not_applicable",
+            "town": "not_applicable",
+            "flat_type": "not_applicable",
+            "hdb_model": "not_applicable",
+            "floor_range": "not_applicable",
+            "lease_commencement_year": "not_applicable",
+            "development_name": "synthetic_known",
+            "top_year": "synthetic_known",
+            "floor_level": "synthetic_known",
+            "facilities": "synthetic_known",
+            "landed_type": "not_applicable",
+            "land_area_sqft": "not_applicable",
+            "built_up_area_sqft": "not_applicable",
+            "storeys": "not_applicable",
+            "ensuite_bathroom": "not_applicable",
+            "owner_stays": "unknown",
+            "utilities_included": "unknown",
+            "wifi_included": "unknown",
+            "visitors_allowed": "unknown",
+            "pets_allowed": "unknown",
+            "room_type": "not_applicable"
+          }
+        },
+        "listing_status": "active",
+        "listed_date": "2026-08-24",
+        "fetched_at": "2026-09-14T12:00:00+08:00",
+        "last_verified_at": "2026-09-13T12:00:00+08:00",
+        "created_at": "2026-09-14T10:00:00+08:00",
+        "updated_at": "2026-09-14T12:00:00+08:00",
+        "block": null,
+        "town": null,
+        "hdb_model": null,
+        "flat_type": null,
+        "floor_range": null,
+        "lease_commencement_year": null,
+        "development_name": "Mock Clementi Grove 06",
+        "top_year": 2008,
+        "floor_level": "MID",
+        "facilities": [
+          "Swimming pool",
+          "24 hours security"
+        ],
+        "landed_type": null,
+        "land_area_sqft": null,
+        "built_up_area_sqft": null,
+        "storeys": null
+      }
+    },
+    "contract": {
+      "listing_key": "propertyguru:mock-000913",
+      "source": "propertyguru",
+      "source_listing_id": "mock-000913",
+      "source_url": null,
+      "source_mode": "mock",
+      "title": "[MOCK] Clementi CONDO 000913",
+      "transaction_type": "rent",
+      "price": {
+        "amount": 2900,
+        "currency": "SGD",
+        "period": "month",
+        "status": "known",
+        "evidence_ids": [
+          "propertyguru:mock-000913:e:price.currency:0",
+          "propertyguru:mock-000913:e:price.period:0",
+          "propertyguru:mock-000913:e:price.amount:0"
+        ]
+      },
+      "attributes": {
+        "property_type": "condo",
+        "unit_layout": "studio",
+        "listing_scope": "whole_unit",
+        "area_sqft": 420,
+        "bathrooms": 1,
+        "room_type": "unknown",
+        "ensuite_bathroom": null,
+        "owner_stays": null,
+        "cooking_policy": "unknown",
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "fully",
+        "tenure_type": "leasehold",
+        "lease_years": 99
+      },
+      "bedrooms": 0,
+      "location_id": "CLEMENTI",
+      "listing_status": "active",
+      "listed_date": "2026-08-24",
+      "fetched_at": "2026-09-14T12:00:00+08:00",
+      "source_updated_at": "2026-09-13T12:00:00+08:00",
+      "last_verified_at": "2026-09-13T12:00:00+08:00",
+      "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: condo. Rental scope: whole_unit.\nAsking price: SGD 2900 per month.\nReported bedrooms: 0.\nUnit layout: studio.\nFloor area: 420 sqft.\nFurnishing: fully.",
+      "raw_details": [
+        "property_type: condo",
+        "listing_scope: whole_unit",
+        "furnishing: fully",
+        "tenure_type: leasehold",
+        "lease_years: 99"
+      ],
+      "evidence": [
+        {
+          "evidence_id": "propertyguru:mock-000913:e:title:0",
+          "field": "title",
+          "value": "[MOCK] Clementi CONDO 000913",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports title = \"[MOCK] Clementi CONDO 000913\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:transaction_type:0",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports transaction_type = \"rent\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:price.currency:0",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.currency = \"SGD\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:price.period:0",
+          "field": "price.period",
+          "value": "month",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.period = \"month\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:price.amount:0",
+          "field": "price.amount",
+          "value": 2900,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.amount = 2900."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:bedrooms:0",
+          "field": "bedrooms",
+          "value": 0,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports bedrooms = 0."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:location_id:0",
+          "field": "location_id",
+          "value": "CLEMENTI",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports location_id = \"CLEMENTI\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:listing_status:0",
+          "field": "listing_status",
+          "value": "active",
+          "source_url": null,
+          "observed_at": "2026-09-13T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports listing_status = \"active\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:attributes.property_type:0",
+          "field": "attributes.property_type",
+          "value": "condo",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.property_type = \"condo\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:attributes.unit_layout:0",
+          "field": "attributes.unit_layout",
+          "value": "studio",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.unit_layout = \"studio\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:attributes.listing_scope:0",
+          "field": "attributes.listing_scope",
+          "value": "whole_unit",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.listing_scope = \"whole_unit\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:attributes.area_sqft:0",
+          "field": "attributes.area_sqft",
+          "value": 420,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.area_sqft = 420."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:attributes.bathrooms:0",
+          "field": "attributes.bathrooms",
+          "value": 1,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.bathrooms = 1."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:attributes.furnishing:0",
+          "field": "attributes.furnishing",
+          "value": "fully",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.furnishing = \"fully\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:attributes.tenure_type:0",
+          "field": "attributes.tenure_type",
+          "value": "leasehold",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.tenure_type = \"leasehold\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000913:e:attributes.lease_years:0",
+          "field": "attributes.lease_years",
+          "value": 99,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.lease_years = 99."
+        }
+      ],
+      "field_issues": []
+    }
+  },
+  {
+    "case": "sparse_record",
+    "database": {
+      "listing_key": "propertyguru:mock-000924",
+      "id": "c328b508-2a4f-5d75-b86a-0389d13caf5f",
+      "fields": {
+        "source_listing_id": "mock-000924",
+        "source_url": null,
+        "source": "propertyguru",
+        "property_type": "unknown",
+        "transaction_type": "rent",
+        "listing_scope": null,
+        "room_type": "unknown",
+        "unit_layout": null,
+        "price_sgd": null,
+        "price_period": null,
+        "area_sqft": null,
+        "psf_sgd": null,
+        "psf_basis": null,
+        "bedrooms": null,
+        "bathrooms": null,
+        "ensuite_bathroom": null,
+        "owner_stays": null,
+        "cooking_policy": "unknown",
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "unknown",
+        "title": "[MOCK] Location Unconfirmed UNKNOWN 000924",
+        "address": null,
+        "postal_code": null,
+        "latitude": null,
+        "longitude": null,
+        "tenure_type": "unknown",
+        "lease_years": null,
+        "inclusivity_statement": null,
+        "raw_description": null,
+        "raw_details": [],
+        "extra_attributes": {
+          "is_synthetic": true,
+          "source_mode": "mock",
+          "prototype_id": "P01",
+          "location_id": null,
+          "area_basis": "floor",
+          "rental_lease_months": 24,
+          "available_from": null,
+          "source_updated_at": "2026-09-13T12:00:00+08:00",
+          "scenario": "sparse_record",
+          "verification_method": null,
+          "address_precision": "synthetic",
+          "postal_code_is_synthetic": true,
+          "price_status": "unknown",
+          "field_issues": [
+            "price.amount",
+            "bedrooms",
+            "location_id",
+            "attributes.listing_scope",
+            "listing_status"
+          ],
+          "conflicts": {},
+          "normalization_notes": [],
+          "field_state": {
+            "block": "not_applicable",
+            "town": "not_applicable",
+            "flat_type": "not_applicable",
+            "hdb_model": "not_applicable",
+            "floor_range": "not_applicable",
+            "lease_commencement_year": "not_applicable",
+            "development_name": "not_applicable",
+            "top_year": "not_applicable",
+            "floor_level": "not_applicable",
+            "facilities": "not_applicable",
+            "landed_type": "not_applicable",
+            "land_area_sqft": "not_applicable",
+            "built_up_area_sqft": "not_applicable",
+            "storeys": "not_applicable",
+            "ensuite_bathroom": "unknown",
+            "owner_stays": "unknown",
+            "utilities_included": "unknown",
+            "wifi_included": "unknown",
+            "visitors_allowed": "unknown",
+            "pets_allowed": "unknown"
+          }
+        },
+        "listing_status": "unknown",
+        "listed_date": null,
+        "fetched_at": "2026-09-14T12:00:00+08:00",
+        "last_verified_at": null,
+        "created_at": "2026-09-14T10:00:00+08:00",
+        "updated_at": "2026-09-14T12:00:00+08:00",
+        "block": null,
+        "town": null,
+        "hdb_model": null,
+        "flat_type": null,
+        "floor_range": null,
+        "lease_commencement_year": null,
+        "development_name": null,
+        "top_year": null,
+        "floor_level": null,
+        "facilities": null,
+        "landed_type": null,
+        "land_area_sqft": null,
+        "built_up_area_sqft": null,
+        "storeys": null
+      }
+    },
+    "contract": {
+      "listing_key": "propertyguru:mock-000924",
+      "source": "propertyguru",
+      "source_listing_id": "mock-000924",
+      "source_url": null,
+      "source_mode": "mock",
+      "title": "[MOCK] Location Unconfirmed UNKNOWN 000924",
+      "transaction_type": "rent",
+      "price": {
+        "amount": null,
+        "currency": "SGD",
+        "period": null,
+        "status": "unknown",
+        "evidence_ids": [
+          "propertyguru:mock-000924:e:price.currency:0"
+        ]
+      },
+      "attributes": {
+        "property_type": "unknown",
+        "unit_layout": null,
+        "listing_scope": null,
+        "area_sqft": null,
+        "bathrooms": null,
+        "room_type": "unknown",
+        "ensuite_bathroom": null,
+        "owner_stays": null,
+        "cooking_policy": "unknown",
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "furnishing": "unknown",
+        "tenure_type": "unknown",
+        "lease_years": null
+      },
+      "bedrooms": null,
+      "location_id": null,
+      "listing_status": "unknown",
+      "listed_date": null,
+      "fetched_at": "2026-09-14T12:00:00+08:00",
+      "source_updated_at": "2026-09-13T12:00:00+08:00",
+      "last_verified_at": null,
+      "raw_description": null,
+      "raw_details": [],
+      "evidence": [
+        {
+          "evidence_id": "propertyguru:mock-000924:e:title:0",
+          "field": "title",
+          "value": "[MOCK] Location Unconfirmed UNKNOWN 000924",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports title = \"[MOCK] Location Unconfirmed UNKNOWN 000924\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000924:e:transaction_type:0",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports transaction_type = \"rent\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000924:e:price.currency:0",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.currency = \"SGD\"."
+        }
+      ],
+      "field_issues": [
+        "price.amount",
+        "bedrooms",
+        "location_id",
+        "attributes.listing_scope",
+        "listing_status"
+      ]
+    }
+  },
+  {
+    "case": "explicit_house_rules",
+    "database": {
+      "listing_key": "propertyguru:mock-000927",
+      "id": "2d419922-88ce-5b61-8a26-a959e30c00e3",
+      "fields": {
+        "source_listing_id": "mock-000927",
+        "source_url": null,
+        "source": "propertyguru",
+        "property_type": "hdb",
+        "transaction_type": "rent",
+        "listing_scope": "whole_unit",
+        "room_type": "unknown",
+        "unit_layout": "2_bedroom",
+        "price_sgd": 3200,
+        "price_period": "month",
+        "area_sqft": 720,
+        "psf_sgd": 4.44,
+        "psf_basis": "floor",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "ensuite_bathroom": null,
+        "owner_stays": false,
+        "cooking_policy": "full",
+        "utilities_included": false,
+        "wifi_included": false,
+        "visitors_allowed": true,
+        "pets_allowed": true,
+        "furnishing": "fully",
+        "title": "[MOCK] Clementi HDB 000927",
+        "address": "Mock Block 896, Clementi Test Avenue",
+        "postal_code": "000001",
+        "latitude": 1.313983,
+        "longitude": 103.770763,
+        "tenure_type": "leasehold",
+        "lease_years": 99,
+        "inclusivity_statement": null,
+        "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: hdb. Rental scope: whole_unit.\nAsking price: SGD 3200 per month.\nReported bedrooms: 2.\nUnit layout: 2_bedroom.\nFloor area: 720 sqft.\nOwner stays in the property: no.\nUtilities included: no.\nWi-Fi included: no.\nVisitors allowed: yes.\nPets allowed: yes.\nFull cooking allowed.\nFurnishing: fully.",
+        "raw_details": [
+          "property_type: hdb",
+          "listing_scope: whole_unit",
+          "furnishing: fully",
+          "tenure_type: leasehold",
+          "lease_years: 99"
+        ],
+        "extra_attributes": {
+          "is_synthetic": true,
+          "source_mode": "mock",
+          "prototype_id": "P01",
+          "location_id": "CLEMENTI",
+          "area_basis": "floor",
+          "rental_lease_months": 24,
+          "available_from": null,
+          "source_updated_at": "2026-09-13T12:00:00+08:00",
+          "scenario": "explicit_house_rules",
+          "verification_method": "simulated_confirmation",
+          "address_precision": "synthetic",
+          "postal_code_is_synthetic": true,
+          "price_status": "known",
+          "field_issues": [],
+          "conflicts": {},
+          "normalization_notes": [
+            "Explicit-policy stress fixture: these combinations are designed test coverage, not a measured market frequency."
+          ],
+          "field_state": {
+            "block": "synthetic_known",
+            "town": "synthetic_known",
+            "flat_type": "synthetic_known",
+            "hdb_model": "synthetic_known",
+            "floor_range": "unknown",
+            "lease_commencement_year": "unknown",
+            "development_name": "not_applicable",
+            "top_year": "not_applicable",
+            "floor_level": "not_applicable",
+            "facilities": "not_applicable",
+            "landed_type": "not_applicable",
+            "land_area_sqft": "not_applicable",
+            "built_up_area_sqft": "not_applicable",
+            "storeys": "not_applicable",
+            "ensuite_bathroom": "not_applicable",
+            "owner_stays": "synthetic_known",
+            "utilities_included": "synthetic_known",
+            "wifi_included": "synthetic_known",
+            "visitors_allowed": "synthetic_known",
+            "pets_allowed": "synthetic_known",
+            "room_type": "not_applicable"
+          }
+        },
+        "listing_status": "active",
+        "listed_date": "2026-07-07",
+        "fetched_at": "2026-09-14T12:00:00+08:00",
+        "last_verified_at": "2026-09-13T12:00:00+08:00",
+        "created_at": "2026-09-14T10:00:00+08:00",
+        "updated_at": "2026-09-14T12:00:00+08:00",
+        "block": "896",
+        "town": "CLEMENTI",
+        "hdb_model": "3NG (Modified)",
+        "flat_type": "3-room",
+        "floor_range": null,
+        "lease_commencement_year": null,
+        "development_name": null,
+        "top_year": null,
+        "floor_level": null,
+        "facilities": null,
+        "landed_type": null,
+        "land_area_sqft": null,
+        "built_up_area_sqft": null,
+        "storeys": null
+      }
+    },
+    "contract": {
+      "listing_key": "propertyguru:mock-000927",
+      "source": "propertyguru",
+      "source_listing_id": "mock-000927",
+      "source_url": null,
+      "source_mode": "mock",
+      "title": "[MOCK] Clementi HDB 000927",
+      "transaction_type": "rent",
+      "price": {
+        "amount": 3200,
+        "currency": "SGD",
+        "period": "month",
+        "status": "known",
+        "evidence_ids": [
+          "propertyguru:mock-000927:e:price.currency:0",
+          "propertyguru:mock-000927:e:price.period:0",
+          "propertyguru:mock-000927:e:price.amount:0"
+        ]
+      },
+      "attributes": {
+        "property_type": "hdb",
+        "unit_layout": "2_bedroom",
+        "listing_scope": "whole_unit",
+        "area_sqft": 720,
+        "bathrooms": 2,
+        "room_type": "unknown",
+        "ensuite_bathroom": null,
+        "owner_stays": false,
+        "cooking_policy": "full",
+        "utilities_included": false,
+        "wifi_included": false,
+        "visitors_allowed": true,
+        "pets_allowed": true,
+        "furnishing": "fully",
+        "tenure_type": "leasehold",
+        "lease_years": 99
+      },
+      "bedrooms": 2,
+      "location_id": "CLEMENTI",
+      "listing_status": "active",
+      "listed_date": "2026-07-07",
+      "fetched_at": "2026-09-14T12:00:00+08:00",
+      "source_updated_at": "2026-09-13T12:00:00+08:00",
+      "last_verified_at": "2026-09-13T12:00:00+08:00",
+      "raw_description": "This is a synthetic development fixture, not a real property advertisement.\nProperty category: hdb. Rental scope: whole_unit.\nAsking price: SGD 3200 per month.\nReported bedrooms: 2.\nUnit layout: 2_bedroom.\nFloor area: 720 sqft.\nOwner stays in the property: no.\nUtilities included: no.\nWi-Fi included: no.\nVisitors allowed: yes.\nPets allowed: yes.\nFull cooking allowed.\nFurnishing: fully.",
+      "raw_details": [
+        "property_type: hdb",
+        "listing_scope: whole_unit",
+        "furnishing: fully",
+        "tenure_type: leasehold",
+        "lease_years: 99"
+      ],
+      "evidence": [
+        {
+          "evidence_id": "propertyguru:mock-000927:e:title:0",
+          "field": "title",
+          "value": "[MOCK] Clementi HDB 000927",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports title = \"[MOCK] Clementi HDB 000927\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:transaction_type:0",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports transaction_type = \"rent\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:price.currency:0",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.currency = \"SGD\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:price.period:0",
+          "field": "price.period",
+          "value": "month",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.period = \"month\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:price.amount:0",
+          "field": "price.amount",
+          "value": 3200,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports price.amount = 3200."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:bedrooms:0",
+          "field": "bedrooms",
+          "value": 2,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports bedrooms = 2."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:location_id:0",
+          "field": "location_id",
+          "value": "CLEMENTI",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports location_id = \"CLEMENTI\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:listing_status:0",
+          "field": "listing_status",
+          "value": "active",
+          "source_url": null,
+          "observed_at": "2026-09-13T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports listing_status = \"active\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.property_type:0",
+          "field": "attributes.property_type",
+          "value": "hdb",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.property_type = \"hdb\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.unit_layout:0",
+          "field": "attributes.unit_layout",
+          "value": "2_bedroom",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.unit_layout = \"2_bedroom\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.listing_scope:0",
+          "field": "attributes.listing_scope",
+          "value": "whole_unit",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.listing_scope = \"whole_unit\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.area_sqft:0",
+          "field": "attributes.area_sqft",
+          "value": 720,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.area_sqft = 720."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.bathrooms:0",
+          "field": "attributes.bathrooms",
+          "value": 2,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.bathrooms = 2."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.owner_stays:0",
+          "field": "attributes.owner_stays",
+          "value": false,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.owner_stays = false."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.cooking_policy:0",
+          "field": "attributes.cooking_policy",
+          "value": "full",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.cooking_policy = \"full\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.utilities_included:0",
+          "field": "attributes.utilities_included",
+          "value": false,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.utilities_included = false."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.wifi_included:0",
+          "field": "attributes.wifi_included",
+          "value": false,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.wifi_included = false."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.visitors_allowed:0",
+          "field": "attributes.visitors_allowed",
+          "value": true,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.visitors_allowed = true."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.pets_allowed:0",
+          "field": "attributes.pets_allowed",
+          "value": true,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.pets_allowed = true."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.furnishing:0",
+          "field": "attributes.furnishing",
+          "value": "fully",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.furnishing = \"fully\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.tenure_type:0",
+          "field": "attributes.tenure_type",
+          "value": "leasehold",
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.tenure_type = \"leasehold\"."
+        },
+        {
+          "evidence_id": "propertyguru:mock-000927:e:attributes.lease_years:0",
+          "field": "attributes.lease_years",
+          "value": 99,
+          "source_url": null,
+          "observed_at": "2026-09-14T12:00:00+08:00",
+          "excerpt": "Synthetic fixture source explicitly reports attributes.lease_years = 99."
+        }
+      ],
+      "field_issues": []
+    }
+  }
+]

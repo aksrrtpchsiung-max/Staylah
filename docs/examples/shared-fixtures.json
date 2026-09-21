@@ -1,0 +1,1551 @@
+{
+  "profile_empty": {
+    "profile_id": "profile-001",
+    "version": 0,
+    "intent": null,
+    "hard_constraints": {
+      "currency": "SGD",
+      "max_price": null,
+      "price_period": null,
+      "rental_scope": null,
+      "locations": [],
+      "min_bedrooms": null
+    },
+    "preferences": [],
+    "unresolved": [
+      "intent",
+      "hard_constraints.max_price",
+      "hard_constraints.price_period",
+      "hard_constraints.rental_scope",
+      "hard_constraints.locations"
+    ],
+    "field_sources": {}
+  },
+  "profile_ready": {
+    "profile_id": "profile-001",
+    "version": 1,
+    "intent": "rent",
+    "hard_constraints": {
+      "currency": "SGD",
+      "max_price": "3500.00",
+      "price_period": "month",
+      "rental_scope": "whole_unit",
+      "locations": [
+        "TAMPINES"
+      ],
+      "min_bedrooms": 2
+    },
+    "preferences": [],
+    "unresolved": [],
+    "field_sources": {
+      "intent": "msg-001",
+      "hard_constraints.currency": "msg-001",
+      "hard_constraints.max_price": "msg-001",
+      "hard_constraints.price_period": "msg-001",
+      "hard_constraints.rental_scope": "msg-001",
+      "hard_constraints.locations": "msg-001",
+      "hard_constraints.min_bedrooms": "msg-001"
+    }
+  },
+  "query": {
+    "profile_version": 1,
+    "entities": [
+      {
+        "type": "location",
+        "raw_text": "淡滨尼",
+        "canonical_id": "TAMPINES",
+        "aliases": [
+          "Tampines",
+          "淡滨尼"
+        ]
+      }
+    ],
+    "semantic_query": "Tampines 整套出租 月租不超过 SGD 3500 至少两个卧室",
+    "unresolved": []
+  },
+  "listings": [
+    {
+      "listing_key": "L1",
+      "source": "demo_a",
+      "source_listing_id": "L1",
+      "source_url": "https://example.com/demo/L1",
+      "source_mode": "mock",
+      "title": "模拟房源 L1",
+      "transaction_type": "rent",
+      "price": {
+        "amount": "3400.00",
+        "currency": "SGD",
+        "period": "month",
+        "scope": "whole_unit",
+        "status": "known",
+        "evidence_ids": [
+          "L1:price.amount"
+        ]
+      },
+      "bedrooms": 2,
+      "location_id": "TAMPINES",
+      "fetched_at": "2026-09-09T10:00:00+08:00",
+      "source_updated_at": null,
+      "evidence": [
+        {
+          "evidence_id": "L1:transaction_type",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": "https://example.com/demo/L1",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：transaction_type=rent"
+        },
+        {
+          "evidence_id": "L1:price.currency",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": "https://example.com/demo/L1",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.currency=SGD"
+        },
+        {
+          "evidence_id": "L1:price.period",
+          "field": "price.period",
+          "value": "month",
+          "source_url": "https://example.com/demo/L1",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.period=month"
+        },
+        {
+          "evidence_id": "L1:price.scope",
+          "field": "price.scope",
+          "value": "whole_unit",
+          "source_url": "https://example.com/demo/L1",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.scope=whole_unit"
+        },
+        {
+          "evidence_id": "L1:location_id",
+          "field": "location_id",
+          "value": "TAMPINES",
+          "source_url": "https://example.com/demo/L1",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：location_id=TAMPINES"
+        },
+        {
+          "evidence_id": "L1:bedrooms",
+          "field": "bedrooms",
+          "value": 2,
+          "source_url": "https://example.com/demo/L1",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：bedrooms=2"
+        },
+        {
+          "evidence_id": "L1:price.amount",
+          "field": "price.amount",
+          "value": "3400.00",
+          "source_url": "https://example.com/demo/L1",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.amount=3400.00"
+        }
+      ],
+      "field_issues": []
+    },
+    {
+      "listing_key": "L2",
+      "source": "demo_a",
+      "source_listing_id": "L2",
+      "source_url": "https://example.com/demo/L2",
+      "source_mode": "mock",
+      "title": "模拟房源 L2",
+      "transaction_type": "rent",
+      "price": {
+        "amount": "3500.00",
+        "currency": "SGD",
+        "period": "month",
+        "scope": "whole_unit",
+        "status": "known",
+        "evidence_ids": [
+          "L2:price.amount"
+        ]
+      },
+      "bedrooms": 2,
+      "location_id": "TAMPINES",
+      "fetched_at": "2026-09-09T10:00:00+08:00",
+      "source_updated_at": null,
+      "evidence": [
+        {
+          "evidence_id": "L2:transaction_type",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": "https://example.com/demo/L2",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：transaction_type=rent"
+        },
+        {
+          "evidence_id": "L2:price.currency",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": "https://example.com/demo/L2",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.currency=SGD"
+        },
+        {
+          "evidence_id": "L2:price.period",
+          "field": "price.period",
+          "value": "month",
+          "source_url": "https://example.com/demo/L2",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.period=month"
+        },
+        {
+          "evidence_id": "L2:price.scope",
+          "field": "price.scope",
+          "value": "whole_unit",
+          "source_url": "https://example.com/demo/L2",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.scope=whole_unit"
+        },
+        {
+          "evidence_id": "L2:location_id",
+          "field": "location_id",
+          "value": "TAMPINES",
+          "source_url": "https://example.com/demo/L2",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：location_id=TAMPINES"
+        },
+        {
+          "evidence_id": "L2:bedrooms",
+          "field": "bedrooms",
+          "value": 2,
+          "source_url": "https://example.com/demo/L2",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：bedrooms=2"
+        },
+        {
+          "evidence_id": "L2:price.amount",
+          "field": "price.amount",
+          "value": "3500.00",
+          "source_url": "https://example.com/demo/L2",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.amount=3500.00"
+        }
+      ],
+      "field_issues": []
+    },
+    {
+      "listing_key": "L3",
+      "source": "demo_a",
+      "source_listing_id": "L3",
+      "source_url": "https://example.com/demo/L3",
+      "source_mode": "mock",
+      "title": "模拟房源 L3",
+      "transaction_type": "rent",
+      "price": {
+        "amount": "3500.01",
+        "currency": "SGD",
+        "period": "month",
+        "scope": "whole_unit",
+        "status": "known",
+        "evidence_ids": [
+          "L3:price.amount"
+        ]
+      },
+      "bedrooms": 2,
+      "location_id": "TAMPINES",
+      "fetched_at": "2026-09-09T10:00:00+08:00",
+      "source_updated_at": null,
+      "evidence": [
+        {
+          "evidence_id": "L3:transaction_type",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": "https://example.com/demo/L3",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：transaction_type=rent"
+        },
+        {
+          "evidence_id": "L3:price.currency",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": "https://example.com/demo/L3",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.currency=SGD"
+        },
+        {
+          "evidence_id": "L3:price.period",
+          "field": "price.period",
+          "value": "month",
+          "source_url": "https://example.com/demo/L3",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.period=month"
+        },
+        {
+          "evidence_id": "L3:price.scope",
+          "field": "price.scope",
+          "value": "whole_unit",
+          "source_url": "https://example.com/demo/L3",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.scope=whole_unit"
+        },
+        {
+          "evidence_id": "L3:location_id",
+          "field": "location_id",
+          "value": "TAMPINES",
+          "source_url": "https://example.com/demo/L3",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：location_id=TAMPINES"
+        },
+        {
+          "evidence_id": "L3:bedrooms",
+          "field": "bedrooms",
+          "value": 2,
+          "source_url": "https://example.com/demo/L3",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：bedrooms=2"
+        },
+        {
+          "evidence_id": "L3:price.amount",
+          "field": "price.amount",
+          "value": "3500.01",
+          "source_url": "https://example.com/demo/L3",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.amount=3500.01"
+        }
+      ],
+      "field_issues": []
+    },
+    {
+      "listing_key": "L4",
+      "source": "demo_a",
+      "source_listing_id": "L4",
+      "source_url": "https://example.com/demo/L4",
+      "source_mode": "mock",
+      "title": "模拟房源 L4",
+      "transaction_type": "rent",
+      "price": {
+        "amount": null,
+        "currency": "SGD",
+        "period": "month",
+        "scope": "whole_unit",
+        "status": "conflict",
+        "evidence_ids": [
+          "L4:price.display",
+          "L4:price.body"
+        ]
+      },
+      "bedrooms": 2,
+      "location_id": "TAMPINES",
+      "fetched_at": "2026-09-09T10:00:00+08:00",
+      "source_updated_at": null,
+      "evidence": [
+        {
+          "evidence_id": "L4:transaction_type",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": "https://example.com/demo/L4",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：transaction_type=rent"
+        },
+        {
+          "evidence_id": "L4:price.currency",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": "https://example.com/demo/L4",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.currency=SGD"
+        },
+        {
+          "evidence_id": "L4:price.period",
+          "field": "price.period",
+          "value": "month",
+          "source_url": "https://example.com/demo/L4",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.period=month"
+        },
+        {
+          "evidence_id": "L4:price.scope",
+          "field": "price.scope",
+          "value": "whole_unit",
+          "source_url": "https://example.com/demo/L4",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.scope=whole_unit"
+        },
+        {
+          "evidence_id": "L4:location_id",
+          "field": "location_id",
+          "value": "TAMPINES",
+          "source_url": "https://example.com/demo/L4",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：location_id=TAMPINES"
+        },
+        {
+          "evidence_id": "L4:bedrooms",
+          "field": "bedrooms",
+          "value": 2,
+          "source_url": "https://example.com/demo/L4",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：bedrooms=2"
+        },
+        {
+          "evidence_id": "L4:price.display",
+          "field": "price.amount",
+          "value": "3200.00",
+          "source_url": "https://example.com/demo/L4",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟同口径月租：3200.00 SGD"
+        },
+        {
+          "evidence_id": "L4:price.body",
+          "field": "price.amount",
+          "value": "3800.00",
+          "source_url": "https://example.com/demo/L4",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟同口径月租：3800.00 SGD"
+        }
+      ],
+      "field_issues": [
+        "price.amount:conflict"
+      ]
+    },
+    {
+      "listing_key": "L5",
+      "source": "demo_a",
+      "source_listing_id": "L5",
+      "source_url": "https://example.com/demo/L5",
+      "source_mode": "mock",
+      "title": "模拟房源 L5",
+      "transaction_type": "rent",
+      "price": {
+        "amount": "3300.00",
+        "currency": "SGD",
+        "period": "month",
+        "scope": "whole_unit",
+        "status": "known",
+        "evidence_ids": [
+          "L5:price.amount"
+        ]
+      },
+      "bedrooms": null,
+      "location_id": "TAMPINES",
+      "fetched_at": "2026-09-09T10:00:00+08:00",
+      "source_updated_at": null,
+      "evidence": [
+        {
+          "evidence_id": "L5:transaction_type",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": "https://example.com/demo/L5",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：transaction_type=rent"
+        },
+        {
+          "evidence_id": "L5:price.currency",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": "https://example.com/demo/L5",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.currency=SGD"
+        },
+        {
+          "evidence_id": "L5:price.period",
+          "field": "price.period",
+          "value": "month",
+          "source_url": "https://example.com/demo/L5",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.period=month"
+        },
+        {
+          "evidence_id": "L5:price.scope",
+          "field": "price.scope",
+          "value": "whole_unit",
+          "source_url": "https://example.com/demo/L5",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.scope=whole_unit"
+        },
+        {
+          "evidence_id": "L5:location_id",
+          "field": "location_id",
+          "value": "TAMPINES",
+          "source_url": "https://example.com/demo/L5",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：location_id=TAMPINES"
+        },
+        {
+          "evidence_id": "L5:price.amount",
+          "field": "price.amount",
+          "value": "3300.00",
+          "source_url": "https://example.com/demo/L5",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.amount=3300.00"
+        }
+      ],
+      "field_issues": []
+    },
+    {
+      "listing_key": "L6",
+      "source": "demo_a",
+      "source_listing_id": "L6",
+      "source_url": "https://example.com/demo/L6",
+      "source_mode": "mock",
+      "title": "模拟房源 L6",
+      "transaction_type": "rent",
+      "price": {
+        "amount": "3300.00",
+        "currency": "SGD",
+        "period": "month",
+        "scope": "whole_unit",
+        "status": "known",
+        "evidence_ids": [
+          "L6:price.amount"
+        ]
+      },
+      "bedrooms": 2,
+      "location_id": "TAMPINES",
+      "fetched_at": "2026-09-09T10:00:00+08:00",
+      "source_updated_at": null,
+      "evidence": [
+        {
+          "evidence_id": "L6:transaction_type",
+          "field": "transaction_type",
+          "value": "rent",
+          "source_url": "https://example.com/demo/L6",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：transaction_type=rent"
+        },
+        {
+          "evidence_id": "L6:price.currency",
+          "field": "price.currency",
+          "value": "SGD",
+          "source_url": "https://example.com/demo/L6",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.currency=SGD"
+        },
+        {
+          "evidence_id": "L6:price.period",
+          "field": "price.period",
+          "value": "month",
+          "source_url": "https://example.com/demo/L6",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.period=month"
+        },
+        {
+          "evidence_id": "L6:price.scope",
+          "field": "price.scope",
+          "value": "whole_unit",
+          "source_url": "https://example.com/demo/L6",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.scope=whole_unit"
+        },
+        {
+          "evidence_id": "L6:location_id",
+          "field": "location_id",
+          "value": "TAMPINES",
+          "source_url": "https://example.com/demo/L6",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：location_id=TAMPINES"
+        },
+        {
+          "evidence_id": "L6:bedrooms",
+          "field": "bedrooms",
+          "value": 2,
+          "source_url": "https://example.com/demo/L6",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：bedrooms=2"
+        },
+        {
+          "evidence_id": "L6:price.amount",
+          "field": "price.amount",
+          "value": "3300.00",
+          "source_url": "https://example.com/demo/L6",
+          "observed_at": "2026-09-09T10:00:00+08:00",
+          "excerpt": "模拟页面：price.amount=3300.00"
+        }
+      ],
+      "field_issues": []
+    }
+  ],
+  "screen_result": {
+    "profile_version": 1,
+    "eligible": [
+      {
+        "listing_key": "L1",
+        "checks": [
+          {
+            "field": "transaction_type",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L1:transaction_type"
+            ]
+          },
+          {
+            "field": "price.currency",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L1:price.currency"
+            ]
+          },
+          {
+            "field": "price.period",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L1:price.period"
+            ]
+          },
+          {
+            "field": "price.scope",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L1:price.scope"
+            ]
+          },
+          {
+            "field": "price.amount",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L1:price.amount"
+            ]
+          },
+          {
+            "field": "location_id",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L1:location_id"
+            ]
+          },
+          {
+            "field": "bedrooms",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L1:bedrooms"
+            ]
+          }
+        ]
+      },
+      {
+        "listing_key": "L2",
+        "checks": [
+          {
+            "field": "transaction_type",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L2:transaction_type"
+            ]
+          },
+          {
+            "field": "price.currency",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L2:price.currency"
+            ]
+          },
+          {
+            "field": "price.period",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L2:price.period"
+            ]
+          },
+          {
+            "field": "price.scope",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L2:price.scope"
+            ]
+          },
+          {
+            "field": "price.amount",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L2:price.amount"
+            ]
+          },
+          {
+            "field": "location_id",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L2:location_id"
+            ]
+          },
+          {
+            "field": "bedrooms",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L2:bedrooms"
+            ]
+          }
+        ]
+      },
+      {
+        "listing_key": "L6",
+        "checks": [
+          {
+            "field": "transaction_type",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L6:transaction_type"
+            ]
+          },
+          {
+            "field": "price.currency",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L6:price.currency"
+            ]
+          },
+          {
+            "field": "price.period",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L6:price.period"
+            ]
+          },
+          {
+            "field": "price.scope",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L6:price.scope"
+            ]
+          },
+          {
+            "field": "price.amount",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L6:price.amount"
+            ]
+          },
+          {
+            "field": "location_id",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L6:location_id"
+            ]
+          },
+          {
+            "field": "bedrooms",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L6:bedrooms"
+            ]
+          }
+        ]
+      }
+    ],
+    "rejected": [
+      {
+        "listing_key": "L3",
+        "checks": [
+          {
+            "field": "transaction_type",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L3:transaction_type"
+            ]
+          },
+          {
+            "field": "price.currency",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L3:price.currency"
+            ]
+          },
+          {
+            "field": "price.period",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L3:price.period"
+            ]
+          },
+          {
+            "field": "price.scope",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L3:price.scope"
+            ]
+          },
+          {
+            "field": "price.amount",
+            "status": "fail",
+            "reason": "月租超过 3500.00 SGD",
+            "evidence_ids": [
+              "L3:price.amount"
+            ]
+          },
+          {
+            "field": "location_id",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L3:location_id"
+            ]
+          },
+          {
+            "field": "bedrooms",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L3:bedrooms"
+            ]
+          }
+        ]
+      }
+    ],
+    "needs_verification": [
+      {
+        "listing_key": "L4",
+        "checks": [
+          {
+            "field": "transaction_type",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L4:transaction_type"
+            ]
+          },
+          {
+            "field": "price.currency",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L4:price.currency"
+            ]
+          },
+          {
+            "field": "price.period",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L4:price.period"
+            ]
+          },
+          {
+            "field": "price.scope",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L4:price.scope"
+            ]
+          },
+          {
+            "field": "price.amount",
+            "status": "unknown",
+            "reason": "字段冲突或缺少可确认信息",
+            "evidence_ids": [
+              "L4:price.display",
+              "L4:price.body"
+            ]
+          },
+          {
+            "field": "location_id",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L4:location_id"
+            ]
+          },
+          {
+            "field": "bedrooms",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L4:bedrooms"
+            ]
+          }
+        ]
+      },
+      {
+        "listing_key": "L5",
+        "checks": [
+          {
+            "field": "transaction_type",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L5:transaction_type"
+            ]
+          },
+          {
+            "field": "price.currency",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L5:price.currency"
+            ]
+          },
+          {
+            "field": "price.period",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L5:price.period"
+            ]
+          },
+          {
+            "field": "price.scope",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L5:price.scope"
+            ]
+          },
+          {
+            "field": "price.amount",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L5:price.amount"
+            ]
+          },
+          {
+            "field": "location_id",
+            "status": "pass",
+            "reason": "本轮证据满足对应硬条件",
+            "evidence_ids": [
+              "L5:location_id"
+            ]
+          },
+          {
+            "field": "bedrooms",
+            "status": "unknown",
+            "reason": "字段冲突或缺少可确认信息",
+            "evidence_ids": []
+          }
+        ]
+      }
+    ]
+  },
+  "retrieval_result": {
+    "profile_version": 1,
+    "candidates": [
+      {
+        "listing_key": "L1",
+        "exact_matches": [
+          "TAMPINES"
+        ],
+        "vector_score": 0.9,
+        "keyword_score": 4.0,
+        "retrieval_rank": 1,
+        "retrieval_score": 0.03
+      },
+      {
+        "listing_key": "L2",
+        "exact_matches": [
+          "TAMPINES"
+        ],
+        "vector_score": 0.88,
+        "keyword_score": 4.0,
+        "retrieval_rank": 2,
+        "retrieval_score": 0.029
+      },
+      {
+        "listing_key": "L6",
+        "exact_matches": [
+          "TAMPINES"
+        ],
+        "vector_score": 0.86,
+        "keyword_score": 4.0,
+        "retrieval_rank": 3,
+        "retrieval_score": 0.028
+      }
+    ],
+    "input_count": 3,
+    "returned_count": 3,
+    "truncated": false,
+    "method_version": "example-rrf-v0"
+  },
+  "snapshot": {
+    "snapshot_id": "snapshot-001",
+    "profile_version": 1,
+    "items": [
+      {
+        "listing_key": "L1",
+        "source": "demo_a",
+        "source_listing_id": "L1",
+        "source_url": "https://example.com/demo/L1",
+        "source_mode": "mock",
+        "title": "模拟房源 L1",
+        "transaction_type": "rent",
+        "price": {
+          "amount": "3400.00",
+          "currency": "SGD",
+          "period": "month",
+          "scope": "whole_unit",
+          "status": "known",
+          "evidence_ids": [
+            "L1:price.amount"
+          ]
+        },
+        "bedrooms": 2,
+        "location_id": "TAMPINES",
+        "fetched_at": "2026-09-09T10:00:00+08:00",
+        "source_updated_at": null,
+        "evidence": [
+          {
+            "evidence_id": "L1:transaction_type",
+            "field": "transaction_type",
+            "value": "rent",
+            "source_url": "https://example.com/demo/L1",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：transaction_type=rent"
+          },
+          {
+            "evidence_id": "L1:price.currency",
+            "field": "price.currency",
+            "value": "SGD",
+            "source_url": "https://example.com/demo/L1",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.currency=SGD"
+          },
+          {
+            "evidence_id": "L1:price.period",
+            "field": "price.period",
+            "value": "month",
+            "source_url": "https://example.com/demo/L1",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.period=month"
+          },
+          {
+            "evidence_id": "L1:price.scope",
+            "field": "price.scope",
+            "value": "whole_unit",
+            "source_url": "https://example.com/demo/L1",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.scope=whole_unit"
+          },
+          {
+            "evidence_id": "L1:location_id",
+            "field": "location_id",
+            "value": "TAMPINES",
+            "source_url": "https://example.com/demo/L1",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：location_id=TAMPINES"
+          },
+          {
+            "evidence_id": "L1:bedrooms",
+            "field": "bedrooms",
+            "value": 2,
+            "source_url": "https://example.com/demo/L1",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：bedrooms=2"
+          },
+          {
+            "evidence_id": "L1:price.amount",
+            "field": "price.amount",
+            "value": "3400.00",
+            "source_url": "https://example.com/demo/L1",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.amount=3400.00"
+          }
+        ],
+        "field_issues": []
+      },
+      {
+        "listing_key": "L2",
+        "source": "demo_a",
+        "source_listing_id": "L2",
+        "source_url": "https://example.com/demo/L2",
+        "source_mode": "mock",
+        "title": "模拟房源 L2",
+        "transaction_type": "rent",
+        "price": {
+          "amount": "3500.00",
+          "currency": "SGD",
+          "period": "month",
+          "scope": "whole_unit",
+          "status": "known",
+          "evidence_ids": [
+            "L2:price.amount"
+          ]
+        },
+        "bedrooms": 2,
+        "location_id": "TAMPINES",
+        "fetched_at": "2026-09-09T10:00:00+08:00",
+        "source_updated_at": null,
+        "evidence": [
+          {
+            "evidence_id": "L2:transaction_type",
+            "field": "transaction_type",
+            "value": "rent",
+            "source_url": "https://example.com/demo/L2",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：transaction_type=rent"
+          },
+          {
+            "evidence_id": "L2:price.currency",
+            "field": "price.currency",
+            "value": "SGD",
+            "source_url": "https://example.com/demo/L2",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.currency=SGD"
+          },
+          {
+            "evidence_id": "L2:price.period",
+            "field": "price.period",
+            "value": "month",
+            "source_url": "https://example.com/demo/L2",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.period=month"
+          },
+          {
+            "evidence_id": "L2:price.scope",
+            "field": "price.scope",
+            "value": "whole_unit",
+            "source_url": "https://example.com/demo/L2",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.scope=whole_unit"
+          },
+          {
+            "evidence_id": "L2:location_id",
+            "field": "location_id",
+            "value": "TAMPINES",
+            "source_url": "https://example.com/demo/L2",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：location_id=TAMPINES"
+          },
+          {
+            "evidence_id": "L2:bedrooms",
+            "field": "bedrooms",
+            "value": 2,
+            "source_url": "https://example.com/demo/L2",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：bedrooms=2"
+          },
+          {
+            "evidence_id": "L2:price.amount",
+            "field": "price.amount",
+            "value": "3500.00",
+            "source_url": "https://example.com/demo/L2",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.amount=3500.00"
+          }
+        ],
+        "field_issues": []
+      },
+      {
+        "listing_key": "L3",
+        "source": "demo_a",
+        "source_listing_id": "L3",
+        "source_url": "https://example.com/demo/L3",
+        "source_mode": "mock",
+        "title": "模拟房源 L3",
+        "transaction_type": "rent",
+        "price": {
+          "amount": "3500.01",
+          "currency": "SGD",
+          "period": "month",
+          "scope": "whole_unit",
+          "status": "known",
+          "evidence_ids": [
+            "L3:price.amount"
+          ]
+        },
+        "bedrooms": 2,
+        "location_id": "TAMPINES",
+        "fetched_at": "2026-09-09T10:00:00+08:00",
+        "source_updated_at": null,
+        "evidence": [
+          {
+            "evidence_id": "L3:transaction_type",
+            "field": "transaction_type",
+            "value": "rent",
+            "source_url": "https://example.com/demo/L3",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：transaction_type=rent"
+          },
+          {
+            "evidence_id": "L3:price.currency",
+            "field": "price.currency",
+            "value": "SGD",
+            "source_url": "https://example.com/demo/L3",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.currency=SGD"
+          },
+          {
+            "evidence_id": "L3:price.period",
+            "field": "price.period",
+            "value": "month",
+            "source_url": "https://example.com/demo/L3",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.period=month"
+          },
+          {
+            "evidence_id": "L3:price.scope",
+            "field": "price.scope",
+            "value": "whole_unit",
+            "source_url": "https://example.com/demo/L3",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.scope=whole_unit"
+          },
+          {
+            "evidence_id": "L3:location_id",
+            "field": "location_id",
+            "value": "TAMPINES",
+            "source_url": "https://example.com/demo/L3",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：location_id=TAMPINES"
+          },
+          {
+            "evidence_id": "L3:bedrooms",
+            "field": "bedrooms",
+            "value": 2,
+            "source_url": "https://example.com/demo/L3",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：bedrooms=2"
+          },
+          {
+            "evidence_id": "L3:price.amount",
+            "field": "price.amount",
+            "value": "3500.01",
+            "source_url": "https://example.com/demo/L3",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.amount=3500.01"
+          }
+        ],
+        "field_issues": []
+      },
+      {
+        "listing_key": "L4",
+        "source": "demo_a",
+        "source_listing_id": "L4",
+        "source_url": "https://example.com/demo/L4",
+        "source_mode": "mock",
+        "title": "模拟房源 L4",
+        "transaction_type": "rent",
+        "price": {
+          "amount": null,
+          "currency": "SGD",
+          "period": "month",
+          "scope": "whole_unit",
+          "status": "conflict",
+          "evidence_ids": [
+            "L4:price.display",
+            "L4:price.body"
+          ]
+        },
+        "bedrooms": 2,
+        "location_id": "TAMPINES",
+        "fetched_at": "2026-09-09T10:00:00+08:00",
+        "source_updated_at": null,
+        "evidence": [
+          {
+            "evidence_id": "L4:transaction_type",
+            "field": "transaction_type",
+            "value": "rent",
+            "source_url": "https://example.com/demo/L4",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：transaction_type=rent"
+          },
+          {
+            "evidence_id": "L4:price.currency",
+            "field": "price.currency",
+            "value": "SGD",
+            "source_url": "https://example.com/demo/L4",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.currency=SGD"
+          },
+          {
+            "evidence_id": "L4:price.period",
+            "field": "price.period",
+            "value": "month",
+            "source_url": "https://example.com/demo/L4",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.period=month"
+          },
+          {
+            "evidence_id": "L4:price.scope",
+            "field": "price.scope",
+            "value": "whole_unit",
+            "source_url": "https://example.com/demo/L4",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.scope=whole_unit"
+          },
+          {
+            "evidence_id": "L4:location_id",
+            "field": "location_id",
+            "value": "TAMPINES",
+            "source_url": "https://example.com/demo/L4",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：location_id=TAMPINES"
+          },
+          {
+            "evidence_id": "L4:bedrooms",
+            "field": "bedrooms",
+            "value": 2,
+            "source_url": "https://example.com/demo/L4",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：bedrooms=2"
+          },
+          {
+            "evidence_id": "L4:price.display",
+            "field": "price.amount",
+            "value": "3200.00",
+            "source_url": "https://example.com/demo/L4",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟同口径月租：3200.00 SGD"
+          },
+          {
+            "evidence_id": "L4:price.body",
+            "field": "price.amount",
+            "value": "3800.00",
+            "source_url": "https://example.com/demo/L4",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟同口径月租：3800.00 SGD"
+          }
+        ],
+        "field_issues": [
+          "price.amount:conflict"
+        ]
+      },
+      {
+        "listing_key": "L5",
+        "source": "demo_a",
+        "source_listing_id": "L5",
+        "source_url": "https://example.com/demo/L5",
+        "source_mode": "mock",
+        "title": "模拟房源 L5",
+        "transaction_type": "rent",
+        "price": {
+          "amount": "3300.00",
+          "currency": "SGD",
+          "period": "month",
+          "scope": "whole_unit",
+          "status": "known",
+          "evidence_ids": [
+            "L5:price.amount"
+          ]
+        },
+        "bedrooms": null,
+        "location_id": "TAMPINES",
+        "fetched_at": "2026-09-09T10:00:00+08:00",
+        "source_updated_at": null,
+        "evidence": [
+          {
+            "evidence_id": "L5:transaction_type",
+            "field": "transaction_type",
+            "value": "rent",
+            "source_url": "https://example.com/demo/L5",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：transaction_type=rent"
+          },
+          {
+            "evidence_id": "L5:price.currency",
+            "field": "price.currency",
+            "value": "SGD",
+            "source_url": "https://example.com/demo/L5",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.currency=SGD"
+          },
+          {
+            "evidence_id": "L5:price.period",
+            "field": "price.period",
+            "value": "month",
+            "source_url": "https://example.com/demo/L5",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.period=month"
+          },
+          {
+            "evidence_id": "L5:price.scope",
+            "field": "price.scope",
+            "value": "whole_unit",
+            "source_url": "https://example.com/demo/L5",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.scope=whole_unit"
+          },
+          {
+            "evidence_id": "L5:location_id",
+            "field": "location_id",
+            "value": "TAMPINES",
+            "source_url": "https://example.com/demo/L5",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：location_id=TAMPINES"
+          },
+          {
+            "evidence_id": "L5:price.amount",
+            "field": "price.amount",
+            "value": "3300.00",
+            "source_url": "https://example.com/demo/L5",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.amount=3300.00"
+          }
+        ],
+        "field_issues": []
+      },
+      {
+        "listing_key": "L6",
+        "source": "demo_a",
+        "source_listing_id": "L6",
+        "source_url": "https://example.com/demo/L6",
+        "source_mode": "mock",
+        "title": "模拟房源 L6",
+        "transaction_type": "rent",
+        "price": {
+          "amount": "3300.00",
+          "currency": "SGD",
+          "period": "month",
+          "scope": "whole_unit",
+          "status": "known",
+          "evidence_ids": [
+            "L6:price.amount"
+          ]
+        },
+        "bedrooms": 2,
+        "location_id": "TAMPINES",
+        "fetched_at": "2026-09-09T10:00:00+08:00",
+        "source_updated_at": null,
+        "evidence": [
+          {
+            "evidence_id": "L6:transaction_type",
+            "field": "transaction_type",
+            "value": "rent",
+            "source_url": "https://example.com/demo/L6",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：transaction_type=rent"
+          },
+          {
+            "evidence_id": "L6:price.currency",
+            "field": "price.currency",
+            "value": "SGD",
+            "source_url": "https://example.com/demo/L6",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.currency=SGD"
+          },
+          {
+            "evidence_id": "L6:price.period",
+            "field": "price.period",
+            "value": "month",
+            "source_url": "https://example.com/demo/L6",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.period=month"
+          },
+          {
+            "evidence_id": "L6:price.scope",
+            "field": "price.scope",
+            "value": "whole_unit",
+            "source_url": "https://example.com/demo/L6",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.scope=whole_unit"
+          },
+          {
+            "evidence_id": "L6:location_id",
+            "field": "location_id",
+            "value": "TAMPINES",
+            "source_url": "https://example.com/demo/L6",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：location_id=TAMPINES"
+          },
+          {
+            "evidence_id": "L6:bedrooms",
+            "field": "bedrooms",
+            "value": 2,
+            "source_url": "https://example.com/demo/L6",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：bedrooms=2"
+          },
+          {
+            "evidence_id": "L6:price.amount",
+            "field": "price.amount",
+            "value": "3300.00",
+            "source_url": "https://example.com/demo/L6",
+            "observed_at": "2026-09-09T10:00:00+08:00",
+            "excerpt": "模拟页面：price.amount=3300.00"
+          }
+        ],
+        "field_issues": []
+      }
+    ]
+  },
+  "evaluation": {
+    "profile_version": 1,
+    "snapshot_id": "snapshot-001",
+    "recommendation": {
+      "ordered_items": [
+        {
+          "listing_key": "L1",
+          "rank": 1,
+          "reasons": [
+            {
+              "kind": "fact",
+              "text": "来源显示月租 SGD 3400.00，不超过预算。",
+              "evidence_ids": [
+                "L1:price.amount"
+              ]
+            }
+          ],
+          "tradeoffs": [],
+          "unknowns": [
+            "实际当前可租状态尚未向经纪人核实"
+          ]
+        },
+        {
+          "listing_key": "L2",
+          "rank": 2,
+          "reasons": [
+            {
+              "kind": "fact",
+              "text": "来源显示月租 SGD 3500.00，不超过预算。",
+              "evidence_ids": [
+                "L2:price.amount"
+              ]
+            }
+          ],
+          "tradeoffs": [],
+          "unknowns": [
+            "实际当前可租状态尚未向经纪人核实"
+          ]
+        },
+        {
+          "listing_key": "L6",
+          "rank": 3,
+          "reasons": [
+            {
+              "kind": "fact",
+              "text": "来源显示月租 SGD 3300.00，不超过预算。",
+              "evidence_ids": [
+                "L6:price.amount"
+              ]
+            }
+          ],
+          "tradeoffs": [],
+          "unknowns": [
+            "实际当前可租状态尚未向经纪人核实"
+          ]
+        }
+      ],
+      "summary": "本次展示 3 套候选，顺序仅为接口示例。",
+      "limitations": [
+        "模拟数据；仅覆盖本次查询；来源状态不等于独立核实"
+      ]
+    },
+    "assessment": {
+      "constraint_findings": [],
+      "search_directive": null,
+      "relaxation_proposals": []
+    }
+  },
+  "policy": {
+    "min_matches": 3,
+    "display_limit": 10,
+    "max_search_attempts": 3,
+    "max_repairs": 1
+  }
+}

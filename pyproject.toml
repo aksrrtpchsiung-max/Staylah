@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hackathon-deepseek-agent"
+version = "0.1.0"
+description = "A local LangGraph learning server with DeepSeek tool calling"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph==1.2.11",
+    "langchain-deepseek>=0.1,<2",
+    "langgraph-cli[inmem]>=0.4,<1",
+    "langgraph-checkpoint-postgres>=3,<4",
+    "python-dotenv>=1,<2",
+    "pydantic>=2.10,<3",
+    "SQLAlchemy>=2.0,<3",
+    "alembic>=1.13,<2",
+    "psycopg[binary,pool]>=3.2,<4",
+]
+
+[tool.setuptools.packages.find]
+include = ["deepseek_agent*", "property_agent*"]
