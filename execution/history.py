@@ -9,7 +9,7 @@ def fingerprint(value):
 
 
 def query_fingerprint(plan, query):
-    """可还原的跨轮查询身份，供 A 写入 AttemptSummary.query_fingerprints。
+    """可还原的跨轮查询身份，供 B 内部写入 AttemptSummary.query_fingerprints。
 
     v0 的历史摘要不携带旧 SearchPlan，因此这里同时保存恢复续页所需的查询和条件。
     不包含用户身份、密钥或房源；不能用随机 query_id 绕过重复查询检查。
@@ -20,8 +20,9 @@ def query_fingerprint(plan, query):
         query=query), ensure_ascii=False, sort_keys=True, separators=(',', ':'))
 
 
-def task(kind, *, query_id=None, cursor=None, listing_key=None):
-    data = dict(kind=kind, query_id=query_id, cursor=cursor, listing_key=listing_key)
+def task(kind, *, query_id=None, cursor=None, listing_key=None, requirement_id=None):
+    data = dict(kind=kind, query_id=query_id, cursor=cursor, listing_key=listing_key,
+                requirement_id=requirement_id)
     return dict(task_id=kind + ':' + fingerprint(data), **data)
 
 

@@ -2,7 +2,7 @@
 from typing import Literal, Protocol
 
 from contracts_v0 import HardConstraints, Issue, Listing, RunContext, SearchQuery
-from execution.tasks import GeocodeMatches, ListingDetail, ListingPage
+from execution.tasks import GeocodeMatches, ListingDetail, ListingPage, PlaceMatches, RouteFact
 
 
 def issue(code: str, message: str, *, field_path: str | None = None,
@@ -33,3 +33,18 @@ class GeocodingProvider(Protocol):
     source_mode: Literal['mock', 'live']
 
     async def geocode(self, query: str, *, ctx: RunContext) -> GeocodeMatches: ...
+
+
+class RoutingProvider(Protocol):
+    source: str
+    source_mode: Literal['mock', 'live']
+
+    async def route(self, origin, destination, *, mode: str, transit_mode: str,
+                    departure_at: str, ctx: RunContext) -> list[RouteFact]: ...
+
+
+class PlacesProvider(Protocol):
+    source: str
+    source_mode: Literal['mock', 'live']
+
+    async def nearby(self, origin, category: str, radius_m: int, *, ctx: RunContext) -> PlaceMatches: ...

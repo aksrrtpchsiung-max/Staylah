@@ -33,6 +33,7 @@ cli({
   domain: 'www.propertyguru.com.sg',
   strategy: Strategy.COOKIE,
   browser: true,
+  navigateBefore: false, // The adapter navigates directly to the requested search URL.
   args: [
     { name: 'query', type: 'string', positional: true, required: true, help: 'Location to search: district, MRT station, or area name (e.g. "clementi", "jurong west", "paya lebar")' },
     { name: 'listing', type: 'string', default: 'rent', choices: ['rent', 'sale'], help: 'Listing type: rent (default) or sale' },
@@ -87,46 +88,85 @@ cli({
     const path = listingType === 'sale' ? '/property-for-sale' : '/property-for-rent';
     const searchUrl = `${BASE_URL}${path}?${params.toString()}`;
 
-    // Navigate and wait for SSR data
-    await page.goto(searchUrl, { settleMs: 2000 });
-    await page.wait(2);
+    // DOM stability can occur before the document has delivered its SSR data.
+    // Poll the actual payload with fixed timers, within the provider's 30s budget.
+    try {
+      await page.goto(searchUrl, { settleMs: 2000 });
+    } catch (error) {
+      // Chrome can reject reuse of an automation tab. Recover only this exact
+      // browser error, once, in a fresh tab; authentication/other errors propagate.
+      if (!/^Navigation rejected\.?$/i.test(String(error?.message || error))) throw error;
+      await page.closeWindow();
+      const target = await page.newTab(searchUrl);
+      if (!target) throw error;
+      page.setActivePage(target);
+    }
+    const readyDeadline = Date.now() + 12000;
+    let data;
+    while (true) {
+      data = await page.evaluate((expectedHref) => {
+        try {
+          if (/verify (?:that )?you are (?:a )?human|complete (?:the )?captcha|checking your browser/i.test(document.body?.innerText || '')
+            || /^just a moment[.!]?$/i.test(document.title.trim())) {
+            return { error: 'AUTH_REQUIRED: captcha or browser verification is required' };
+          }
+          // Navigation may still expose the previous document. PropertyGuru also
+          // normalizes query keys, e.g. maxprice -> maxPrice and market -> isCommercial.
+          const expected = new URL(expectedHref);
+          const actual = new URL(window.location.href);
+          const actualParams = new Map(Array.from(actual.searchParams, ([key, value]) => [key.replace(/[_-]/g, '').toLowerCase(), value]));
+          const matchesRequest = actual.origin === expected.origin && actual.pathname === expected.pathname
+            && Array.from(expected.searchParams).every(([key, value]) => {
+              const normalized = key.replace(/[_-]/g, '').toLowerCase();
+              const observed = actualParams.get(normalized);
+              if (normalized === 'market' && value === 'residential') {
+                return observed === value || actualParams.get('iscommercial') === 'false';
+              }
+              if (normalized === 'page') return (observed ?? '1') === value;
+              if (normalized === 'freetext') return observed?.trim().toLowerCase() === value.trim().toLowerCase();
+              return observed === value;
+            });
+          if (!matchesRequest) return { pending: true };
+          // The bridge may evaluate in an isolated world; read the public SSR script.
+          const embedded = document.getElementById('__NEXT_DATA__')?.textContent;
+          const d = embedded ? JSON.parse(embedded) : window.__NEXT_DATA__;
+          const listingsData = d?.props?.pageProps?.pageData?.data?.listingsData;
+          if (!listingsData) return { pending: true };
+          if (typeof listingsData !== 'object') return { error: 'PARSE_ERROR: invalid listing data on page' };
 
-    const data = await page.evaluate(() => {
-      try {
-        if (/verify (?:that )?you are human|complete the captcha|checking your browser/i.test(document.body?.innerText || '')) {
-          return { error: 'AUTH_REQUIRED: captcha or browser verification is required' };
+          const results = [];
+          for (const entry of Object.values(listingsData)) {
+            if (!entry?.listingData?.id) continue;
+            // “Explore around / Listing with similar price range” cards are ads,
+            // not matches for this query: the live page includes over-budget ads.
+            // Remove them before applying the candidate limit and page offset.
+            if (entry.cardConfig?.['da-id'] === 'promoted-listing-card') continue;
+            const ld = entry.listingData;
+            // Preserve the complete search-card payload for contract normalization.
+            // Unknown fields remain null/unknown rather than being guessed.
+            results.push(ld);
+          }
+          const sourceData = d.props.pageProps.pageData.data;
+          const links = Array.from(document.querySelectorAll(
+            'a[rel="next"], [aria-label*="pagination" i] a, [class*="pagination"] a',
+          )).map(a => a.href).filter(Boolean);
+          const nextDisabled = Boolean(document.querySelector(
+            '[aria-label*="next" i][disabled], [aria-label*="next" i][aria-disabled="true"]',
+          ));
+          // 只使用页面明确提供的终点，不用“少于 limit”推测已经查完。
+          const totalPages = sourceData.pagination?.totalPages ?? sourceData.paginationData?.totalPages ?? null;
+          const explicitlyEmpty = /\b(?:no (?:properties|listings|results) found|0 (?:properties|results) found)\b/i.test(document.body?.innerText || '')
+            || sourceData.pagination?.totalResults === 0;
+          return { results, links, nextDisabled, totalPages, explicitlyEmpty };
+        } catch (err) {
+          return { error: `PARSE_ERROR: ${err?.message || 'unknown error extracting listings'}` };
         }
-        // The bridge may evaluate in an isolated world; read the public SSR script.
-        const embedded = document.getElementById('__NEXT_DATA__')?.textContent;
-        const d = embedded ? JSON.parse(embedded) : window.__NEXT_DATA__;
-        if (!d) return { error: 'page did not load properly (no __NEXT_DATA__)' };
-        const listingsData = d?.props?.pageProps?.pageData?.data?.listingsData;
-        if (!listingsData) return { error: 'could not find listing data on page' };
-
-        const results = [];
-        for (const entry of Object.values(listingsData)) {
-          if (!entry?.listingData?.id) continue;
-          const ld = entry.listingData;
-          // Preserve the complete search-card payload for contract normalization.
-          // Unknown fields remain null/unknown rather than being guessed.
-          results.push(ld);
-        }
-        const sourceData = d.props.pageProps.pageData.data;
-        const links = Array.from(document.querySelectorAll(
-          'a[rel="next"], [aria-label*="pagination" i] a, [class*="pagination"] a',
-        )).map(a => a.href).filter(Boolean);
-        const nextDisabled = Boolean(document.querySelector(
-          '[aria-label*="next" i][disabled], [aria-label*="next" i][aria-disabled="true"]',
-        ));
-        // 只使用页面明确提供的终点，不用“少于 limit”推测已经查完。
-        const totalPages = sourceData.pagination?.totalPages ?? sourceData.paginationData?.totalPages ?? null;
-        const explicitlyEmpty = /\b(?:no (?:properties|listings|results) found|0 (?:properties|results) found)\b/i.test(document.body?.innerText || '')
-          || sourceData.pagination?.totalResults === 0;
-        return { results, links, nextDisabled, totalPages, explicitlyEmpty };
-      } catch (err) {
-        return { error: err?.message || 'unknown error extracting listings' };
-      }
-    });
+      }, searchUrl);
+      if (!data?.pending) break;
+      const remaining = readyDeadline - Date.now();
+      if (remaining <= 0) throw new CommandExecutionError('TEMPORARY_UNAVAILABLE: search page data not ready');
+      await new Promise(resolve => setTimeout(resolve, Math.min(300, remaining)));
+    }
 
     if (data?.error) {
       if (data.error.includes('not log') || data.error.includes('captcha') || data.error.includes('login')) {

@@ -146,9 +146,10 @@ Provider 和额度对象留在服务/节点闭包中，不放入可序列化图�
 ## 2 / 3a / 3b 联调
 
 搜索业务子图已经接通：`supervisor → execute → supervisor → aggregate → END`。
-管理层从合法任务中选择一项，执行 3a 的搜索/详情或 3b 的地址定位。
+管理层先只开放 3a 搜索页任务（含可复用页面），搜索阶段结束后才开放 3a 详情和 3b 地址定位。
+Agent 在当前阶段内选择一项任务，代码禁止跨阶段调用；额度耗尽可以进入补充阶段，但不代表搜索完整完成。
 搜索结束后汇总为契约规定的 `Result[SearchResult]`，不修改 A 给出的硬条件。
-`part1/planner.py` 的计划生成现已接通，见下面的完整联调说明；3c/3d 尚未实现。
+`part1/planner.py` 的计划生成已接通；3c 周边设施与 3d 通勤也已接入，见文末能力说明。
 
 ```bash
 .venv/bin/python -m part2.supervisor
@@ -159,8 +160,10 @@ Provider 和额度对象留在服务/节点闭包中，不放入可序列化图�
 以上命令全部进行真实外部调用，需要配置和联网。每个模块默认至少三组输入，
 将实际输出打印为 JSON；没有模拟 Provider、预设模型决策或预设坐标。
 `part2.supervisor` 检查每组都有成功的搜索、详情、唯一定位，以及真实模型决策；
-模型降级或定位不确定都不会算作联调通过。每组默认只取一页、一个候选以控制调用量，
+模型降级或定位不确定都不会算作联调通过。同时检查每轮模型菜单不混合阶段，所有搜索任务先于补充任务执行。
+每组默认只实际取一页、一个候选，并用第二个查询 ID 复用真实页面，验证已有候选时仍须先处理剩余搜索任务，
 因此结果可能因候选额度返回 `partial`；这不等于已经找到符合所有硬条件的房源。
+阶段测试默认聚焦 2→3a→3b，暂不注册可选配套 Provider；加 `--with-investigations` 可同时执行已注册的补充调查。
 
 ```bash
 .venv/bin/python part2/supervisor.py --output /tmp/search-live.json
@@ -212,11 +215,11 @@ result = await service.search(plan, ctx=ctx)
 `source_mode="live"`，查询来源为 `propertyguru`，`attempt_id` 一致，
 `ctx.deadline_at` 是带时区的未来时间。
 不要先调用 `run` 再调用 `search` 来获取同一次结果，那会启动两次搜索；
-`run` 返回的 `state["result"]` 已是汇总完成的公开结果。
+`run` 返回的 `state["result"]` 是 B 内部汇总完成的 SearchResult。
 如需要重新整理已取得的内部状态，也可调用 `part45.aggregation.aggregate(state, started)`，
 其中 `started` 是执行前记录的 `time.monotonic()`；重新汇总不会调用外部服务。
 
-也可以用 CLI 读取 A 提供的 JSON 输入文件，结构为 `{"plan": {...}, "ctx": {...}}`：
+内部调试也可以用 CLI 读取 B 生成的 JSON 输入文件，结构为 `{"plan": {...}, "ctx": {...}}`：
 
 ```bash
 .venv/bin/python -m part2.supervisor --live --input /绝对路径/search-input.json
@@ -251,7 +254,7 @@ result = await service.search(plan, ctx=ctx)
 ## 4 / 5 汇总与完整 search
 
 `part45/aggregation.py` 整理管理层结束状态，`graph.py` 的 `aggregate` 节点在退出前生成
-`Result[SearchResult]`。公开调用保持 `await api.search(plan, ctx=ctx)`；最终结果由编排层交给 C。
+`Result[SearchResult]`。内部调用为 `await api.search(plan, ctx=ctx)`；A 使用下文的新入口 `fulfill_requirements`。
 汇总阶段不会继续派工，不改写硬条件，也不执行 C 的匹配筛选或推荐。
 
 - 按 `listing_key` 去重，合并前核对来源和模式；不把不同来源的相似标题当成同一房源。
@@ -266,16 +269,13 @@ result = await service.search(plan, ctx=ctx)
 - `part1.validation.validate_search_result` 校验完整输出、证据引用、追踪标识、版本、数量和覆盖一致性；
   输出校验失败使用 `INVALID_OUTPUT`，与调用方的 `INVALID_INPUT` 区分。
 
-完整链路测试放在 `api.py` 的 `if __name__ == '__main__':` 中，直接调用公开 `search`。
-默认三组实际输入为 Tampines（月租上限 SGD 4000）、Clementi（4500）、Punggol（4000）。
-每组一个候选，真实调用模型、guru_search、OneMap，不注入虚拟房源、模型回复或坐标。
-检查实际详情/定位证据、输出契约、输入不被修改，以及实际房源重复合并的幂等性。
-额度导致的 `partial` 是预期结果；来源失败、模型降级或缺少定位证据均不算通过。
+完整链路测试放在 `api.py` 的 `if __name__ == '__main__':` 中，调用新公开入口 `fulfill_requirements`。
+默认运行 `test_all.py` 中按 PropertyGuru 实际挂牌设计的四种不同业务需求，
+具体验收方式见下文。真实调用模型、guru_search、定位服务，不注入参考房源。
+测试脚本直接传入请求与上下文，打印入口原始返回。
 
 ```bash
-.venv/bin/python api.py --output /tmp/falcon-search-complete-live.json
-# 也可传入至少三组 [{"plan": ..., "ctx": ...}, ...]；截止时间需为未来时间：
-.venv/bin/python api.py --input /绝对路径/search-inputs.json --output /tmp/search-results.json
+.venv/bin/python -B api.py
 ```
 
 4/5 自身的真实输入输出检查也在模块 `__main__` 中；给定至少三组搜索输入后，
@@ -292,108 +292,171 @@ result = await service.search(plan, ctx=ctx)
 另对这三套房源在两次真实调用中的观测做合并检查，证据碰撞改名、价格引用与重复合并幂等性均通过。
 这次验收覆盖有候选且额度截断的实际链路；未用虚拟响应伪造空结果或外部服务故障。
 
-详情读取优先使用搜索页返回的完整房源链接。固定加载等待结束后，适配器还会有界等待
-`__NEXT_DATA__` 中的实际详情数据；持续未就绪返回 `TEMPORARY_UNAVAILABLE`，由现有管理层
-在截止时间内最多重试一次。不能读取的数据不会被当成成功详情或虚构地址。
+详情读取优先使用搜索页返回的完整房源链接。搜索和详情适配器在导航后每 300 毫秒检查
+`__NEXT_DATA__` 中的实际数据，最多等待 12 秒；OpenCLI 的 `page.wait()` 会在 DOM 稳定后
+提前返回，不能用它判断房源数据已经加载。检查同时核对当前查询或房源 ID，避免读取旧页面。
+持续未就绪返回 `TEMPORARY_UNAVAILABLE`，由现有管理层在剩余额度和截止时间内最多重试一次。
+搜索页明确标记为 `promoted-listing-card` 的相近价格广告在候选截断和续页偏移计算前排除，
+防止超预算广告混入搜索命中；普通搜索卡保持原顺序。不能读取的数据不会被当成成功详情或虚构地址。
+两项命令均自行直达目标 URL，关闭 OpenCLI 默认的首页预导航，避免额外跳转被浏览器拒绝
+而在执行适配器前就报 `Navigation rejected`。若目标导航仍遇到这个明确的浏览器错误，
+只释放当前适配器的标签页租约，并在新标签页中恢复一次；仍须通过相同的 URL、数据和验证页检查，
+不增加业务搜索重试或重置用户浏览器。
 
-## 1 制定计划与完整联调
+## 新接口接入与完整联调
 
-`api.build_search_plan(profile, query, previous_attempts, directive, *, ctx)` 现已实现。
-四项业务输入分别来自 A 的 `UserProfile`、`QueryFeatures`、历史 `AttemptSummary` 数组和
-可选的 `SearchDirective`，字段严格遵守 `contracts_v0.py`。
-
-计划模块使用 LangGraph 的 `propose_queries → materialize_plan` 两个节点。真实网关模型
-根据需求选择已有地点/别名的查询表述和顺序；代码复制已确认硬条件、绑定来源、轮次及额度，
-再校验 `Result[SearchPlan]`。模型不生成房源，输入或计划有问题时返回 `error`，不进入搜索。
-画像、查询及补搜指令版本必须一致；本轮 `ctx.attempt_id` 必须非空且不与历史轮次重复。
-未澄清的需求返回 A，计划生成不执行 `prepare_query`，也不保存后续搜索无法读取的私有画像缓存。
+A 只调用 `api.fulfill_requirements(request, *, ctx)`。输入是已确认的
+`RequirementRequest`，输出是 `Result[RequirementFulfillment]`。不要再由 A 构造查询、
+计划、历史或 Provider 参数。B 内部保留 `prepare_query`、`build_search_plan`、`search`
+三个契约函数，供模块联调使用；它们的画像参数已改成 `ConversationProfile`。
 
 ```python
-from api import build_search_plan, search
+from api import fulfill_requirements
 
-plan_result = await build_search_plan(profile, query, previous_attempts, directive, ctx=plan_ctx)
-if plan_result['status'] == 'success':
-    # 两次 ctx 保持相同 attempt_id、source_mode、trace_id 与 deadline_at，使用不同 call_id。
-    result = await search(plan_result['data'], ctx=search_ctx)
+result = await fulfill_requirements(request, ctx=ctx)
+if result['data'] is not None:
+    fulfillment = result['data']
+    # needs_clarification 时由 A 提问；否则把 search_result 候选交给 C 筛选。
+    questions = fulfillment['clarification_questions']
+    search_result = fulfillment['search_result']
 ```
 
-可通过 `.env` 或进程环境配置整次搜索的额度，默认与 `test_search.py` 一致：
+外层 LangGraph 执行 `prepare_requirements → plan_search → execute_search → summarize_requirements`。
+原始请求一直保留在当前图状态；内部正规投影提取可推送到 guru_search 的过滤条件，
+其余 Listing 条件在结果上确定性核对，不能因为 SearchPlan 字段较少而丢失。
+没有修改用户确认的条件，也没有伪造完整 ConversationProfile。B 信任 A 发出的确认交接；
+A 仍负责核实 `confirmed_version == version`，B 检查请求的版本、确认时间与会话一致性。
+`ctx` 原样传到各阶段；允许 `attempt_id=None`，这时 B 为计划生成内部轮次 ID。
+
+候选房源保留真实字段、原始来源和证据，由 C 继续筛选、排序。条件不符或字段未知会明确
+记录到 `field_issues`，未知硬条件会造成 `partial`，不会把未知当满足。搜索预算耗尽同样
+返回 `partial` 和实际续页信息。房源字段本身沿用最新共享 Listing，不增加私有返回字段。
+
+派生需求逐条返回 fulfilled / unsupported / unverified；已支持真实找房、详情、OneMap
+地址定位、通勤与五类周边配套；环境与行政区归属核验尚不支持。按地区词检索不等于已核实行政区，
+坐标也不证明通勤时间。开放需求只能尽力补查，目前会明确列入
+`skipped_best_effort_requirement_ids`，即使标记 hard，也不会阻断搜索或单独降低完成状态。
+缺少会阻断核心查询的信息时，返回 `needs_clarification` 和结构化问题；无需初始化外部服务。
+
+模型与浏览器、OneMap 的配置沿用上面的说明。搜索预算来自 `.env` 或进程环境：
 
 ```dotenv
-SEARCH_PAGE_LIMIT=1
-SEARCH_CANDIDATE_LIMIT=2
+SEARCH_PAGE_LIMIT=4
+SEARCH_CANDIDATE_LIMIT=12
+SEARCH_PAGE_RESULT_LIMIT=6
+SEARCH_PROVIDER_TIMEOUT_SECONDS=30
+SEARCH_MAX_RETRIES=1
+SEARCH_PLANNER_TIMEOUT_SECONDS=20
+SEARCH_SUPERVISOR_TIMEOUT_SECONDS=8
+SEARCH_SUPERVISOR_MAX_CALLS=3
+SEARCH_FINALIZE_RESERVE_SECONDS=10
 ```
 
-这些不是每个查询的单独额度。增大候选数会增加真实详情、定位和模型调用次数。
-默认 live 服务只注册 `propertyguru`，不凭模型输出注册其他来源。
-复用模型连接时可用 `api.create_live_planner_service()`；独立计划生成不要求 OneMap 或浏览器就绪。
+以上是默认值，进程环境优先于 `.env`。计划中的显式总额度仍优先；每次搜索页返回
+不超过 6 条且不超过剩余候选额度。页数包含失败尝试，重试也不能突破总额度。
+计划模型与管理模型分别限制为 20 秒和 8 秒，同时受 `LLM_TIMEOUT_SECONDS` 和本轮剩余
+时间限制。管理模型每轮最多调用 3 次（失败也计入），之后使用固定调度继续执行。
+浏览器调用继续串行。截止前 10 秒停止并取消尚未完成的外部任务，保留已有结果进入
+汇总；不改写 `ctx.deadline_at`，未查完仍返回 `partial` 或 `error`。
 
-按 `test_search.py` 的风格，`test_all.py` 中列出四组完整输入：
-Tampines 整租、Clementi 单间、Punggol 家庭整租、Bishan 买房。可以直接修改
-`search_input_1` 到 `search_input_4`，每组都包含四项计划输入，而不是手写 `SearchPlan`。
+执行 `python graph.py` 可运行文件内三组真实搜索配置检查（Tampines、Clementi、Punggol）；
+每组默认总时限 120 秒，可用 `--timeout-seconds` 修改。检查真实候选、单次条数、页数、
+模型调用次数/耗时、重试及汇总预留时间；`--output` 可保存实际输入输出。来源失败时
+不会用虚拟数据代替，也不会将没有真实候选的用例记为通过。
+
+可复用 `api.create_live_fulfillment_service()`；内部联调用 `service.run(request, ctx=ctx)`
+可读取查询、计划、SearchResult 和最终结果。每次请求使用独立状态与预算，不启用跨请求的
+历史持久化或自动续页。`SearchDirective` / `AttemptSummary` 仍可用于 B 内部显式续页，
+但不是 A 的公开输入；内部历史指纹使用 `execution.history.query_fingerprint`。
+
+`test_all.py` 默认运行以下四种不同需求。2026-09-20 已打开 PropertyGuru 详情页核查设计依据；
+这些是遵守 `RequirementRequest` 的测试需求，不是 A 的生产日志，也不伪造 B 的返回。
+
+| 序号 / ID | 输入需求 | 实际挂牌依据 |
+| --- | --- | --- |
+| 1 / `tampines_condo_rent` | 淡滨尼整租公寓；月租 ≤ SGD 3800；至少 2 卧；家具齐全 | [Treasure at Tampines](https://www.propertyguru.com.sg/listing/for-rent-treasure-at-tampines-25155665)：3500/月，2 卧，家具齐全 |
+| 2 / `clementi_common_room` | 金文泰组屋普通房；月租 ≤ SGD 1300；包水电和 Wi-Fi | [712 Clementi West Street 2](https://www.propertyguru.com.sg/listing/hdb-for-rent-712-clementi-west-street-2-500255206)：1200/月，普通房，包水电网络 |
+| 3 / `punggol_family_rent` | 榜鹅整租组屋；月租 ≤ SGD 4200；至少 3 卧 2 卫、1000 sqft | [203A Punggol Field](https://www.propertyguru.com.sg/listing/hdb-for-rent-203a-punggol-field-25359579)：3800/月，3 卧 2 卫，1184 sqft |
+| 4 / `bishan_hdb_buy` | 碧山购买组屋；总价 ≤ SGD 1000000；至少 3 卧、1000 sqft | [207 Bishan Street 23](https://www.propertyguru.com.sg/listing/hdb-for-sale-207-bishan-street-23-500255052)：920000，3 卧，1109 sqft |
+
+每组都有独立请求/会话 ID、完整中文原文和正确的 `SourceReference` 偏移。
+买房使用 `intent=buy`、`transaction_type=sale`、`price.period=total`；单间不拿整套卧室数限制房间。
+上表保留四组需求的历史挂牌依据，不作为接口输入或预期返回。
+
+四组完整请求写死在 `test_all.py` 的 `request_1` 至 `request_4` 中。
+运行时逐组构造 `ctx`（截止时间为调用时起五分钟），直接调用
+`await fulfill_requirements(request, ctx=ctx)`，打印原始返回。
+脚本不读取示例文件，不包含额外校验、报告、内部调度或命令行选项。
 
 ```bash
-.venv/bin/python test_all.py
-# 保存实际输入、生成的计划以及 search 完整返回值：
-.venv/bin/python test_all.py --output /tmp/falcon-test-all-live.json
-# 只运行一组，或只测试计划生成：
-.venv/bin/python test_all.py --case 1
-.venv/bin/python test_all.py --plan-only
-# 模块自己的 __main__ 使用同四组真实计划输入：
-.venv/bin/python -m part1.planner
+.venv/bin/python -B test_all.py
 ```
 
-所有结果都来自实际模型、guru_search 和 OneMap，不注入虚拟房源、坐标或模型回复。
-联调验证计划输出与搜索输入一致、硬条件和输入保持不变、公开输出通过校验，且实际房源包含
-详情及定位证据。额度截断的 `partial` 可以通过联调；来源失败、模型降级和缺少证据不会算通过。
-每组输出 `Result[SearchResult]`，其中房源是交给 C 筛选推荐的候选；本模块不实现 C 的推荐排序，
-也不将未支持的硬条件宣称为已满足。默认执行全部四组，失败退出非零。
+`api.py` 的运行入口复用同一调用；`python -m part1.planner` 只运行内部计划生成。
+其他模块仍通过 `INPUTS` 复用这四组请求。
 
-2026-09-19 本机实际执行 `test_all.py` 全部四组通过：每组真实生成计划并取得两套房源，
-均包含详情和 OneMap 定位证据；计划原样进入 search，模型没有降级。四组搜索均因两候选额度
-返回 `partial`，唯一问题是 `BUDGET_EXHAUSTED`。另使用真实返回的续页游标，在独立进程验证了
-历史查询恢复，并验证重复的已执行别名返回 `NO_NEW_QUERY`；没有用虚拟响应替代真实调用。
+以下为旧输入的历史链路记录，不代表上述新需求或 examples 用例验收通过：
+2026-09-20 已实际执行新公开接口的四组完整链路，4/4 通过：共 8 套 live 房源，
+8 套都有真实详情与 OneMap 定位证据，无模型或来源调用失败。四组因两候选预算返回
+partial；Tampines 和 Punggol 各另有一套出租范围待核实。Punggol 的 hard + best_effort
+开放需求被明确跳过并保留房源。行政区核验标记 unsupported，未将坐标当作行政区证明。
+另有三组缺币种/周期的实际需求通过澄清分支检查；解析、查询转换各四组通过，
+需求汇总使用历史真实上游结果回放四组通过，并核验了本次四组最终真实产物。
 
-### 历史与补搜
+## 3c 周边设施与 3d 出行
 
-`SearchDirective` 支持保持条件的续页、同一实体别名和已注册来源切换。为了在 v0 的四项输入内
-恢复原查询，`execution.history.query_fingerprint(plan, query)` 返回可还原的 `search:v1:` 字符串，
-供 A 写入 `AttemptSummary.query_fingerprints`。调用方应记录实际执行过的查询及游标，不把尚未
-执行的计划查询当作已执行；`eligible_count` 仍由后续筛选给出，不能拿搜索候选数代替。
+3c 从住宅坐标查询地铁/轻轨站、公交站、超市、学校、公园。默认半径为 **1500 米直线距离**；
+用户明确的距离上界优先，支持 1–4999 米。OneMap 提供交通和公园点位；OpenStreetMap
+提供超市与学校（含幼儿园、学院、大学）点位。OneMap Parks 主题中明确标为游乐场的记录不当作公园。
+默认 Overpass 节点为 OSM 文档列出的全球镜像 `https://maps.mail.ru/osm/tools/overpass/api/interpreter`；
+可用 `OVERPASS_URL` 指定具有新加坡数据的其他实例。OSM 数据归属 © OpenStreetMap contributors（ODbL）。
+不要配置只有其他国家数据的区域实例，否则空列表没有新加坡设施覆盖的含义。
 
-```python
-from execution.history import query_fingerprint
+3d 默认从住宅前往指定目标；未单独提出通勤需求但 `user_context` 有工作/学校地址时，补做通勤概览。
+默认 **Asia/Singapore 时区，下一个未来的周一至周五 08:00 出发，公共交通组合路线**。
+周一至周五未额外排除公共假日，该假设保存在证据中。用户指定步行、驾车、骑行、公交/轨道模式，
+或明确日期/时刻时覆盖对应默认值。支持 ISO 日期、今天/明天/后天、星期以及中文/英文钟点；
+多时段、无法明确解释的时段或地点保留缺口，不回退成用户没有指定过的条件。
+到达时间要求最多用两次真实出发查询验证一个可在期限前到达的公共交通方案，不宣称最晚出发时间。
+驾车、步行、骑行接口是静态路线估时，不能当作早高峰实时路况预测。
 
-# executed_query 来自实际执行记录，cursor 使用该次执行的起始游标。
-fp = query_fingerprint(plan, executed_query)
-# 下一轮 directive 使用 search_result['data']['coverage']['next_pages'] 中的真实游标。
-```
+配套的步行距离/时间条件由 3c 调用同一个 3d 能力核实，每类最多查直线距离最近的 5 个点位。
+只找到部分点位时不声称绝对最近；空结果或没有找到满足阈值的路线保留 `unverified`。
+设施代表点可能是建筑/区域中心，不保证是校门、公园入口；点位口径保存在路线证据中。
+不把直线距离除以速度当作真实步行耗时，也不按任意同类学校替代具体校名。
 
-指纹包含查询文本、来源、游标及条件，不包含连接或密钥。续页从传入历史恢复，不依赖内存中的
-旧计划；相同来源、文本和游标不会因更换查询 ID 被重复执行。旧式不含文本的历史指纹仍可用于
-相同 ID 的查重，但无法独立恢复续页，缺信息时明确返回问题给 A。没有可执行新查询返回
-`NO_NEW_QUERY`；来源未注册返回 `SOURCE_UNAVAILABLE`，不会自动放宽条件。
+完整请求通过 `FulfillmentService → SearchService.search_for_request` 显式进入搜索图，
+不改变公开 `fulfill_requirements` 或共享 `search(plan, *, ctx)` 签名。
+现有“搜索 → 补充 → 汇总”的调度阶段不变；补充阶段增加 `amenities` 和 `travel` 任务。
+单次搜索默认最多 60 次路线调用、60 次设施类别查询；缓存按本次用户/会话/运行隔离，失败不记为成功缓存，
+所有实际调用遵守同一个 `ctx.deadline_at`，模块 2 对可重试故障最多再试一次。
 
-历史中的 `error` 轮次保留原查询和条件用于校验及续页恢复，但不参与已完成查询的去重；
-来源恢复后可以重新执行同一查询。`success` / `partial` 沿用原有去重规则，旧式指纹也按
-相同规则处理。失败轮次的再次执行仍受本轮页数、候选和截止时间限制。
+输出只使用共享契约原有字段：
 
-计划模块的 `__main__` 支持读取至少三组真实失败搜索记录和对应的 A 输入，先检查原查询
-恢复可选，再调用真实模型生成计划；不构造虚拟失败响应：
+- `Listing.evidence` 中的 `nearby_amenity.<category>`：查询范围、来源点位、直线距离和覆盖限制。
+- `travel`：起终点、方式、指定时段、实际路线分段、距离、耗时及默认假设。
+- `derived_requirement.<requirement_id>`：调查完成状态及条件比较结果。
+- `field_issues`、`Result.issues`：未定位、来源故障、额度不足等缺口。
+
+`fulfilled` 表示已完成相应调查，不表示房源满足阈值。例如真实通勤 55 分钟，需求上限 40 分钟：
+调查可以完成，但对应证据的 `check=fail`。C 应读取该比较结果和真实证据继续筛选。
+受支持需求有候选尚未调查完时为 `unverified`，并返回 `partial`；不支持的指标仍为 `unsupported`。
+
+测试入口保留在各模块自身的 `if __name__ == '__main__':`，不新增独立测试文件：
 
 ```bash
-.venv/bin/python -m part1.planner \
-  --failed-searches /绝对路径/失败搜索记录.json \
-  --planner-inputs /绝对路径/对应计划联调记录.json \
-  --output /tmp/planner-retry-results.json
+.venv/bin/python -B -m part3.capabilities.travel --input /绝对路径/真实通勤输入.json --output /tmp/travel-results.json
+.venv/bin/python -B -m part3.capabilities.amenities --input /绝对路径/真实设施输入.json --output /tmp/amenity-results.json
 ```
 
-失败记录结构为 `[{"input": {"plan": ..., "ctx": ...}, "output": ...}, ...]`，对应 A 输入
-使用 `test_all.py --output` 保存的记录；当前回放入口只接收能确认来源调用失败的单查询
-`live` 记录，不修改原始失败结果。
+通勤输入是至少三项 `{listing, location, requirement, user_context, ctx}`，房源和定位必须来自实际上游。
+可用 `expected` 指定要断言的方式、小时、分钟或歧义结果；不注入任何预设地图响应。
+设施输入是至少三项 `{request, ctx}`，其中 `request` 为 `execution.tasks.AmenityRequest`。
+每组五类设施都实际请求；测试保留一次有界重试前后的返回值，不隐藏外部故障。
 
-2026-09-19 缺陷修复验证：四组真实失败历史重新调用模型生成计划通过 4/4，原查询恢复可选；
-八套已取得的真实房源再次调用详情接口，41 项明确字段及对应详情证据通过检查。其中一套
-首次返回可重试的来源错误，重试一次成功。真实历史回放同时验证了否定条件、共享浴室、
-家具、日期，以及租期不覆盖产权年限。本次完整 `test_all.py` 重跑因搜索页缺少
-`__NEXT_DATA__` 返回 `PARSE_ERROR`，未通过完整链路验收；该搜索页读取问题仍需单独处理。
+2026-09-20 本次真实验收：3c 的 Tampines / Clementi / Punggol 三组全部通过，五类设施均取得真实响应；
+第三组保留了一次外部超时及重试恢复记录。3d 三组真实路线通过（默认公交、09:00 公交、08:30 驾车），
+另一个 NUS 邮编对应多楼栋的真实负例正确返回待核实，共 4/4。完整公开测试请求经实际
+A→B→guru_search→OneMap/OSM→需求汇总，通勤、步行公交站、附近超市三项均为 fulfilled；
+整体 partial 的唯一原因是一候选搜索额度用尽。该结果不表示已经找完所有房源。
+共享 44 个接口示例通过结构校验，未改写或注入示例中的虚构房源数据。

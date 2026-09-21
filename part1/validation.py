@@ -20,6 +20,8 @@ def _hints(schema):
 
 def validate_type(schema, value, path="value") -> None:
     """严格检查字段集合、类型和 JSON 数值；bool 不当作 int。"""
+    if isinstance(schema, str):
+        schema = eval(schema, vars(contracts))
     if isinstance(schema, typing.ForwardRef):
         schema = eval(schema.__forward_arg__, vars(contracts))
     origin, args = typing.get_origin(schema), typing.get_args(schema)
@@ -79,44 +81,53 @@ def validate_context(ctx: RunContext) -> None:
 
 
 def validate_planner_input(profile, query, previous_attempts, directive, ctx) -> None:
-    """A→1 的结构、版本与已确认条件校验；错误时不调用模型或搜索。"""
+    """共享内部契约接受真实 ConversationProfile，并保留确认和会话校验。"""
+    from part1.requirements import normalize_requirements, validate_conversation_profile
+    validate_conversation_profile(profile, ctx)
+    validate_planning_input(normalize_requirements(profile), query, previous_attempts, directive, ctx)
+
+
+def planned_attempt_id(requirements, ctx) -> str:
+    """A 不需要提供 attempt_id；B 在不修改 ctx 的前提下绑定本轮计划 ID。"""
+    from execution.history import fingerprint
+    return ctx['attempt_id'] or 'attempt-' + fingerprint([
+        ctx['conversation_id'], ctx['run_id'], ctx['call_id'], requirements['version']])
+
+
+def validate_planning_input(requirements, query, previous_attempts, directive, ctx) -> None:
+    """校验 B 的显式投影；外层只在核心澄清已解决后进入计划生成。"""
     validate_context(ctx)
     for schema, value, path in (
-        (contracts.UserProfile, profile, 'profile'),
         (contracts.QueryFeatures, query, 'query'),
         (list[contracts.AttemptSummary], previous_attempts, 'previous_attempts'),
         (contracts.SearchDirective | None, directive, 'directive'),
     ):
         validate_type(schema, value, path)
-    if not profile['profile_id'].strip() or profile['version'] < 0:
-        fail('profile', '画像 ID 不能为空，版本不能为负数')
-    if query['profile_version'] != profile['version']:
-        raise ContractViolation('STATE_CONFLICT', 'query.profile_version', '查询与画像版本不一致')
-    if directive is not None and directive['base_profile_version'] != profile['version']:
-        raise ContractViolation('STATE_CONFLICT', 'directive.base_profile_version', '补搜指令与画像版本不一致')
-    if ctx['attempt_id'] is None:
-        fail('ctx.attempt_id', '计划生成需要编排层提供本轮 attempt_id')
-    if profile['intent'] is None:
-        fail('profile.intent', '请由 A 确认租房或买房意图')
-    if profile['unresolved'] or query['unresolved']:
-        fail('profile.unresolved' if profile['unresolved'] else 'query.unresolved', '需求仍有待澄清项，请交回 A')
+    if query['profile_version'] != requirements['version']:
+        raise ContractViolation('STATE_CONFLICT', 'query.profile_version', '查询与需求版本不一致')
+    if directive is not None and directive['base_profile_version'] != requirements['version']:
+        raise ContractViolation('STATE_CONFLICT', 'directive.base_profile_version', '补搜指令与需求版本不一致')
+    if query['unresolved'] or requirements['clarification_questions']:
+        fail('query.unresolved', '核心检索条件仍需澄清，请通过 RequirementFulfillment 交回 A')
     if not query['semantic_query'].strip():
         fail('query.semantic_query', '不能为空')
-    filters = profile['hard_constraints']
+    filters = requirements['required_filters']
+    validate_type(contracts.HardConstraints, filters, 'required_filters')
     if not filters['currency'].strip():
-        fail('profile.hard_constraints.currency', '不能为空')
+        fail('required_filters.currency', '不能为空')
     for key in ('max_price', 'min_bedrooms'):
         if filters[key] is not None and filters[key] < 0:
-            fail('profile.hard_constraints.' + key, '不能为负数')
+            fail('required_filters.' + key, '不能为负数')
     if any(not loc.strip() for loc in filters['locations']) or len(set(filters['locations'])) != len(filters['locations']):
-        fail('profile.hard_constraints.locations', '地点 ID 不能为空或重复')
+        fail('required_filters.locations', '地点 ID 不能为空或重复')
     attempts = set()
+    current_attempt = planned_attempt_id(requirements, ctx)
     for index, attempt in enumerate(previous_attempts):
         path = f'previous_attempts[{index}]'
         if not attempt['attempt_id'].strip() or attempt['attempt_id'] in attempts:
             fail(path + '.attempt_id', '历史轮次 ID 不能为空或重复')
-        if attempt['attempt_id'] == ctx['attempt_id']:
-            raise ContractViolation('STATE_CONFLICT', 'ctx.attempt_id', '本轮必须使用新的 attempt_id')
+        if attempt['attempt_id'] == current_attempt:
+            raise ContractViolation('STATE_CONFLICT', 'ctx.attempt_id', '本轮必须使用新的 attempt_id 或 call_id')
         attempts.add(attempt['attempt_id'])
         if attempt['eligible_count'] < 0 or any(not fp.strip() for fp in attempt['query_fingerprints']):
             fail(path, '历史计数不能为负数，查询指纹不能为空')
@@ -126,15 +137,17 @@ def validate_planner_input(profile, query, previous_attempts, directive, ctx) ->
 
 def validate_plan_result(result, profile, ctx) -> None:
     """1→2 的完整结果校验，并确保模型不能更改 A 的硬条件。"""
+    from part1.requirements import normalize_requirements
+    requirements = profile if 'required_filters' in profile else normalize_requirements(profile)
     try:
         validate_result_envelope(result, contracts.SearchPlan, ctx)
         plan = result['data']
         if plan is None:
             return
         validate_plan(plan, ctx)
-        if plan['profile_version'] != profile['version']:
+        if plan['profile_version'] != requirements['version']:
             fail('result.data.profile_version', '计划与画像版本不一致')
-        if plan['required_filters'] != profile['hard_constraints'] or plan['intent'] != profile['intent']:
+        if plan['required_filters'] != requirements['required_filters'] or plan['intent'] != requirements['intent']:
             raise ContractViolation('CONSTRAINT_CHANGE_NOT_ALLOWED', 'result.data.required_filters', '计划不能更改 A 的硬条件或交易意图')
         if not plan['queries'] or not plan['reason'].strip():
             fail('result.data', '计划必须包含可执行查询及原因')
@@ -167,7 +180,8 @@ def validate_plan(plan: SearchPlan, ctx: RunContext) -> None:
     for key in ("plan_id", "attempt_id"):
         if not plan[key].strip():
             fail(f"plan.{key}", "不能为空")
-    if plan["source_mode"] != ctx["source_mode"] or plan["attempt_id"] != ctx["attempt_id"]:
+    if plan["source_mode"] != ctx["source_mode"] or (
+            ctx["attempt_id"] is not None and plan["attempt_id"] != ctx["attempt_id"]):
         fail("plan", "计划与上下文的 source_mode / attempt_id 不一致")
     if plan["profile_version"] < 0:
         fail("plan.profile_version", "不能为负数")

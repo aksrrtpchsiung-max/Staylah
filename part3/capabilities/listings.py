@@ -21,7 +21,7 @@ if __name__ == "__main__" and __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from contracts_v0 import ContractViolation, Listing, ListingAttributes, Price, Result, RunContext, SearchPlan
-from execution.budget import SearchBudget, remaining_seconds
+from execution.budget import SearchBudget
 from execution.tasks import ListingDetail, ListingPage
 from part1.validation import fail, timestamp, validate_context, validate_listing, validate_plan, validate_type
 from providers.base import ListingProvider, ProviderError, issue
@@ -148,7 +148,7 @@ class ListingsCapability:
                 if not isinstance(cursor, str) or not cursor.strip():
                     fail("cursor", "续页游标必须是非空字符串")
                 query["cursor"] = cursor
-            async with asyncio.timeout(remaining_seconds(ctx)):
+            async with asyncio.timeout(self.budget.work_seconds(ctx)):
                 async with self.budget.lock:
                     limit = self.budget.begin_page(plan, ctx)
                     page = await self.provider.search_page(query, intent=plan["intent"],
@@ -188,7 +188,7 @@ class ListingsCapability:
             return _result(None, [issue(exc.code, str(exc), field_path=exc.field_path)], ctx, started)
         try:
             self._context(ctx)
-            async with asyncio.timeout(remaining_seconds(ctx)):
+            async with asyncio.timeout(self.budget.work_seconds(ctx)):
                 async with self.budget.lock:
                     self.budget.check(ctx)
                     detail = await self.provider.read_detail(deepcopy(listing), ctx=ctx)
@@ -294,6 +294,21 @@ if __name__ == '__main__':
                 for item in output['data']['items']:
                     details.append(await cap.read_detail(item, ctx=ctx))
             failures, checked_facts = [], 0
+            if output['data']:
+                page = output['data']
+                filters = plan['required_filters']
+                for item in page['items']:
+                    expected_type = 'sale' if plan['intent'] == 'buy' else 'rent'
+                    if item['transaction_type'] != expected_type:
+                        failures.append(item['listing_key'] + ': 交易类型与查询不符')
+                    price = item['price']
+                    if ('price.amount' in page['applied_filters'] and price['status'] == 'known'
+                            and price['currency'] == filters['currency']
+                            and price['period'] == filters['price_period']
+                            and price['amount'] > filters['max_price']):
+                        failures.append(item['listing_key'] + ': 搜索结果混入超预算房源')
+                if page['truncated'] and not page['next_cursor']:
+                    failures.append('候选截断后必须保留真实续页游标')
             for detail in details:
                 if detail['data'] is not None:
                     checked, problems = verify_observed_details(detail['data'])

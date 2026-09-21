@@ -1,4 +1,4 @@
-"""搜索入口。业务参数遵守共享契约；模型与 Provider 在构造服务时注入。"""
+"""B 的公开入口 fulfill_requirements；其余函数供 B 内部调用与独立联调。"""
 import os
 from pathlib import Path
 from time import monotonic
@@ -7,7 +7,8 @@ from dotenv import dotenv_values
 
 from contracts_v0 import (
     AttemptSummary, ContractViolation, QueryFeatures, Result, RunContext,
-    SearchDirective, SearchPlan, SearchResult, UserProfile,
+    ConversationProfile, RequirementRequest, RequirementFulfillment,
+    SearchDirective, SearchPlan, SearchResult,
 )
 from graph import SearchService
 from part1.validation import validate_plan, validate_planner_input
@@ -18,22 +19,26 @@ from providers.base import ProviderError, issue
 
 def create_live_planner_service(*, env_file=None, model=None, settings=None):
     """构造 1 的独立服务；计划生成不依赖浏览器或 OneMap 凭据。"""
-    from config import create_chat_model, load_model_settings, load_search_plan_settings
+    from config import (create_chat_model, load_model_settings, load_search_plan_settings,
+                        load_search_execution_settings)
     from dataclasses import replace
     from part1.planner import SearchPlanner
     path = Path(env_file) if env_file is not None else Path(__file__).resolve().with_name('.env')
     model_settings = load_model_settings(path) if model is None else None
+    execution = load_search_execution_settings(path)
     return SearchPlanner(
         model=model if model is not None else create_chat_model(replace(
             model_settings, max_tokens=min(model_settings.max_tokens, 512))),
         settings=settings if settings is not None else load_search_plan_settings(path),
-        model_timeout_seconds=model_settings.timeout_seconds if model_settings else 60)
+        model_timeout_seconds=min(model_settings.timeout_seconds, execution.planner_timeout_seconds)
+            if model_settings else execution.planner_timeout_seconds,
+        finalize_reserve_seconds=execution.finalize_reserve_seconds)
 
 
-async def build_search_plan(profile: UserProfile, query: QueryFeatures,
+async def build_search_plan(profile: ConversationProfile, query: QueryFeatures,
                             previous_attempts: list[AttemptSummary], directive: SearchDirective | None,
                             *, ctx: RunContext) -> Result[SearchPlan]:
-    """公开 A→1 接口；只有通过校验的计划才可进入 search。"""
+    """B 内部计划接口；只有通过校验的计划才可进入 search。"""
     from config import ModelConfigurationError
     started = monotonic()
     try:
@@ -56,21 +61,64 @@ async def build_search_plan(profile: UserProfile, query: QueryFeatures,
 
 def create_live_search_service(*, env_file=None, model=None) -> SearchService:
     """默认使用现有 LLM Gateway、guru_search 和 OneMap；创建时不联网。"""
-    from config import create_chat_model, load_model_settings
+    from config import create_chat_model, load_model_settings, load_search_execution_settings
     from dataclasses import replace
     from providers.guru_search import GuruSearchProvider
     from providers.onemap import OneMapProvider
+    from providers.osm import NeighborhoodProvider, OSMPlacesProvider
     path = Path(env_file) if env_file is not None else Path(__file__).resolve().with_name('.env')
     values = dict(dotenv_values(path, interpolate=False))
     values.update(os.environ)
     location_provider = OneMapProvider.from_env(path)
-    location_provider.check_configuration()
     executable = values.get('OPENCLI_BIN')
     settings = load_model_settings(path) if model is None else None
-    return SearchService(listing_providers=[GuruSearchProvider((executable,) if executable else None)],
+    execution = load_search_execution_settings(path)
+    return SearchService(listing_providers=[GuruSearchProvider((executable,) if executable else None,
+        timeout_seconds=execution.provider_timeout_seconds)],
         location_provider=location_provider,
+        routing_provider=location_provider,
+        places_provider=NeighborhoodProvider(location_provider, OSMPlacesProvider(
+            **({'endpoint': values['OVERPASS_URL']} if values.get('OVERPASS_URL') else {}))),
         model=model if model is not None else create_chat_model(replace(settings, max_tokens=min(settings.max_tokens, 256))),
-        model_timeout_seconds=min(settings.timeout_seconds, 60) if settings else 60)
+        execution_settings=execution,
+        model_timeout_seconds=min(settings.timeout_seconds, execution.supervisor_timeout_seconds)
+            if settings else execution.supervisor_timeout_seconds)
+
+
+def create_live_fulfillment_service(*, env_file=None, model=None, settings=None,
+                                    page_limit=None, candidate_limit=None):
+    """构造完整 B 服务，依赖延迟到需要执行检索时初始化。
+
+    页数、候选额度属于 B 内部配置，不加入 A 的业务请求。
+    OneMap 未配置或暂时不可用时由执行层记录缺口，保留已取得的房源。
+    """
+    from dataclasses import replace
+    from config import load_search_plan_settings
+    from fulfillment import FulfillmentService
+
+    def planner_factory():
+        path = Path(env_file) if env_file is not None else Path(__file__).resolve().with_name('.env')
+        effective = settings if settings is not None else load_search_plan_settings(path)
+        overrides = {key: value for key, value in (
+            ('page_limit', page_limit), ('candidate_limit', candidate_limit)) if value is not None}
+        if overrides:
+            effective = replace(effective, **overrides)
+        return create_live_planner_service(env_file=env_file, model=model, settings=effective)
+
+    return FulfillmentService(planner_factory=planner_factory,
+        search_factory=lambda: create_live_search_service(env_file=env_file, model=model))
+
+
+async def fulfill_requirements(request: RequirementRequest, *,
+                               ctx: RunContext) -> Result[RequirementFulfillment]:
+    """A→B 唯一公开业务入口；ctx 原样传递，所有阶段遵守同一截止时间。"""
+    return await create_live_fulfillment_service().fulfill_requirements(request, ctx=ctx)
+
+
+async def prepare_query(profile: ConversationProfile, *, ctx: RunContext) -> Result[QueryFeatures]:
+    """B 内部查询准备接口；A 只需发送 RequirementRequest。"""
+    from part1.query import prepare_query as prepare
+    return await prepare(profile, ctx=ctx)
 
 
 async def search(plan: SearchPlan, *, ctx: RunContext) -> Result[SearchResult]:
@@ -98,80 +146,7 @@ async def search(plan: SearchPlan, *, ctx: RunContext) -> Result[SearchResult]:
 
 
 if __name__ == '__main__':
-    import argparse
     import asyncio
-    from copy import deepcopy
-    from datetime import datetime, timedelta, timezone
-    import json
-    from uuid import uuid4
-    from part1.validation import validate_search_result
-    from part45.aggregation import merge_listing, normalize_listing
+    from test_all import run_all
 
-    parser = argparse.ArgumentParser(description='公开 search 的真实全链路输入输出测试：2→3a→3b→4→5')
-    parser.add_argument('--input', type=Path, help='至少三组实际 {plan, ctx} 输入；省略时查询三个实际区域')
-    parser.add_argument('--output', type=Path, help='保存实际输入和交给 C 的完整返回值 JSON')
-    args = parser.parse_args()
-
-    async def main():
-        if args.input:
-            cases = json.loads(args.input.read_text())
-            if not isinstance(cases, list) or len(cases) < 3:
-                parser.error('需要至少三组真实业务输入')
-        else:
-            cases = []
-            for area, maximum in [('Tampines', 4000), ('Clementi', 4500), ('Punggol', 4000)]:
-                identity = str(uuid4())
-                cases.append(dict(plan=dict(plan_id=identity, profile_version=1, attempt_id=identity, intent='rent',
-                    required_filters=dict(currency='SGD', max_price=maximum, price_period='month',
-                        rental_scope='whole_unit', locations=[area.upper()], min_bedrooms=2),
-                    queries=[dict(query_id='q-' + area.lower(), source='propertyguru', text=area, cursor=None)],
-                    page_limit=1, candidate_limit=1, source_mode='live', reason='真实 search 全链路验收：按已确认需求取回候选'),
-                    ctx=dict(user_id='live-check', run_id=identity, conversation_id=identity, attempt_id=identity,
-                        trace_id=identity, call_id=identity, source_mode='live', deadline_at='')))
-        records, passed = [], 0
-        for case in cases:
-            if not args.input:
-                # 每组开始时才计算截止时间，前一组耗时不挤占下一组预算。
-                case['ctx']['deadline_at'] = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
-            if case['ctx']['source_mode'] != 'live':
-                parser.error('验收只接受 live 输入，不使用虚拟响应')
-            before = deepcopy(case)
-            print('开始真实 search：' + ', '.join(q['text'] for q in case['plan']['queries']), flush=True)
-            result = await search(case['plan'], ctx=case['ctx'])
-            failures = []
-            try:
-                validate_search_result(result, case['plan'], case['ctx'])
-                if case != before:
-                    failures.append('search 修改了输入')
-                if result['status'] == 'error':
-                    failures.append('真实搜索失败')
-                if any(p['source'] == 'model' for p in result['issues']):
-                    failures.append('模型未完成真实任务选择')
-                data = result['data']
-                if data:
-                    if not data['items'] and not data['coverage']['queries_completed']:
-                        failures.append('没有取得候选且搜索未完成')
-                    for item in data['items']:
-                        if not any(':detail:' in e['evidence_id'] for e in item['evidence']):
-                            failures.append(item['listing_key'] + ' 缺少实际详情证据')
-                        if not any(e['field'] == 'location' for e in item['evidence']):
-                            failures.append(item['listing_key'] + ' 缺少实际定位证据')
-                        normalized = normalize_listing(item)
-                        if merge_listing(normalized, normalized) != normalized:
-                            failures.append(item['listing_key'] + ' 实际重复房源未幂等合并')
-                    if any(p['code'] != 'BUDGET_EXHAUSTED' for p in result['issues']):
-                        failures.append('真实链路存在非额度缺口')
-                if not args.input and not (data and data['items']):
-                    failures.append('默认区域输入未获得可验证的房源')
-            except ContractViolation as exc:
-                failures.append(f'{exc.code}: {exc.field_path}: {exc}')
-            record = dict(input=before, output=result, live_chain_verified=not failures, failures=failures)
-            records.append(record)
-            passed += not failures
-            print(json.dumps(record, ensure_ascii=False), flush=True)
-            if args.output:
-                args.output.write_text(json.dumps(records, ensure_ascii=False, indent=2))
-        print(f'真实 search 全链路通过 {passed}/{len(cases)}；实际调用模型、guru_search 和 OneMap。', flush=True)
-        return 0 if passed == len(cases) else 1
-
-    raise SystemExit(asyncio.run(main()))
+    asyncio.run(run_all())

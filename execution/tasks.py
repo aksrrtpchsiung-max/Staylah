@@ -61,7 +61,7 @@ class LocationResult(TypedDict):
     standard_address: str | None
     latitude: float | None
     longitude: float | None
-    precision: Literal['building', 'road', 'unknown']
+    precision: Literal['building', 'road', 'point', 'unknown']
     candidates: list[GeoCandidate]
     evidence: list[Evidence]
     gaps: list[str]
@@ -69,7 +69,91 @@ class LocationResult(TypedDict):
 
 class ExecutionTask(TypedDict):
     task_id: str
-    kind: Literal['search_page', 'read_detail', 'locate']
+    kind: Literal['search_page', 'read_detail', 'locate', 'amenities', 'travel']
     query_id: str | None
     cursor: str | None
     listing_key: str | None
+    requirement_id: str | None
+
+
+class RouteLeg(TypedDict):
+    mode: str
+    start: str
+    end: str
+    service: str | None
+    duration_seconds: float
+    distance_m: float
+
+
+class RouteFact(TypedDict):
+    duration_seconds: float
+    distance_m: float
+    legs: list[RouteLeg]
+    departure_at: str | None
+    arrival_at: str | None
+    time_dependent: bool
+    source_url: str
+    observed_at: str
+
+
+class TravelRequest(TypedDict):
+    origin: LocationRequest
+    destination: LocationRequest
+    origin_location: LocationResult | None
+    destination_location: LocationResult | None
+    mode: Literal['pt', 'walk', 'drive', 'cycle']
+    transit_mode: Literal['TRANSIT', 'BUS', 'RAIL']
+    departure_at: str
+    assumptions: list[str]
+
+
+class TravelResult(TypedDict):
+    status: Literal['resolved', 'unverified']
+    routes: list[RouteFact]
+    evidence: list[Evidence]
+    gaps: list[str]
+
+
+AmenityCategory = Literal['mrt', 'bus', 'supermarket', 'school', 'park']
+
+
+class PlaceFact(TypedDict):
+    place_id: str
+    category: AmenityCategory
+    name: str
+    address: str | None
+    latitude: float
+    longitude: float
+    coordinate_kind: Literal['point', 'representative_center']
+    straight_line_distance_m: float
+    source_url: str
+    observed_at: str
+
+
+class PlaceMatches(TypedDict):
+    items: list[PlaceFact]
+    complete: bool  # 数据源响应是否完整，不保证现实世界设施无遗漏
+    source_url: str
+    observed_at: str
+
+
+class AmenityRequest(TypedDict):
+    origin: LocationRequest
+    origin_location: LocationResult | None
+    categories: list[AmenityCategory]
+    radius_m: int
+
+
+class AmenityResult(TypedDict):
+    places: list[PlaceFact]
+    completed_categories: list[AmenityCategory]
+    radius_m: int
+    evidence: list[Evidence]
+    gaps: list[str]
+
+
+class InvestigationResult(TypedDict):
+    evidence: list[Evidence]
+    gaps: list[str]
+    investigation_status: Literal['fulfilled', 'unverified']
+    check: Literal['pass', 'fail', 'unknown']

@@ -27,8 +27,8 @@ search_plan_1: SearchPlan = {
     "queries": [
         {"query_id": "q-tampines", "source": "propertyguru", "text": "Tampines", "cursor": None},
     ],
-    "page_limit": 1,
-    "candidate_limit": 2,
+    "page_limit": 4,
+    "candidate_limit": 12,
     "source_mode": "live",
     "reason": "在 Tampines 找整套出租，月租不超过 SGD 4000，至少两个卧室。",
 }
@@ -49,8 +49,8 @@ search_plan_2: SearchPlan = {
     "queries": [
         {"query_id": "q-clementi", "source": "propertyguru", "text": "Clementi", "cursor": None},
     ],
-    "page_limit": 1,
-    "candidate_limit": 2,
+    "page_limit": 4,
+    "candidate_limit": 12,
     "source_mode": "live",
     "reason": "在 Clementi 找单间出租，月租不超过 SGD 1500，不限制整套房屋的卧室总数。",
 }
@@ -71,8 +71,8 @@ search_plan_3: SearchPlan = {
     "queries": [
         {"query_id": "q-punggol", "source": "propertyguru", "text": "Punggol", "cursor": None},
     ],
-    "page_limit": 1,
-    "candidate_limit": 2,
+    "page_limit": 4,
+    "candidate_limit": 12,
     "source_mode": "live",
     "reason": "在 Punggol 找适合家庭的整套出租，月租不超过 SGD 4500，至少三个卧室。",
 }
@@ -93,8 +93,8 @@ search_plan_4: SearchPlan = {
     "queries": [
         {"query_id": "q-bishan", "source": "propertyguru", "text": "Bishan", "cursor": None},
     ],
-    "page_limit": 1,
-    "candidate_limit": 2,
+    "page_limit": 4,
+    "candidate_limit": 12,
     "source_mode": "live",
     "reason": "在 Bishan 找出售房源，总价不超过 SGD 1200000，至少两个卧室；租赁范围不适用。",
 }

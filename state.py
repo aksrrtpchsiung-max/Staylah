@@ -30,11 +30,14 @@ class SearchState(TypedDict):
     candidates_used: int
     stop_reason: str | None
     result: Result[SearchResult] | None
+    requirement_request: dict | None
+    investigations: dict[str, dict]
 
 
-def initial_state(plan, ctx) -> SearchState:
+def initial_state(plan, ctx, requirement_request=None) -> SearchState:
     from copy import deepcopy
     return dict(plan=deepcopy(plan), ctx=deepcopy(ctx),
                 queries={q['query_id']: dict(cursor=q['cursor'], done=False, blocked=False, seen_cursors=[]) for q in plan['queries']},
                 listings={}, locations={}, completed_tasks=[], attempts={}, history=[], pages=[], task_issues={}, issues=[],
-                selected_task=None, decision_reason='', pages_used=0, candidates_used=0, stop_reason=None, result=None)
+                selected_task=None, decision_reason='', pages_used=0, candidates_used=0, stop_reason=None, result=None,
+                requirement_request=deepcopy(requirement_request), investigations={})

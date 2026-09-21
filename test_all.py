@@ -1,217 +1,635 @@
-"""四组真实 A→1→search 输入输出：直接运行，使用 .env 的实际外部服务。
+"""四组固定的 A→B 请求：调用公开入口并打印原始返回。"""
 
-与 test_search.py 相同，下面的字典可以直接修改。每组包含制定计划的四项业务输入，
-ctx 由运行函数补齐。打印 SearchPlan 和 SearchResult，候选交给 C 继续筛选推荐。
-"""
-import argparse
 import asyncio
-from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import json
-from pathlib import Path
-from uuid import uuid4
 
-from api import build_search_plan, search
-from contracts_v0 import ContractViolation
-from part1.validation import validate_plan_result, validate_search_result
+from api import fulfill_requirements
+from contracts_v0 import RequirementRequest
 
 
-search_input_1 = {
-    "profile": {
-        "profile_id": "profile-tampines-whole", "version": 1, "intent": "rent",
-        "hard_constraints": {
-            "currency": "SGD", "max_price": 4000, "price_period": "month",
-            "rental_scope": "whole_unit", "locations": ["TAMPINES"], "min_bedrooms": 2,
+request_1: RequirementRequest = {
+    'request_id': 'request-tampines_condo_rent',
+    'schema_version': '0.3-draft',
+    'conversation_id': 'thread-tampines_condo_rent',
+    'profile_id': 'profile-tampines_condo_rent',
+    'profile_version': 1,
+    'intent': 'rent',
+    'user_context': [],
+    'listing_constraints': [
+        {
+            'constraint_id': 'tampines_condo_rent-c1',
+            'field_path': 'transaction_type',
+            'operator': 'eq',
+            'value': 'rent',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
         },
-        "preferences": [], "unresolved": [],
-        "field_sources": {
-            "intent": "msg-tampines", "hard_constraints.currency": "msg-tampines",
-            "hard_constraints.max_price": "msg-tampines", "hard_constraints.price_period": "msg-tampines",
-            "hard_constraints.rental_scope": "msg-tampines", "hard_constraints.locations": "msg-tampines",
-            "hard_constraints.min_bedrooms": "msg-tampines",
+        {
+            'constraint_id': 'tampines_condo_rent-c2',
+            'field_path': 'price.amount',
+            'operator': 'lte',
+            'value': 3800,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
         },
-    },
-    "query": {
-        "profile_version": 1,
-        "entities": [{"type": "location", "raw_text": "淡滨尼", "canonical_id": "TAMPINES",
-                      "aliases": ["Tampines", "淡滨尼"]}],
-        "semantic_query": "在 Tampines 找整套出租，月租不超过 SGD 4000，至少两个卧室。",
-        "unresolved": [],
-    },
-    "previous_attempts": [],
-    "directive": None,
+        {
+            'constraint_id': 'tampines_condo_rent-c3',
+            'field_path': 'price.currency',
+            'operator': 'eq',
+            'value': 'SGD',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
+        },
+        {
+            'constraint_id': 'tampines_condo_rent-c4',
+            'field_path': 'price.period',
+            'operator': 'eq',
+            'value': 'month',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
+        },
+        {
+            'constraint_id': 'tampines_condo_rent-c5',
+            'field_path': 'attributes.listing_scope',
+            'operator': 'eq',
+            'value': 'whole_unit',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
+        },
+        {
+            'constraint_id': 'tampines_condo_rent-c6',
+            'field_path': 'attributes.property_type',
+            'operator': 'eq',
+            'value': 'condo',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
+        },
+        {
+            'constraint_id': 'tampines_condo_rent-c7',
+            'field_path': 'bedrooms',
+            'operator': 'gte',
+            'value': 2,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
+        },
+        {
+            'constraint_id': 'tampines_condo_rent-c8',
+            'field_path': 'attributes.furnishing',
+            'operator': 'eq',
+            'value': 'fully',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
+        },
+    ],
+    'derived_data_requirements': [
+        {
+            'requirement_id': 'tampines_condo_rent-area',
+            'category': 'accessibility',
+            'target': '淡滨尼',
+            'metric': 'residential_area',
+            'operator': 'eq',
+            'value': True,
+            'unit': None,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-tampines_condo_rent',
+                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'start': 0,
+                'end': 55,
+            },
+        },
+    ],
+    'open_data_requirements': [],
+    'unresolved_fields': [],
+    'confirmed_at': '2026-09-20T00:00:00+00:00',
 }
 
-search_input_2 = {
-    "profile": {
-        "profile_id": "profile-clementi-room", "version": 1, "intent": "rent",
-        "hard_constraints": {
-            "currency": "SGD", "max_price": 1500, "price_period": "month",
-            "rental_scope": "room", "locations": ["CLEMENTI"], "min_bedrooms": None,
+
+request_2: RequirementRequest = {
+    'request_id': 'request-clementi_common_room',
+    'schema_version': '0.3-draft',
+    'conversation_id': 'thread-clementi_common_room',
+    'profile_id': 'profile-clementi_common_room',
+    'profile_version': 1,
+    'intent': 'rent',
+    'user_context': [],
+    'listing_constraints': [
+        {
+            'constraint_id': 'clementi_common_room-c1',
+            'field_path': 'transaction_type',
+            'operator': 'eq',
+            'value': 'rent',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
         },
-        "preferences": [], "unresolved": [],
-        "field_sources": {
-            "intent": "msg-clementi", "hard_constraints.currency": "msg-clementi",
-            "hard_constraints.max_price": "msg-clementi", "hard_constraints.price_period": "msg-clementi",
-            "hard_constraints.rental_scope": "msg-clementi", "hard_constraints.locations": "msg-clementi",
-            "hard_constraints.min_bedrooms": "msg-clementi",
+        {
+            'constraint_id': 'clementi_common_room-c2',
+            'field_path': 'price.amount',
+            'operator': 'lte',
+            'value': 1300,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
         },
-    },
-    "query": {
-        "profile_version": 1,
-        "entities": [{"type": "location", "raw_text": "金文泰", "canonical_id": "CLEMENTI",
-                      "aliases": ["Clementi", "金文泰"]}],
-        "semantic_query": "在 Clementi 找单间出租，月租不超过 SGD 1500，不限制整套房屋的卧室总数。",
-        "unresolved": [],
-    },
-    "previous_attempts": [],
-    "directive": None,
+        {
+            'constraint_id': 'clementi_common_room-c3',
+            'field_path': 'price.currency',
+            'operator': 'eq',
+            'value': 'SGD',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'clementi_common_room-c4',
+            'field_path': 'price.period',
+            'operator': 'eq',
+            'value': 'month',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'clementi_common_room-c5',
+            'field_path': 'attributes.listing_scope',
+            'operator': 'eq',
+            'value': 'room',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'clementi_common_room-c6',
+            'field_path': 'attributes.property_type',
+            'operator': 'eq',
+            'value': 'hdb',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'clementi_common_room-c7',
+            'field_path': 'attributes.room_type',
+            'operator': 'eq',
+            'value': 'common',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'clementi_common_room-c8',
+            'field_path': 'attributes.utilities_included',
+            'operator': 'eq',
+            'value': True,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'clementi_common_room-c9',
+            'field_path': 'attributes.wifi_included',
+            'operator': 'eq',
+            'value': True,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+    ],
+    'derived_data_requirements': [
+        {
+            'requirement_id': 'clementi_common_room-area',
+            'category': 'accessibility',
+            'target': '金文泰',
+            'metric': 'residential_area',
+            'operator': 'eq',
+            'value': True,
+            'unit': None,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-clementi_common_room',
+                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+    ],
+    'open_data_requirements': [],
+    'unresolved_fields': [],
+    'confirmed_at': '2026-09-20T00:00:00+00:00',
 }
 
-search_input_3 = {
-    "profile": {
-        "profile_id": "profile-punggol-whole", "version": 1, "intent": "rent",
-        "hard_constraints": {
-            "currency": "SGD", "max_price": 4500, "price_period": "month",
-            "rental_scope": "whole_unit", "locations": ["PUNGGOL"], "min_bedrooms": 3,
+
+request_3: RequirementRequest = {
+    'request_id': 'request-punggol_family_rent',
+    'schema_version': '0.3-draft',
+    'conversation_id': 'thread-punggol_family_rent',
+    'profile_id': 'profile-punggol_family_rent',
+    'profile_version': 1,
+    'intent': 'rent',
+    'user_context': [],
+    'listing_constraints': [
+        {
+            'constraint_id': 'punggol_family_rent-c1',
+            'field_path': 'transaction_type',
+            'operator': 'eq',
+            'value': 'rent',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
         },
-        "preferences": [], "unresolved": [],
-        "field_sources": {
-            "intent": "msg-punggol", "hard_constraints.currency": "msg-punggol",
-            "hard_constraints.max_price": "msg-punggol", "hard_constraints.price_period": "msg-punggol",
-            "hard_constraints.rental_scope": "msg-punggol", "hard_constraints.locations": "msg-punggol",
-            "hard_constraints.min_bedrooms": "msg-punggol",
+        {
+            'constraint_id': 'punggol_family_rent-c2',
+            'field_path': 'price.amount',
+            'operator': 'lte',
+            'value': 4200,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
         },
-    },
-    "query": {
-        "profile_version": 1,
-        "entities": [{"type": "location", "raw_text": "榜鹅", "canonical_id": "PUNGGOL",
-                      "aliases": ["Punggol", "榜鹅"]}],
-        "semantic_query": "在 Punggol 找适合家庭的整套出租，月租不超过 SGD 4500，至少三个卧室。",
-        "unresolved": [],
-    },
-    "previous_attempts": [],
-    "directive": None,
+        {
+            'constraint_id': 'punggol_family_rent-c3',
+            'field_path': 'price.currency',
+            'operator': 'eq',
+            'value': 'SGD',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
+        },
+        {
+            'constraint_id': 'punggol_family_rent-c4',
+            'field_path': 'price.period',
+            'operator': 'eq',
+            'value': 'month',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
+        },
+        {
+            'constraint_id': 'punggol_family_rent-c5',
+            'field_path': 'attributes.listing_scope',
+            'operator': 'eq',
+            'value': 'whole_unit',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
+        },
+        {
+            'constraint_id': 'punggol_family_rent-c6',
+            'field_path': 'attributes.property_type',
+            'operator': 'eq',
+            'value': 'hdb',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
+        },
+        {
+            'constraint_id': 'punggol_family_rent-c7',
+            'field_path': 'bedrooms',
+            'operator': 'gte',
+            'value': 3,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
+        },
+        {
+            'constraint_id': 'punggol_family_rent-c8',
+            'field_path': 'attributes.bathrooms',
+            'operator': 'gte',
+            'value': 2,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
+        },
+        {
+            'constraint_id': 'punggol_family_rent-c9',
+            'field_path': 'attributes.area_sqft',
+            'operator': 'gte',
+            'value': 1000,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
+        },
+    ],
+    'derived_data_requirements': [
+        {
+            'requirement_id': 'punggol_family_rent-area',
+            'category': 'accessibility',
+            'target': '榜鹅',
+            'metric': 'residential_area',
+            'operator': 'eq',
+            'value': True,
+            'unit': None,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-punggol_family_rent',
+                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 62,
+            },
+        },
+    ],
+    'open_data_requirements': [],
+    'unresolved_fields': [],
+    'confirmed_at': '2026-09-20T00:00:00+00:00',
 }
 
-search_input_4 = {
-    "profile": {
-        "profile_id": "profile-bishan-buy", "version": 1, "intent": "buy",
-        "hard_constraints": {
-            "currency": "SGD", "max_price": 1200000, "price_period": "total",
-            "rental_scope": None, "locations": ["BISHAN"], "min_bedrooms": 2,
+
+request_4: RequirementRequest = {
+    'request_id': 'request-bishan_hdb_buy',
+    'schema_version': '0.3-draft',
+    'conversation_id': 'thread-bishan_hdb_buy',
+    'profile_id': 'profile-bishan_hdb_buy',
+    'profile_version': 1,
+    'intent': 'buy',
+    'user_context': [],
+    'listing_constraints': [
+        {
+            'constraint_id': 'bishan_hdb_buy-c1',
+            'field_path': 'transaction_type',
+            'operator': 'eq',
+            'value': 'sale',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-bishan_hdb_buy',
+                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 58,
+            },
         },
-        "preferences": [], "unresolved": [],
-        "field_sources": {
-            "intent": "msg-bishan", "hard_constraints.currency": "msg-bishan",
-            "hard_constraints.max_price": "msg-bishan", "hard_constraints.price_period": "msg-bishan",
-            "hard_constraints.rental_scope": "msg-bishan", "hard_constraints.locations": "msg-bishan",
-            "hard_constraints.min_bedrooms": "msg-bishan",
+        {
+            'constraint_id': 'bishan_hdb_buy-c2',
+            'field_path': 'price.amount',
+            'operator': 'lte',
+            'value': 1000000,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-bishan_hdb_buy',
+                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 58,
+            },
         },
-    },
-    "query": {
-        "profile_version": 1,
-        "entities": [{"type": "location", "raw_text": "碧山", "canonical_id": "BISHAN",
-                      "aliases": ["Bishan", "碧山"]}],
-        "semantic_query": "在 Bishan 找出售房源，总价不超过 SGD 1200000，至少两个卧室；租赁范围不适用。",
-        "unresolved": [],
-    },
-    "previous_attempts": [],
-    "directive": None,
+        {
+            'constraint_id': 'bishan_hdb_buy-c3',
+            'field_path': 'price.currency',
+            'operator': 'eq',
+            'value': 'SGD',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-bishan_hdb_buy',
+                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'bishan_hdb_buy-c4',
+            'field_path': 'price.period',
+            'operator': 'eq',
+            'value': 'total',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-bishan_hdb_buy',
+                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'bishan_hdb_buy-c5',
+            'field_path': 'attributes.property_type',
+            'operator': 'eq',
+            'value': 'hdb',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-bishan_hdb_buy',
+                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'bishan_hdb_buy-c6',
+            'field_path': 'bedrooms',
+            'operator': 'gte',
+            'value': 3,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-bishan_hdb_buy',
+                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+        {
+            'constraint_id': 'bishan_hdb_buy-c7',
+            'field_path': 'attributes.area_sqft',
+            'operator': 'gte',
+            'value': 1000,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-bishan_hdb_buy',
+                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+    ],
+    'derived_data_requirements': [
+        {
+            'requirement_id': 'bishan_hdb_buy-area',
+            'category': 'accessibility',
+            'target': '碧山',
+            'metric': 'residential_area',
+            'operator': 'eq',
+            'value': True,
+            'unit': None,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-bishan_hdb_buy',
+                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'start': 0,
+                'end': 58,
+            },
+        },
+    ],
+    'open_data_requirements': [],
+    'unresolved_fields': [],
+    'confirmed_at': '2026-09-20T00:00:00+00:00',
 }
 
-INPUTS = (search_input_1, search_input_2, search_input_3, search_input_4)
+
+#INPUTS = (request_1, request_2, request_3, request_4)
+INPUTS = (request_1,)  # 单个用例也需要逗号，才能构成元组。
 
 
-async def run_case(profile, query, previous_attempts, directive, *, plan_only=False):
-    identity = uuid4().hex
-    ctx = dict(user_id='test-all', run_id=identity, conversation_id=identity,
-               attempt_id='attempt-' + identity, trace_id=identity, call_id='plan-' + uuid4().hex,
-               deadline_at=(datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
-               source_mode='live')
-    request = dict(profile=profile, query=query, previous_attempts=previous_attempts, directive=directive)
-    before = deepcopy(request)
-    plan_ctx = deepcopy(ctx)
-    print('\n需求：' + query['semantic_query'], flush=True)
-    print('1. 四项输入 → build_search_plan', flush=True)
-    print(json.dumps(dict(**before, ctx=plan_ctx), ensure_ascii=False, indent=2), flush=True)
-
-    plan_result = await build_search_plan(profile, query, previous_attempts, directive, ctx=ctx)
-    print('1. 实际生成的 SearchPlan', flush=True)
-    print(json.dumps(plan_result, ensure_ascii=False, indent=2), flush=True)
-    failures = []
-    try:
-        validate_plan_result(plan_result, profile, plan_ctx)
-    except ContractViolation as exc:
-        failures.append(f'{exc.code}: {exc.field_path}: {exc}')
-    if request != before or ctx != plan_ctx:
-        failures.append('计划生成修改了输入')
-    if plan_result['status'] != 'success':
-        failures.append('真实计划生成未成功，不进入搜索')
-    record = dict(input=dict(**before, ctx=plan_ctx), plan_output=plan_result,
-                  search_input=None, search_output=None, passed=False, failures=failures)
-    if failures or plan_only:
-        record['passed'] = not failures
-        return record
-
-    # 直接传递 1 的 data；不手写、不替换查询，不重置整条链路的截止时间。
-    plan = plan_result['data']
-    search_ctx = dict(ctx, call_id='search-' + uuid4().hex)
-    record['search_input'] = deepcopy(dict(plan=plan, ctx=search_ctx))
-    print('2. search 接收上一步的 SearchPlan，开始真实搜索、详情与定位', flush=True)
-    result = await search(plan, ctx=search_ctx)
-    record['search_output'] = result
-    print('3. 实际 SearchResult（候选房源、证据与覆盖情况，供 C 筛选推荐）', flush=True)
-    print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
-    try:
-        validate_search_result(result, plan, search_ctx)
-        if dict(plan=plan, ctx=search_ctx) != record['search_input']:
-            failures.append('搜索修改了输入')
-        if result['status'] == 'error':
-            failures.append('真实搜索失败')
-        if any(p['code'] != 'BUDGET_EXHAUSTED' for p in result['issues']):
-            failures.append('实际调用存在非额度问题，详见 search_output.issues')
-        if result['data']:
-            data = result['data']
-            if not data['items'] and not data['coverage']['queries_completed']:
-                failures.append('没有房源且搜索未完成')
-            for listing in data['items']:
-                if listing['source_mode'] != 'live' or not listing['source_url']:
-                    failures.append(listing['listing_key'] + ' 缺少真实来源')
-                if not any(':detail:' in e['evidence_id'] for e in listing['evidence']):
-                    failures.append(listing['listing_key'] + ' 未取得真实详情证据')
-                if not any(e['field'] == 'location' for e in listing['evidence']):
-                    failures.append(listing['listing_key'] + ' 未取得真实定位证据')
-    except ContractViolation as exc:
-        failures.append(f'{exc.code}: {exc.field_path}: {exc}')
-    record['passed'] = not failures
-    return record
+async def run_all():
+    for request in INPUTS:
+        ctx = {
+            "user_id": "live-check",
+            "run_id": "run-" + request["request_id"],
+            "conversation_id": request["conversation_id"],
+            "attempt_id": None,
+            "trace_id": "trace-" + request["request_id"],
+            "call_id": "call-" + request["request_id"],
+            "deadline_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
+            "source_mode": "live",
+        }
+        print(request["request_id"], flush=True)
+        result = await fulfill_requirements(request, ctx=ctx)
+        print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
 
 
-def search_all(profile, query, previous_attempts, directive):
-    """编辑器中可像 test_search.search(plan) 一样单独运行一组。"""
-    return asyncio.run(run_case(profile, query, previous_attempts, directive))
-
-
-async def run_all(*, plan_only=False, output=None, cases=INPUTS):
-    records = []
-    for case in cases:
-        record = await run_case(**deepcopy(case), plan_only=plan_only)
-        records.append(record)
-        print('本组验收：' + ('通过' if record['passed'] else '失败：' + '；'.join(record['failures'])), flush=True)
-        if output is not None:
-            Path(output).write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding='utf-8')
-    passed = sum(r['passed'] for r in records)
-    label = '真实计划生成' if plan_only else '真实计划生成 → search 联调'
-    print(f'\n{label}通过 {passed}/{len(records)}', flush=True)
-    return 0 if passed == len(records) else 1
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='四组真实计划生成与搜索联合调试')
-    parser.add_argument('--plan-only', action='store_true', help='只运行 1 的真实模型输入输出')
-    parser.add_argument('--output', type=Path, help='保存每组实际输入、计划和搜索结果 JSON')
-    parser.add_argument('--case', type=int, choices=range(1, 5), help='仅运行指定一组；默认运行全部四组')
-    args = parser.parse_args()
-    cases = (INPUTS[args.case - 1],) if args.case else INPUTS
-    raise SystemExit(asyncio.run(run_all(plan_only=args.plan_only, output=args.output, cases=cases)))
+if __name__ == "__main__":
+    asyncio.run(run_all())

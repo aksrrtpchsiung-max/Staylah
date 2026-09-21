@@ -1,6 +1,6 @@
-"""Starter Kit 的 AWS LLM Gateway 配置及 LangGraph 可用的模型工厂。
+"""搜索执行参数、Starter Kit 的 AWS LLM Gateway 配置及模型工厂。
 
-本模块只构造模型依赖；不修改共享契约，不负责生成搜索计划。
+本模块读取配置并构造模型依赖；不修改共享契约，不负责生成搜索计划。
 运行本文件执行三组真实网关输入输出，不注入预设响应。
 """
 from __future__ import annotations
@@ -23,11 +23,11 @@ DEFAULT_ENV_FILE = Path(__file__).resolve().with_name(".env")
 
 @dataclass(frozen=True)
 class SearchPlanSettings:
-    """整次 search 的额度；默认和现有真实搜索示例一致。"""
+    """整次 search 的额度，不是每个地区各自的额度。"""
 
     sources: tuple[str, ...] = ('propertyguru',)
-    page_limit: int = 1
-    candidate_limit: int = 2
+    page_limit: int = 4
+    candidate_limit: int = 12
 
     def __post_init__(self):
         if not self.sources or len(set(self.sources)) != len(self.sources) or any(
@@ -43,14 +43,66 @@ def load_search_plan_settings(env_file=DEFAULT_ENV_FILE) -> SearchPlanSettings:
     values.update(os.environ)
     try:
         return SearchPlanSettings(
-            page_limit=int(values.get('SEARCH_PAGE_LIMIT') or '1'),
-            candidate_limit=int(values.get('SEARCH_CANDIDATE_LIMIT') or '2'))
+            page_limit=int(values.get('SEARCH_PAGE_LIMIT') or '4'),
+            candidate_limit=int(values.get('SEARCH_CANDIDATE_LIMIT') or '12'))
     except (ValueError, TypeError):
         raise ModelConfigurationError('SEARCH_PAGE_LIMIT 和 SEARCH_CANDIDATE_LIMIT 必须是正整数') from None
 
 
 class ModelConfigurationError(ValueError):
     """本地模型配置缺失或不可用；错误信息不包含密钥。"""
+
+
+@dataclass(frozen=True)
+class SearchExecutionSettings:
+    """B 内部执行参数，不增加共享 SearchPlan/RunContext 字段。"""
+
+    page_result_limit: int = 6
+    provider_timeout_seconds: float = 30.0
+    max_retries: int = 1
+    planner_timeout_seconds: float = 20.0
+    supervisor_timeout_seconds: float = 8.0
+    supervisor_max_calls: int = 3
+    finalize_reserve_seconds: float = 10.0
+
+    def __post_init__(self):
+        for name in ('page_result_limit', 'supervisor_max_calls'):
+            if type(getattr(self, name)) is not int or getattr(self, name) <= 0:
+                raise ValueError(name + ' 必须是正整数')
+        if type(self.max_retries) is not int or not 0 <= self.max_retries <= 3:
+            raise ValueError('max_retries 必须是 0–3')
+        for name in ('provider_timeout_seconds', 'planner_timeout_seconds',
+                     'supervisor_timeout_seconds', 'finalize_reserve_seconds'):
+            value = getattr(self, name)
+            if not math.isfinite(value) or value <= 0:
+                raise ValueError(name + ' 必须是有限正数')
+        if self.supervisor_timeout_seconds > 60:
+            raise ValueError('supervisor_timeout_seconds 不能超过 60 秒')
+
+
+def load_search_execution_settings(env_file=DEFAULT_ENV_FILE) -> SearchExecutionSettings:
+    values = dict(dotenv_values(env_file, interpolate=False)) if env_file else {}
+    values.update(os.environ)
+    defaults = SearchExecutionSettings()
+    fields = {
+        'page_result_limit': ('SEARCH_PAGE_RESULT_LIMIT', int),
+        'provider_timeout_seconds': ('SEARCH_PROVIDER_TIMEOUT_SECONDS', float),
+        'max_retries': ('SEARCH_MAX_RETRIES', int),
+        'planner_timeout_seconds': ('SEARCH_PLANNER_TIMEOUT_SECONDS', float),
+        'supervisor_timeout_seconds': ('SEARCH_SUPERVISOR_TIMEOUT_SECONDS', float),
+        'supervisor_max_calls': ('SEARCH_SUPERVISOR_MAX_CALLS', int),
+        'finalize_reserve_seconds': ('SEARCH_FINALIZE_RESERVE_SECONDS', float),
+    }
+    parsed = {}
+    for name, (env_name, parse) in fields.items():
+        try:
+            parsed[name] = parse(values.get(env_name) or getattr(defaults, name))
+        except (ValueError, TypeError):
+            raise ModelConfigurationError(env_name + ' 的数值格式不正确') from None
+    try:
+        return SearchExecutionSettings(**parsed)
+    except ValueError as exc:
+        raise ModelConfigurationError('搜索执行配置无效：' + str(exc)) from None
 
 
 @dataclass(frozen=True)

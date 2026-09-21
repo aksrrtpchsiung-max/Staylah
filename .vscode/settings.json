@@ -1,4 +1,9 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:conda",
-    "python-envs.defaultPackageManager": "ms-python.python:conda"
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python.defaultInterpreterPath": "/opt/miniconda3/envs/LearnAgent/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "code-runner.executorMap": {
+        "python": "/opt/miniconda3/envs/LearnAgent/bin/python -u"
+    }
 }

@@ -83,6 +83,11 @@ class GuruSearchProvider:
                     ("PAGE DID NOT LOAD", "PropertyGuru 页面未提供预期数据，无法解析"),
                 )
                 description = next((reason for marker, reason in parse_reasons if marker in message), description)
+            elif code == "TEMPORARY_UNAVAILABLE":
+                if "SEARCH PAGE DATA NOT READY" in message:
+                    description = "PropertyGuru 搜索页在等待时限内未提供房源数据，可在剩余额度内重试"
+                elif "DETAIL PAGE DATA NOT READY" in message:
+                    description = "PropertyGuru 详情页在等待时限内未提供房源数据，可在剩余额度内重试"
             raise ProviderError(issue(code, description,
                                       retryable=code in {"TIMEOUT", "RATE_LIMITED", "SOURCE_UNAVAILABLE", "TEMPORARY_UNAVAILABLE"}))
         try:
