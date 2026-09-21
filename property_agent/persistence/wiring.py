@@ -9,6 +9,7 @@ from property_agent.clarification.service import ClarificationAgent
 from property_agent.clarification.stubs import PassthroughClarificationAdapter
 from property_agent.decision.boundaries import EvaluationModule, SearchRunner
 from property_agent.decision.deps import DecisionDeps
+from property_agent.decision.part_c_adapter import PartCEvaluationModule
 from property_agent.persistence.repositories import (
     SessionFactory,
     SqlProfileRepository,
@@ -20,7 +21,7 @@ from property_agent.persistence.repositories import (
 
 def build_postgres_deps(
     *,
-    module_c: EvaluationModule,
+    module_c: EvaluationModule | None = None,
     search_runner: SearchRunner,
     sessions: SessionFactory,
     use_deepseek: bool = True,
@@ -28,7 +29,7 @@ def build_postgres_deps(
 ) -> DecisionDeps:
     adapter = _clarification_adapter(use_deepseek=use_deepseek)
     return DecisionDeps(
-        module_c=module_c,
+        module_c=module_c if module_c is not None else PartCEvaluationModule(),
         search_runner=search_runner,
         profiles=SqlProfileRepository(sessions),
         recommendations=SqlRecommendationRepository(sessions),

@@ -13,8 +13,12 @@
   `property_agent.mock_search.first_attempt_from_fixture(...)` 把夹具
   `Result[SearchResult]` 转成该对象。
 - `EvaluationModule`、`SearchRunner`：实现
-  `property_agent.decision.boundaries` 中的 Protocol。联调实现为
-  `ScriptedModuleC` 与 `MockSearchRunner`。
+  `property_agent.decision.boundaries` 中的 Protocol。默认评估模块是
+  `PartCEvaluationModule`；离线测试可显式传入 `ScriptedModuleC`。
+
+`PartCEvaluationModule` 会把现有 decision 模块的冻结 `UserProfile` 投影为 Part C
+需要的 `ConversationProfile`。如果上游已经提供 `listing_constraints`，适配层会直接
+透传。旧合同没有保存用户原句，因此适配时不会伪造 `source.text`。
 
 不要把数据库连接、DeepSeek key 或模型对象写入 `RunContext`/`DState`。
 
@@ -28,7 +32,6 @@
 engine = build_engine()
 sessions = build_session_factory(engine)
 deps = build_postgres_deps(
-    module_c=your_evaluation_module,
     search_runner=your_search_runner,
     sessions=sessions,
 )
@@ -42,6 +45,12 @@ async with postgres_decision_graph(deps) as graph:
         config,
     )
 ```
+
+`build_postgres_deps` 默认接入仓库根目录的 `part_c.evaluate` 和 `part_c.review`。
+需要真实模型评审时，在 `.env` 中设置 `AWS_BEARER_TOKEN_BEDROCK`，并可用
+`BEDROCK_REGION` 指定区域。测试或自定义实现仍可通过 `module_c=` 覆盖默认模块。
+`scripts/run_mock_pipeline.py` 为了保持离线结果可重复，会显式使用
+`ScriptedModuleC`。
 
 如果结果包含 `__interrupt__`，把其中的 `pending_question` 发给用户。恢复时只需提交
 自然语言与客户端幂等 ID，服务端会从 checkpoint 中取得当前问题和版本：

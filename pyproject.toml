@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "A local LangGraph learning server with DeepSeek tool calling"
 requires-python = ">=3.11"
 dependencies = [
+    "boto3>=1.35,<2",
     "langgraph==1.2.11",
     "langchain-deepseek>=0.1,<2",
     "langgraph-cli[inmem]>=0.4,<1",
