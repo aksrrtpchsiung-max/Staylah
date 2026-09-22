@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-py-modules = ["api", "config", "contracts_v0", "fulfillment", "graph", "part_c", "state"]
+py-modules = ["api", "config", "contracts_v0", "fulfillment", "graph", "part_c", "runtime_settings", "state"]
 
 [tool.setuptools.packages.find]
 include = [

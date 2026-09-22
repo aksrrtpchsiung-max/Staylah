@@ -333,8 +333,14 @@ class InMemoryProfileWriter:
     profiles: dict[str, ConversationProfile] = field(default_factory=dict)
     _applied: dict[str, ConversationProfile] = field(default_factory=dict)
 
-    def put(self, profile: ConversationProfile) -> None:
-        self.profiles[profile["profile_id"]] = profile
+    def put(self, profile: ConversationProfile, *, user_id: str | None = None) -> None:
+        if user_id is not None and profile["user_id"] != user_id:
+            raise PermissionError("profile.user_id 与当前用户不一致")
+        self.profiles[profile["profile_id"]] = copy.deepcopy(profile)
+
+    def get(self, profile_id: str) -> ConversationProfile | None:
+        value = self.profiles.get(profile_id)
+        return copy.deepcopy(value) if value is not None else None
 
     def current_version(self, profile_id: str) -> int:
         return self.profiles[profile_id]["version"]
@@ -383,6 +389,23 @@ class InMemoryRecommendationRepository:
 @dataclass
 class InMemoryRunRepository:
     runs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    by_conversation: dict[str, list[str]] = field(default_factory=dict)
+
+    def prepare_run(self, *, ctx: RunContext, profile: ConversationProfile) -> None:
+        run_id = ctx["run_id"]
+        self.runs[run_id] = {
+            "run_id": run_id,
+            "status": "running",
+            "conversation_id": ctx["conversation_id"],
+            "user_id": ctx["user_id"],
+            "profile_id": profile["profile_id"],
+            "profile_version": profile["version"],
+            "profile_snapshot": copy.deepcopy(profile),
+            "ctx": copy.deepcopy(ctx),
+        }
+        history = self.by_conversation.setdefault(ctx["conversation_id"], [])
+        if run_id not in history:
+            history.append(run_id)
 
     def update(
         self,
@@ -393,7 +416,7 @@ class InMemoryRunRepository:
         completion_reason: str | None = None,
         final_result_id: str | None = None,
     ) -> None:
-        current = self.runs.setdefault(run_id, {})
+        current = self.runs.setdefault(run_id, {"run_id": run_id})
         current.update(
             {
                 "status": status,
@@ -404,6 +427,15 @@ class InMemoryRunRepository:
             current["state_version"] = state_version
         if final_result_id is not None:
             current["final_result_id"] = final_result_id
+
+    def find_waiting_run(
+        self, conversation_id: str, *, user_id: str
+    ) -> dict[str, Any] | None:
+        for run_id in reversed(self.by_conversation.get(conversation_id, [])):
+            run = self.runs.get(run_id) or {}
+            if run.get("status") == "waiting_user" and run.get("user_id") == user_id:
+                return copy.deepcopy(run)
+        return None
 
 
 @dataclass

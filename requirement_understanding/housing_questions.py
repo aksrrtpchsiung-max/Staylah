@@ -173,7 +173,7 @@ class DeepSeekHousingQuestionAnswerer:
         """注入 A 自有搜索工具、模型配置和可选测试客户端。"""
 
         self._search_tool = search_tool or DuckDuckGoHousingWebSearch()
-        self._config = config or DeepSeekParserConfig()
+        self._config = config or DeepSeekParserConfig.from_runtime()
         self._api_key = api_key
         self._client = client
 

@@ -184,6 +184,21 @@ class DeepSeekParserConfig(StrictModel):
     timeout_seconds: float = Field(default=45.0, description="Request timeout in seconds.", gt=0)
     max_tokens: int = Field(default=2600, description="Maximum structured-output tokens.", gt=0)
 
+    @classmethod
+    def from_runtime(cls, settings: Any | None = None) -> "DeepSeekParserConfig":
+        """用 runtime.toml 的 DeepSeek 段构造配置，密钥仍只从环境变量读取。"""
+
+        from runtime_settings import load_runtime_settings
+
+        settings = settings or load_runtime_settings().deepseek
+        return cls(
+            base_url=settings.base_url,
+            model=settings.model,
+            api_key_env=settings.api_key_env,
+            timeout_seconds=settings.timeout_seconds,
+            max_tokens=settings.max_tokens,
+        )
+
 
 class DeepSeekRequirementInterpreter:
     """调用 DeepSeek 并直接返回通过验证的 NormalizedRequirement。"""
@@ -197,7 +212,7 @@ class DeepSeekRequirementInterpreter:
     ) -> None:
         """注入无密钥配置、可选进程内密钥和测试 HTTP 客户端。"""
 
-        self._config = config or DeepSeekParserConfig()
+        self._config = config or DeepSeekParserConfig.from_runtime()
         self._api_key = api_key
         self._client = client
 

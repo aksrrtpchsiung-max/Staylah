@@ -49,6 +49,9 @@ def build_postgres_deps(
 
 
 def _clarification_adapter(*, use_deepseek: bool):
-    if use_deepseek and os.getenv("DEEPSEEK_API_KEY"):
+    from runtime_settings import load_runtime_settings
+
+    key_env = load_runtime_settings().deepseek.api_key_env
+    if use_deepseek and os.getenv(key_env):
         return DeepSeekClarificationAdapter.from_env()
     return PassthroughClarificationAdapter()

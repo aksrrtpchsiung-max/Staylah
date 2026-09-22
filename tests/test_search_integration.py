@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from time import monotonic
 
 from part1.requirements import normalize_requirements
+from part3.capabilities.listings import merge_detail
 from part45.requirements import build_fulfillment
 from property_agent.integration import BCAttemptAdapter, BSearchRunner
 from property_agent.mock_search.pipeline import load_search_fixture
@@ -172,6 +173,40 @@ class FakeFulfillmentService:
 
 
 class SearchIntegrationTests(unittest.IsolatedAsyncioTestCase):
+    def test_successful_detail_marks_listing_active_and_verified(self):
+        listing = copy.deepcopy(load_search_fixture("search-success")["data"]["items"][0])
+        listing["listing_status"] = "unknown"
+        listing["last_verified_at"] = None
+        verified_at = "2026-09-22T12:00:00+00:00"
+        detail = {
+            "source_listing_id": listing["source_listing_id"],
+            "source_url": (
+                "https://www.propertyguru.com.sg/listing/"
+                + listing["source_listing_id"]
+            ),
+            "fetched_at": verified_at,
+            "raw_description": None,
+            "raw_details": [],
+            "facts": [
+                {
+                    "field": "listing_status",
+                    "value": "active",
+                    "excerpt": "PropertyGuru detail page returned current listing data",
+                }
+            ],
+        }
+
+        merged = merge_detail(listing, detail)
+
+        self.assertEqual(merged["listing_status"], "active")
+        self.assertEqual(merged["last_verified_at"], verified_at)
+        self.assertTrue(
+            any(
+                fact["field"] == "listing_status" and fact["value"] == "active"
+                for fact in merged["evidence"]
+            )
+        )
+
     async def test_initial_b_fulfillment_seeds_decision_attempt_history(self):
         profile = copy.deepcopy(load_profile())
         profile["listing_constraints"] = []

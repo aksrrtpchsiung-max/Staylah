@@ -75,3 +75,35 @@ class ResponseRenderer:
         if self.tone == "direct":
             return "Requirements confirmed and ready for the listing retrieval module."
         return "Your requirements are confirmed. I'll continue searching for suitable listings."
+
+    def search_failed(self, issues: list[dict[str, str]] | None = None) -> str:
+        """搜索无法继续时给出不泄露内部细节的说明。"""
+
+        detail = (issues or [{}])[0].get("message") if issues else None
+        if self.tone == "concise":
+            return detail or "Search could not be completed."
+        if detail:
+            return f"I could not complete the listing search: {detail}"
+        return "I could not complete the listing search. Please try again or adjust your requirements."
+
+    def recommendation(self, text: str) -> str:
+        """发布推荐时沿用模型已生成的摘要与条目。"""
+
+        return text.strip() or "Here are the listings I recommend."
+
+    def run_finished(self, reason: str | None = None) -> str:
+        """搜索运行结束但没有新的推荐时的收尾说明。"""
+
+        if reason == "user_declined":
+            return "Understood. I'll keep your original requirements and stop this search."
+        if reason == "cancelled":
+            return self.cancelled()
+        if reason == "budget_exhausted":
+            return (
+                "I completed the available search attempts, but did not find a listing "
+                "that satisfies all confirmed requirements. Tell me which requirement "
+                "you would like to adjust, and I can search again."
+            )
+        if self.tone == "concise":
+            return "This search has ended."
+        return "This search has ended. Tell me if you would like to change your requirements and search again."

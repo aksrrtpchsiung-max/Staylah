@@ -409,6 +409,8 @@ class RequirementGraphState(TypedDict, total=False):
     assistant_response: str
     parser_metadata: dict[str, Any]
     requirement_issues: list[dict[str, Any]]
+    search_request_id: str | None
+    processed_turns: dict[str, dict[str, Any]]
     status: Literal[
         "new",
         "parsing",

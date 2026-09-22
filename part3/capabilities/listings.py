@@ -107,6 +107,9 @@ def merge_detail(listing: Listing, detail: ListingDetail) -> Listing:
             result["price"]["period"] = None
     else:
         result["price"]["status"] = "known" if result["price"]["amount"] is not None else "unknown"
+    # Reaching this point means the provider returned a valid detail payload
+    # for this exact listing. Preserve when that verification happened.
+    result["last_verified_at"] = detail["fetched_at"]
     result["field_issues"] = list(dict.fromkeys(result["field_issues"]))
     validate_listing(result)
     return result

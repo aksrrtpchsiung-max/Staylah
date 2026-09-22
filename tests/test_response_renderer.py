@@ -32,6 +32,11 @@ class ResponseRendererTests(unittest.TestCase):
         self.assertIn("你的预算是多少？", rendered)
         self.assertIn("Would you prefer a whole unit or a private room?", rendered)
 
+    def test_exhausted_search_budget_is_reported_as_no_match(self) -> None:
+        rendered = ResponseRenderer("warm").run_finished("budget_exhausted")
+        self.assertIn("completed the available search attempts", rendered)
+        self.assertNotIn("could not complete", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()

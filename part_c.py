@@ -981,7 +981,17 @@ def _recommendation_item(listing: Listing, rank: int, preference_claims: list[Cl
         )
         if claim:
             reasons.append(claim)
-    if listing.get("bedrooms") is not None:
+    listing_scope = listing["attributes"].get("listing_scope")
+    if listing_scope in {"room", "bedspace"}:
+        scope_text = "单间出租" if listing_scope == "room" else "床位出租"
+        claim = _fact_claim(
+            listing,
+            "attributes.listing_scope",
+            f"来源显示该房源为{scope_text}。",
+        )
+        if claim:
+            reasons.append(claim)
+    elif isinstance(listing.get("bedrooms"), int) and listing["bedrooms"] > 0:
         claim = _fact_claim(listing, "bedrooms", f"来源显示有 {listing['bedrooms']} 间卧室。")
         if claim:
             reasons.append(claim)
@@ -1208,6 +1218,8 @@ async def evaluate(
             limitations.append("上一轮审查发现问题；本轮推荐应重新审查。")
         if not enough_candidates:
             limitations.append("符合全部硬条件的候选数量不足。")
+        if used_fallback:
+            limitations.append("C 的模型评估不可用，本轮使用确定性规则完成排序与路线判断。")
 
         recommendation = {
             "ordered_items": recommendation_items,
@@ -1287,7 +1299,10 @@ async def review(
     policy: RoutingPolicy,
     ctx: RunContext,
 ) -> Result[ReviewResult]:
-    """让 LLM 独立复核 evaluate，并以本地 contract 检查兜底。"""
+    """执行本地 contract 审查；模型可用时再叠加独立语义复核。
+
+    测试环境没有模型时返回 ``partial``，但仍保留全部确定性硬检查结果。
+    """
     started = perf_counter()
     try:
         _validate_profile(profile)
@@ -1415,39 +1430,40 @@ async def review(
         # 模型以独立提示词检查“选择与说明是否合理”；本地检查则确保模型不能放行
         # 超预算、无证据或 contract 不合规的结果。
         model, unavailable_reason = _resolve_evaluation_review_model()
-        if model is None:
-            return _error(
-                ctx,
-                started,
-                "MODEL_UNAVAILABLE",
-                unavailable_reason or "Bedrock review model is unavailable",
-                source="review_model",
-                retryable=True,
-            )
-        try:
-            model_issues = await model.review(profile, evaluation, list(listings.values()), policy)
-            known_issue_keys = {
-                (issue["code"], issue["listing_key"], issue["field_path"], issue["message"])
-                for issue in issues
-            }
-            for issue in model_issues:
-                issue_key = (issue["code"], issue["listing_key"], issue["field_path"], issue["message"])
-                if issue_key not in known_issue_keys:
-                    issues.append(issue)
-                    known_issue_keys.add(issue_key)
-        except Exception:
-            return _error(
-                ctx,
-                started,
-                "MODEL_UNAVAILABLE",
-                "Bedrock review failed or returned an invalid response",
-                source="review_model",
-                retryable=True,
-            )
+        model_failed = False
+        if model is not None:
+            try:
+                model_issues = await model.review(profile, evaluation, list(listings.values()), policy)
+                known_issue_keys = {
+                    (issue["code"], issue["listing_key"], issue["field_path"], issue["message"])
+                    for issue in issues
+                }
+                for issue in model_issues:
+                    issue_key = (issue["code"], issue["listing_key"], issue["field_path"], issue["message"])
+                    if issue_key not in known_issue_keys:
+                        issues.append(issue)
+                        known_issue_keys.add(issue_key)
+            except Exception:
+                model_failed = True
+                unavailable_reason = (
+                    "Bedrock review failed or returned an invalid response; "
+                    "used deterministic review"
+                )
         result: ReviewResult = {
             "passed": not any(issue["severity"] == "blocking" for issue in issues),
             "issues": issues,
         }
+        if model is None or model_failed:
+            return _partial(
+                result,
+                ctx,
+                started,
+                unavailable_reason
+                or "Bedrock review model is unavailable; used deterministic review",
+                retryable=model is not None,
+                code="MODEL_UNAVAILABLE",
+                source="review_model",
+            )
         return _success(result, ctx, started)
     except ContractViolation as exc:
         return _error(ctx, started, exc.code, str(exc), exc.field_path)
@@ -1526,7 +1542,10 @@ def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
     if state["pending_question"] is not None:
         return _route("ask_user", "insufficient_candidates", question=state["pending_question"])
     if state["search_attempts_used"] >= policy["max_search_attempts"]:
-        return _route("stop", "budget_exhausted")
+        # Search has completed within its configured budget and review passed.
+        # Finish cleanly so a valid short list can still be delivered, or a
+        # no-match result can be explained without reporting a service failure.
+        return _route("finish", "budget_exhausted")
     return _route("finish", "insufficient_candidates")
 
 

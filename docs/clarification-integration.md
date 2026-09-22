@@ -3,19 +3,21 @@
 本模块不实现 onboarding、search、evaluate 或 review。它消费其他模块给出的结构化
 结果，只负责生成追问、等待用户、理解回答并交回运行控制层。
 
+产品运行控制层是 `property_agent.orchestration.ConversationOrchestrator`。
+它负责：用户消息进 A、确认后调用 B、`needs_clarification` 回到 A、
+C 的 interrupt 恢复，以及 `next_run_request` 开新一轮搜索。
+
 ## 上游输入
 
 调用方沿用冻结 contract：
 
 - `RunContext`：必须提供稳定的 `user_id`、`run_id`、`conversation_id`。
 - `ConversationProfile`：本 run 的冻结需求版本，必须是 `status="confirmed"`。
-- `AttemptOutcome`：搜索团队交付的一次尝试结果。联调时可用
-  `property_agent.mock_search.first_attempt_from_fixture(...)` 把夹具
-  `Result[SearchResult]` 转成该对象。
+- `AttemptOutcome`：由 `BSearchRunner.run_initial` / `run_attempt` 从 B 的履约结果转换。
 - `EvaluationModule`、`SearchRunner`：实现
   `property_agent.decision.boundaries` 中的 Protocol。默认评估模块是
   `PartCEvaluationModule`，直接调用 `part_c.evaluate` / `part_c.review`；
-  离线测试可显式传入 `ScriptedModuleC`。
+  默认搜索是 `BSearchRunner`。
 
 decision 图与模块 C 使用同一份 `ConversationProfile`。旧夹具在
 `tests.support.load_profile()` 加载时转换成确认档案，不再经过独立适配器。
@@ -29,6 +31,7 @@ decision 图与模块 C 使用同一份 `ConversationProfile`。旧夹具在
 已有若干套时说明数量偏少，而不是没有。
 
 不要把数据库连接、DeepSeek key 或模型对象写入 `RunContext`/`DState`。
+模型栈配置见仓库根目录 `runtime.toml`。
 
 上游如需读写聊天历史，使用 `property_agent.persistence.boundaries.ChatRepository`
 （实现为 `SqlChatRepository`）。追问子图不会调用 `onboard` / `prepare_query` /
@@ -36,13 +39,26 @@ decision 图与模块 C 使用同一份 `ConversationProfile`。旧夹具在
 
 ## 组装和运行
 
+推荐入口：
+
+```python
+from property_agent.orchestration import postgres_conversation_runtime
+
+async with postgres_conversation_runtime() as orchestrator:
+    result = await orchestrator.handle_message(
+        "整套租房，月租最多3500，淡滨尼，至少两个卧室。",
+        conversation_id="conversation-001",
+        user_id="user-001",
+        client_message_id="client-001",
+    )
+```
+
+只装配 decision 图时：
+
 ```python
 engine = build_engine()
 sessions = build_session_factory(engine)
-deps = build_postgres_deps(
-    search_runner=your_search_runner,
-    sessions=sessions,
-)
+deps = build_postgres_deps(sessions=sessions)
 
 SqlRunRepository(sessions).prepare_run(ctx=ctx, profile=profile)
 config = thread_config(ctx["run_id"])
@@ -54,11 +70,11 @@ async with postgres_decision_graph(deps) as graph:
     )
 ```
 
-`build_postgres_deps` 默认接入仓库根目录的 `part_c.evaluate` 和 `part_c.review`。
-需要真实模型评审时，在 `.env` 中设置 `AWS_BEARER_TOKEN_BEDROCK`，并可用
-`BEDROCK_REGION` 指定区域。测试或自定义实现仍可通过 `module_c=` 覆盖默认模块。
-`scripts/run_mock_pipeline.py` 为了保持离线结果可重复，会显式使用
-`ScriptedModuleC`。
+`build_postgres_deps` 默认接入仓库根目录的 `part_c.evaluate` 和 `part_c.review`，
+以及 `BSearchRunner`。需要真实模型评审时，在 `.env` 中设置
+`AWS_BEARER_TOKEN_BEDROCK`；区域和模型 ID 以 `runtime.toml` 的 `[bedrock]` 为准。
+没有 Bedrock Key 时，C 默认使用确定性 evaluate/review fallback，并以 `partial` 状态保留
+`MODEL_UNAVAILABLE` 说明；测试仍可通过 `module_c=` 覆盖默认模块。
 
 ## 持久化字段
 
@@ -96,9 +112,9 @@ next_run_request = {
 }
 ```
 
-运行控制层用 `source_message_id` 从 `messages` 读取原文，再调用冻结的
-`onboard(request, profile, messages, ctx=...)`。如需不同 envelope，可替换
-`OnboardingHandoff`，无需修改 decision 节点。
+运行控制层（`ConversationOrchestrator`）用同一条用户原文再调用 A graph。
+用户确认后会开新的 B→C run。如需不同 envelope，可替换 `OnboardingHandoff`，
+无需修改 decision 节点。
 
 ## 安全与恢复约束
 

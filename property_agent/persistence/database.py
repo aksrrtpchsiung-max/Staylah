@@ -1,11 +1,12 @@
 """数据库连接配置。业务 repository 使用短事务的同步 SQLAlchemy Session。"""
 from __future__ import annotations
 
-import os
 from collections.abc import Callable
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+from runtime_settings import DatabaseSettings, load_runtime_settings
 
 DEFAULT_DATABASE_URL = (
     "postgresql+psycopg://property_agent:property_agent_dev"
@@ -13,15 +14,17 @@ DEFAULT_DATABASE_URL = (
 )
 
 
-def database_url() -> str:
-    return normalize_sqlalchemy_url(os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL))
+def database_url(settings: DatabaseSettings | None = None) -> str:
+    resolved = settings or load_runtime_settings().database
+    return normalize_sqlalchemy_url(resolved.url)
 
 
-def checkpoint_database_uri() -> str:
-    value = os.getenv("LANGGRAPH_CHECKPOINT_DB_URI")
+def checkpoint_database_uri(settings: DatabaseSettings | None = None) -> str:
+    resolved = settings or load_runtime_settings().database
+    value = resolved.checkpoint_url
     if value:
         return normalize_psycopg_uri(value)
-    return normalize_psycopg_uri(database_url())
+    return normalize_psycopg_uri(database_url(resolved))
 
 
 def normalize_sqlalchemy_url(value: str) -> str:

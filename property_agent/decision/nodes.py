@@ -539,6 +539,12 @@ class DecisionNodes:
         )
         if issues:
             # 发布前最后一道检查不通过：明确失败，不发布问题草稿。
+            self.deps.runs.update(
+                state["run_id"],
+                status="failed",
+                state_version=state.get("state_version"),
+                completion_reason="publish_validation_failed",
+            )
             return {
                 "status": "failed",
                 "completion_reason": "publish_validation_failed",

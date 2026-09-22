@@ -34,19 +34,24 @@ class DeepSeekClarificationAdapter:
 
     @classmethod
     def from_env(cls) -> "DeepSeekClarificationAdapter":
-        if not os.getenv("DEEPSEEK_API_KEY"):
-            raise RuntimeError("DEEPSEEK_API_KEY 未配置")
+        from runtime_settings import load_runtime_settings
+
+        settings = load_runtime_settings().deepseek
+        api_key = os.getenv(settings.api_key_env)
+        if not api_key:
+            raise RuntimeError(f"{settings.api_key_env} 未配置")
         model = ChatDeepSeek(
-            model=os.getenv("DEEPSEEK_MODEL", "deepseek-flash"),
-            api_base=os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com"),
-            max_tokens=700,
-            timeout=float(os.getenv("DEEPSEEK_TIMEOUT_SECONDS", "30")),
+            model=settings.clarification_model,
+            api_base=settings.base_url,
+            api_key=api_key,
+            max_tokens=settings.clarification_max_tokens,
+            timeout=settings.clarification_timeout_seconds,
             max_retries=1,
             extra_body={"thinking": {"type": "disabled"}},
         )
         return cls(
             model=model,
-            max_calls=int(os.getenv("DEEPSEEK_CLARIFICATION_MAX_CALLS", "6")),
+            max_calls=settings.clarification_max_calls,
         )
 
     async def polish(self, question: PendingQuestion) -> str:

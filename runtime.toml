@@ -1,0 +1,46 @@
+# Falcon 运行时配置。密钥不写在这里，只声明环境变量名；实际值放 .env。
+# 改模型、超时、搜索额度时优先改本文件，不必翻多个模块。
+
+[deepseek]
+base_url = "https://api.deepseek.com"
+model = "deepseek-v4-flash"
+api_key_env = "DEEPSEEK_API_KEY"
+timeout_seconds = 45.0
+max_tokens = 2600
+clarification_model = "deepseek-flash"
+clarification_max_tokens = 700
+clarification_timeout_seconds = 30.0
+clarification_max_calls = 6
+
+[llm_gateway]
+url = "https://api.softwaresystems.app"
+model = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
+api_key_env = "LLM_GATEWAY_API_KEY"
+timeout_seconds = 60.0
+temperature = 0.0
+max_tokens = 2000
+
+[bedrock]
+region = "ap-southeast-1"
+model = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
+api_key_env = "AWS_BEARER_TOKEN_BEDROCK"
+
+[database]
+url_env = "DATABASE_URL"
+checkpoint_url_env = "LANGGRAPH_CHECKPOINT_DB_URI"
+default_url = "postgresql+psycopg://property_agent:property_agent_dev@127.0.0.1:5432/property_agent"
+
+[search]
+page_limit = 4
+candidate_limit = 12
+page_result_limit = 6
+provider_timeout_seconds = 30.0
+max_retries = 1
+planner_timeout_seconds = 20.0
+supervisor_timeout_seconds = 8.0
+supervisor_max_calls = 3
+finalize_reserve_seconds = 10.0
+
+[run]
+deadline_seconds = 300
+source_mode = "live"

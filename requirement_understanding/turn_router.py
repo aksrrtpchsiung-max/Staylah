@@ -68,7 +68,7 @@ class DeepSeekTurnIntentClassifier:
     ) -> None:
         """注入模型配置、可选进程内密钥和测试 HTTP 客户端。"""
 
-        self._config = config or DeepSeekParserConfig()
+        self._config = config or DeepSeekParserConfig.from_runtime()
         self._api_key = api_key
         self._client = client
 

@@ -11,6 +11,10 @@ from property_agent.contracts import ChatMessage, RunContext, ConversationProfil
 
 
 class ChatRepository(Protocol):
+    def ensure_conversation(self, conversation_id: str, *, user_id: str) -> None:
+        """幂等创建 conversation，并拒绝用户归属冲突。"""
+        ...
+
     def append_message(
         self,
         conversation_id: str,

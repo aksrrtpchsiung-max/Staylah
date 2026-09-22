@@ -10,13 +10,20 @@ A requirement_understanding
   -> confirmed RequirementRequest
   -> B api.fulfill_requirements(request, ctx=ctx)
   -> Result[RequirementFulfillment]
-  -> C part_c
+  -> C part_c / decision graph
 ```
+
+产品主循环是 `python -m property_agent.orchestration`。它把 A 接到 PostgreSQL
+（profile 仓储 + checkpoint），并闭合 B 的 `needs_clarification` 回 A，以及 C 的
+`next_run_request` / 追问 interrupt。
+
+模型、超时和搜索额度集中在 `runtime.toml`；密钥只放 `.env`。
 
 - A：多轮需求提取、澄清、用户确认、持久化与 `RequirementRequest` 构造。
 - B：校验已确认请求、制定 `SearchPlan`、检索和补查、返回需求覆盖与候选房源。
 - C：硬条件筛选、候选检索、评估、复核与下一步决策。
 - 共享边界：`contracts_v0.py`；A 只调用 B 的公开入口，不直接构造 B 的内部查询或计划。
+- 编排：`property_agent.orchestration.ConversationOrchestrator`。
 
 离线联调测试会把 A 实际生成的 `RequirementRequest` 传入 B 的公开入口，并注入确定性
 planner/search doubles，因此不需要密钥、浏览器或外部服务：
@@ -65,8 +72,8 @@ validate_input -> classify_turn_intent
 
 `ConversationProfile` 只属于一个 conversation。A 负责需求提取、版本合并和用户确认；
 B 负责把已确认的 `listing_constraints` 与 `derived_data_requirements` 转换为数据库、CLI、
-地图或搜索工具调用。A 子图本身停在 `RequirementRequest`；本分支已提供 B 的公开入口并用
-`tests/test_a_b_integration.py` 验证交接，产品外层编排仍需决定何时调用 B 及如何处理 B 返回。
+地图或搜索工具调用。A 子图停在 `RequirementRequest`；产品外层
+`property_agent.orchestration` 负责调用 B、把 B 的澄清交回 A，并启动 C 决策图。
 `prepare_query`、`build_search_plan` 和 `search` 是 B 的内部接口。
 
 无法映射到现有 Listing 字段或派生类别的偏好保存在 `open_data_requirements`，并固定使用
@@ -79,6 +86,17 @@ B 负责把已确认的 `listing_constraints` 与 `derived_data_requirements` �
 python3.11 -m pip install -r requirements.txt
 python3.11 -m unittest discover -s tests -v
 ```
+
+端到端会话（A 使用 PostgreSQL profile/checkpoint，B/C 走正式接线）：
+
+```bash
+docker compose up -d --wait
+python3.11 scripts/init_postgres.py
+python3.11 -m property_agent.orchestration --conversation demo-001
+```
+
+先在 `runtime.toml` 确认模型与额度，再把密钥写入 `.env`。A 的独立 CLI
+`python -m requirement_understanding.cli` 仍可用于只调试需求理解，默认内存仓储。
 
 LangGraph 子图可按需注入 checkpointer：
 
@@ -210,11 +228,11 @@ configure_bedrock_evaluation_review_model()
 `evaluation_next_action` 与 `evaluation_next_reason_code`。`decide_next()` 会优先采用这一建议；
 但若 review 未通过、次数用尽、用户取消或超时，它会拒绝执行不安全的建议。
 
-没有 API Key、网络失败或模型返回格式不符合约定时，`retrieve()` 与 `evaluate()` 会回退到
-可解释的本地逻辑并返回 `status="partial"`；对应 issue 分别是 `RETRIEVAL_DEGRADED` 和
-`MODEL_UNAVAILABLE`。`review()` 必须完成独立模型审查，否则返回 `status="error"`、
-`MODEL_UNAVAILABLE`，不能伪造 `passed=true`。无论何时，`screen` 的硬条件和事实证据检查都不会
-被 LLM 覆盖。
+没有 API Key、网络失败或模型返回格式不符合约定时，`retrieve()`、`evaluate()` 和 `review()`
+都会使用可解释的确定性规则并返回 `status="partial"`。`review()` 的 fallback 仍检查硬条件、
+证据引用、排名连续性、展示数量和证据时效；只有没有 blocking issue 时才会返回 `passed=true`。
+推荐的 `limitations` 会披露本轮使用了确定性评估。该模式用于本地集成测试，不能等同于完成了
+独立 LLM 语义复核。无论何时，`screen` 的硬条件和事实证据检查都不会被 LLM 覆盖。
 ## 大模型 API 接入
 
 `config.py` 使用 `langchain_ollama.ChatOllama` 接入主办方的 AWS LLM Gateway，

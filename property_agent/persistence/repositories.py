@@ -214,6 +214,11 @@ class SqlProfileRepository:
                 raise KeyError(profile_id)
             return row.version
 
+    def get(self, profile_id: str) -> ConversationProfile | None:
+        with self.sessions() as session:
+            row = session.get(ConversationProfileRow, profile_id)
+            return None if row is None else _profile_from_row(row)
+
     def apply_relaxation(
         self,
         profile_id: str,
@@ -267,6 +272,9 @@ class SqlRequirementProfileRepository:
 
     def save(self, profile: dict[str, Any], *, user_id: str) -> None:
         self._profiles.save_confirmed(profile, user_id=user_id)  # type: ignore[arg-type]
+
+    def get(self, profile_id: str) -> dict[str, Any] | None:
+        return self._profiles.get(profile_id)
 
 
 class SqlRunRepository:
@@ -359,6 +367,34 @@ class SqlRunRepository:
             if result.rowcount != 1:
                 raise KeyError(run_id)
 
+    def find_waiting_run(
+        self, conversation_id: str, *, user_id: str
+    ) -> dict[str, Any] | None:
+        """返回该会话当前等待用户的 run；没有则返回 None。"""
+
+        with self.sessions() as session:
+            row = session.execute(
+                select(AgentRunRow)
+                .where(
+                    AgentRunRow.conversation_id == conversation_id,
+                    AgentRunRow.user_id == user_id,
+                    AgentRunRow.status == "waiting_user",
+                )
+                .order_by(AgentRunRow.updated_at.desc())
+            ).scalars().first()
+            if row is None:
+                return None
+            return {
+                "run_id": row.run_id,
+                "user_id": row.user_id,
+                "conversation_id": row.conversation_id,
+                "profile_id": row.profile_id,
+                "profile_version": row.profile_version,
+                "profile_snapshot": copy.deepcopy(row.profile_snapshot),
+                "status": row.status,
+                "ctx": None,
+            }
+
 
 class SqlQuestionRepository:
     def __init__(self, sessions: SessionFactory) -> None:
@@ -447,6 +483,20 @@ class SqlChatRepository:
 
     def __init__(self, sessions: SessionFactory) -> None:
         self.sessions = sessions
+
+    def ensure_conversation(self, conversation_id: str, *, user_id: str) -> None:
+        conversation = pg_insert(ConversationRow).values(
+            conversation_id=conversation_id,
+            user_id=user_id,
+        )
+        conversation = conversation.on_conflict_do_nothing(
+            index_elements=["conversation_id"]
+        )
+        with self.sessions.begin() as session:
+            session.execute(conversation)
+            stored = session.get(ConversationRow, conversation_id)
+            if stored is None or stored.user_id != user_id:
+                raise PermissionError("conversation 不属于当前用户")
 
     def append_message(
         self,

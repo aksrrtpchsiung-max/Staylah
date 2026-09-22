@@ -16,6 +16,8 @@ import httpx
 from dotenv import dotenv_values
 from langchain_ollama import ChatOllama
 
+from runtime_settings import load_runtime_settings
+
 DEFAULT_GATEWAY_URL = "https://api.softwaresystems.app"
 DEFAULT_MODEL = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
 DEFAULT_ENV_FILE = Path(__file__).resolve().with_name(".env")
@@ -39,12 +41,13 @@ class SearchPlanSettings:
 
 
 def load_search_plan_settings(env_file=DEFAULT_ENV_FILE) -> SearchPlanSettings:
+    search = load_runtime_settings(env_file=env_file).search
     values = dict(dotenv_values(env_file, interpolate=False)) if env_file else {}
     values.update(os.environ)
     try:
         return SearchPlanSettings(
-            page_limit=int(values.get('SEARCH_PAGE_LIMIT') or '4'),
-            candidate_limit=int(values.get('SEARCH_CANDIDATE_LIMIT') or '12'))
+            page_limit=int(values.get('SEARCH_PAGE_LIMIT') or search.page_limit),
+            candidate_limit=int(values.get('SEARCH_CANDIDATE_LIMIT') or search.candidate_limit))
     except (ValueError, TypeError):
         raise ModelConfigurationError('SEARCH_PAGE_LIMIT 和 SEARCH_CANDIDATE_LIMIT 必须是正整数') from None
 
@@ -83,7 +86,7 @@ class SearchExecutionSettings:
 def load_search_execution_settings(env_file=DEFAULT_ENV_FILE) -> SearchExecutionSettings:
     values = dict(dotenv_values(env_file, interpolate=False)) if env_file else {}
     values.update(os.environ)
-    defaults = SearchExecutionSettings()
+    defaults = load_runtime_settings(env_file=env_file).search
     fields = {
         'page_result_limit': ('SEARCH_PAGE_RESULT_LIMIT', int),
         'provider_timeout_seconds': ('SEARCH_PROVIDER_TIMEOUT_SECONDS', float),
@@ -166,6 +169,7 @@ def load_model_settings(
 
     离线测试可传入 env_file=None 和独立 environ，完全隔离真实配置。
     """
+    gateway = load_runtime_settings(env_file=env_file, environ=environ).llm_gateway
     values = dict(dotenv_values(env_file, interpolate=False)) if env_file else {}
     values.update(os.environ if environ is None else environ)
 
@@ -179,12 +183,12 @@ def load_model_settings(
             raise ModelConfigurationError(f"{name} 的数值格式不正确。") from None
 
     return ModelSettings(
-        api_key=value("LLM_GATEWAY_API_KEY"),
-        gateway_url=value("LLM_GATEWAY_URL", DEFAULT_GATEWAY_URL).rstrip("/"),
-        model=value("LLM_MODEL", DEFAULT_MODEL),
-        timeout_seconds=number("LLM_TIMEOUT_SECONDS", "60", float),
-        temperature=number("LLM_TEMPERATURE", "0", float),
-        max_tokens=number("LLM_MAX_TOKENS", "2000", int),
+        api_key=value(gateway.api_key_env) or gateway.api_key(values),
+        gateway_url=value("LLM_GATEWAY_URL", gateway.url).rstrip("/"),
+        model=value("LLM_MODEL", gateway.model),
+        timeout_seconds=number("LLM_TIMEOUT_SECONDS", str(gateway.timeout_seconds), float),
+        temperature=number("LLM_TEMPERATURE", str(gateway.temperature), float),
+        max_tokens=number("LLM_MAX_TOKENS", str(gateway.max_tokens), int),
     )
 
 

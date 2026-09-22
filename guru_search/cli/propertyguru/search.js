@@ -33,6 +33,9 @@ cli({
   domain: 'www.propertyguru.com.sg',
   strategy: Strategy.COOKIE,
   browser: true,
+  // B invokes search and detail as separate OpenCLI processes. Reuse the site
+  // session so OpenCLI does not close the PropertyGuru tab between commands.
+  siteSession: 'persistent',
   navigateBefore: false, // The adapter navigates directly to the requested search URL.
   args: [
     { name: 'query', type: 'string', positional: true, required: true, help: 'Location to search: district, MRT station, or area name (e.g. "clementi", "jurong west", "paya lebar")' },

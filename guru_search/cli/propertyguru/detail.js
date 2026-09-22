@@ -22,6 +22,9 @@ cli({
   domain: 'www.propertyguru.com.sg',
   strategy: Strategy.COOKIE,
   browser: true,
+  // B invokes search and detail as separate OpenCLI processes. Reuse the site
+  // session so OpenCLI does not close the PropertyGuru tab between commands.
+  siteSession: 'persistent',
   navigateBefore: false, // Avoid an unrelated homepage navigation before the listing URL.
   args: [
     { name: 'id', type: 'string', positional: true, required: true, help: 'Listing ID (numeric) or full URL from search results' },

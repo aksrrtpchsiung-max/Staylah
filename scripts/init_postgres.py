@@ -2,6 +2,13 @@
 from __future__ import annotations
 
 import asyncio
+import sys
+from pathlib import Path
+
+# 兼容 README 中的 `python scripts/init_postgres.py` 调用方式。直接运行脚本时，
+# Python 只把 scripts/ 放进模块搜索路径，需要显式加入仓库根目录。
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from alembic import command
 from alembic.config import Config

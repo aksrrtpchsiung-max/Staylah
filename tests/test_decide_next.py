@@ -235,7 +235,7 @@ class BudgetTests(unittest.TestCase):
             eligible_count=1, search_attempts_used=3, search_directive=directive()
         )
         decision = decide_next(state, DEFAULT_POLICY)
-        self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "budget_exhausted"))
+        self.assertEqual((decision["action"], decision["reason_code"]), ("finish", "budget_exhausted"))
 
     def test_deadline_forbids_research_and_repair(self):
         researching = base_state(

@@ -200,12 +200,16 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
     firstValue(raw, ['listingScope', 'rentalScope', 'unitType']),
   ].filter(Boolean).join(' | ');
 
-  const bedrooms = integer(raw.bedrooms);
+  const sourceBedrooms = integer(raw.bedrooms);
   const bathrooms = integer(raw.bathrooms);
   const areaRaw = firstValue(raw, ['floorArea.value', 'floorArea', 'area.value']);
   const areaSqft = integer(areaRaw);
   const propertyType = normalizePropertyType(raw.propertyType || featureText);
   const listingScope = normalizeScope(firstValue(raw, ['listingScope', 'rentalScope', 'unitType']) || classificationText);
+  // PropertyGuru uses bedrooms=0 as a card placeholder for room/bedspace
+  // listings. It is not a claim that the rented room has zero bedrooms.
+  const bedrooms = sourceBedrooms === 0 && ['room', 'bedspace'].includes(listingScope)
+    ? null : sourceBedrooms;
   const furnishingRaw = firstValue(raw, ['furnishing', 'furnishingType', 'listingFeatures.furnishing']);
   const tenureRaw = firstValue(raw, ['tenure', 'tenureType', 'propertyTenure']);
   const leaseYears = integer(firstValue(raw, ['leaseYears', 'tenureYears']));
@@ -382,6 +386,16 @@ export function buildListingDetail(raw, { sourceId, sourceUrl, fetchedAt = new D
     }
   }
   if (raw.subtitle) add('title', stripHtml(raw.subtitle), stripHtml(raw.subtitle));
+  const roomScope = facts.some(fact => fact.field === 'attributes.listing_scope'
+    && ['room', 'bedspace'].includes(fact.value));
+  if (roomScope) {
+    for (let index = facts.length - 1; index >= 0; index -= 1) {
+      if (facts[index].field === 'bedrooms' && facts[index].value === 0) facts.splice(index, 1);
+    }
+  }
+  // A parsed detail payload for the requested listing is direct evidence that
+  // the listing was active when this page was fetched.
+  add('listing_status', 'active', 'listing detail page returned current listing data');
   const rawDetails = details.map(entry => `${entry.label || ''}: ${String(entry.value ?? '')}`);
   for (const [key, label] of [['amenityList', 'Amenity'], ['facilityList', 'Facility'], ['nearbyMrt', 'Listing mentions nearby MRT']]) {
     for (const value of raw[key] || []) rawDetails.push(`${label}: ${String(value)}`);
