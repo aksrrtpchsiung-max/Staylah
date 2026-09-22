@@ -65,6 +65,8 @@ def build_case(name: str, stamp: str) -> dict:
         "deadline_at": "2026-09-19T12:02:00+08:00",
         "source_mode": "mock",
     }
+    profile["user_id"] = ctx["user_id"]
+    profile["conversation_id"] = ctx["conversation_id"]
     if name == "publish":
         outcome = first_attempt_from_fixture("search-success", profile)
     elif name == "research":

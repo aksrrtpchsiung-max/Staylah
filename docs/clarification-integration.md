@@ -60,6 +60,15 @@ async with postgres_decision_graph(deps) as graph:
 `scripts/run_mock_pipeline.py` 为了保持离线结果可重复，会显式使用
 `ScriptedModuleC`。
 
+## 持久化字段
+
+PostgreSQL 使用 `conversation_profiles` 保存画像。`ConversationProfile` 的顶层字段
+分别落在同名列中，包括 `conversation_id`、`confirmed_version`、`status`、
+`listing_constraints`、三类需求列表和确认时间；数据库不再保存旧版
+`user_profiles.body`。其他业务表也使用合同字段名：`conversations.conversation_id`、
+`messages.message_id/text`、`agent_runs.run_id`、`run_questions.question` 和
+`recommendations.recommendation`。嵌套结构继续使用 JSONB。
+
 如果结果包含 `__interrupt__`，把其中的 `pending_question` 发给用户。恢复时只需提交
 自然语言与客户端幂等 ID，服务端会从 checkpoint 中取得当前问题和版本：
 

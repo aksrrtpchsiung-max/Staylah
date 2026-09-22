@@ -22,15 +22,74 @@ from property_agent.decision.boundaries import ProfileVersionConflict
 from property_agent.profiles import apply_relaxation
 from property_agent.persistence.models import (
     AgentRunRow,
+    ConversationProfileRow,
     ConversationRow,
     MessageRow,
     ProfileMutationRow,
     RecommendationRow,
     RunQuestionRow,
-    UserProfileRow,
 )
 
 SessionFactory = Callable[[], Session]
+
+
+def _as_datetime(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def _profile_values(profile: ConversationProfile) -> dict[str, Any]:
+    """把公开合同逐字段映射到 conversation_profiles，不保存不透明 body。"""
+    return {
+        "profile_id": profile["profile_id"],
+        "user_id": profile["user_id"],
+        "conversation_id": profile["conversation_id"],
+        "version": profile["version"],
+        "confirmed_version": profile["confirmed_version"],
+        "status": profile["status"],
+        "intent": profile["intent"],
+        "user_context": profile["user_context"],
+        "listing_constraints": profile["listing_constraints"],
+        "derived_data_requirements": profile["derived_data_requirements"],
+        "open_data_requirements": profile["open_data_requirements"],
+        "unresolved": profile["unresolved"],
+        "field_sources": profile["field_sources"],
+        "created_at": _as_datetime(profile["created_at"]),
+        "updated_at": _as_datetime(profile["updated_at"]),
+        "last_user_message_at": _as_datetime(profile["last_user_message_at"]),
+        "confirmed_at": (
+            _as_datetime(profile["confirmed_at"])
+            if profile["confirmed_at"] is not None
+            else None
+        ),
+    }
+
+
+def _profile_from_row(row: ConversationProfileRow) -> ConversationProfile:
+    return {
+        "profile_id": row.profile_id,
+        "user_id": row.user_id,
+        "conversation_id": row.conversation_id,
+        "version": row.version,
+        "confirmed_version": row.confirmed_version,
+        "status": row.status,  # type: ignore[typeddict-item]
+        "intent": row.intent,  # type: ignore[typeddict-item]
+        "user_context": copy.deepcopy(row.user_context),  # type: ignore[typeddict-item]
+        "listing_constraints": copy.deepcopy(row.listing_constraints),  # type: ignore[typeddict-item]
+        "derived_data_requirements": copy.deepcopy(row.derived_data_requirements),  # type: ignore[typeddict-item]
+        "open_data_requirements": copy.deepcopy(row.open_data_requirements),  # type: ignore[typeddict-item]
+        "unresolved": copy.deepcopy(row.unresolved),
+        "field_sources": copy.deepcopy(row.field_sources),
+        "created_at": row.created_at.isoformat(),
+        "updated_at": row.updated_at.isoformat(),
+        "last_user_message_at": row.last_user_message_at.isoformat(),
+        "confirmed_at": row.confirmed_at.isoformat() if row.confirmed_at else None,
+    }
+
+
+def _write_profile(row: ConversationProfileRow, profile: ConversationProfile) -> None:
+    for field, value in _profile_values(profile).items():
+        if field != "profile_id":
+            setattr(row, field, value)
 
 
 class SqlProfileRepository:
@@ -38,22 +97,36 @@ class SqlProfileRepository:
         self.sessions = sessions
 
     def put(self, profile: ConversationProfile, *, user_id: str) -> None:
-        statement = pg_insert(UserProfileRow).values(
-            profile_id=profile["profile_id"],
+        if profile["user_id"] != user_id:
+            raise PermissionError("profile.user_id 与当前用户不一致")
+        conversation = pg_insert(ConversationRow).values(
+            conversation_id=profile["conversation_id"],
             user_id=user_id,
-            version=profile["version"],
-            body=profile,
         )
+        conversation = conversation.on_conflict_do_nothing(
+            index_elements=["conversation_id"]
+        )
+        statement = pg_insert(ConversationProfileRow).values(**_profile_values(profile))
         statement = statement.on_conflict_do_nothing(index_elements=["profile_id"])
         with self.sessions.begin() as session:
+            session.execute(conversation)
+            stored_conversation = session.get(
+                ConversationRow, profile["conversation_id"]
+            )
+            if stored_conversation is None or stored_conversation.user_id != user_id:
+                raise PermissionError("conversation 不属于当前用户")
             session.execute(statement)
-            stored = session.get(UserProfileRow, profile["profile_id"])
-            if stored is None or stored.user_id != user_id:
+            stored = session.get(ConversationProfileRow, profile["profile_id"])
+            if (
+                stored is None
+                or stored.user_id != user_id
+                or stored.conversation_id != profile["conversation_id"]
+            ):
                 raise PermissionError("profile 不属于当前用户")
 
     def current_version(self, profile_id: str) -> int:
         with self.sessions() as session:
-            row = session.get(UserProfileRow, profile_id)
+            row = session.get(ConversationProfileRow, profile_id)
             if row is None:
                 raise KeyError(profile_id)
             return row.version
@@ -70,34 +143,34 @@ class SqlProfileRepository:
         with self.sessions.begin() as session:
             replay = session.get(ProfileMutationRow, op_key)
             if replay is not None:
-                return copy.deepcopy(replay.result_body)  # type: ignore[return-value]
+                return copy.deepcopy(replay.result_profile)  # type: ignore[return-value]
 
             row = session.execute(
-                select(UserProfileRow)
-                .where(UserProfileRow.profile_id == profile_id)
+                select(ConversationProfileRow)
+                .where(ConversationProfileRow.profile_id == profile_id)
                 .with_for_update()
             ).scalar_one()
             replay = session.get(ProfileMutationRow, op_key)
             if replay is not None:
-                return copy.deepcopy(replay.result_body)  # type: ignore[return-value]
+                return copy.deepcopy(replay.result_profile)  # type: ignore[return-value]
             if row.version != base_version:
                 raise ProfileVersionConflict(
                     f"档案已是 v{row.version}，提案基于 v{base_version}"
                 )
             updated = apply_relaxation(
-                row.body,
+                _profile_from_row(row),
                 proposal=proposal,
                 source_message_id=source_message_id,
             )
-            row.version = updated["version"]
-            row.body = updated
+            updated["updated_at"] = datetime.now(timezone.utc).isoformat()
+            _write_profile(row, updated)
             session.add(
                 ProfileMutationRow(
                     op_key=op_key,
                     profile_id=profile_id,
                     base_version=base_version,
                     result_version=updated["version"],
-                    result_body=updated,
+                    result_profile=updated,
                 )
             )
             return copy.deepcopy(updated)
@@ -110,13 +183,20 @@ class SqlRunRepository:
         self.sessions = sessions
 
     def prepare_run(self, *, ctx: RunContext, profile: ConversationProfile) -> None:
+        if (
+            profile["user_id"] != ctx["user_id"]
+            or profile["conversation_id"] != ctx["conversation_id"]
+        ):
+            raise PermissionError("profile 与当前 run 的用户或 conversation 不匹配")
         conversation = pg_insert(ConversationRow).values(
-            id=ctx["conversation_id"],
+            conversation_id=ctx["conversation_id"],
             user_id=ctx["user_id"],
         )
-        conversation = conversation.on_conflict_do_nothing(index_elements=["id"])
+        conversation = conversation.on_conflict_do_nothing(
+            index_elements=["conversation_id"]
+        )
         run = pg_insert(AgentRunRow).values(
-            id=ctx["run_id"],
+            run_id=ctx["run_id"],
             user_id=ctx["user_id"],
             conversation_id=ctx["conversation_id"],
             profile_id=profile["profile_id"],
@@ -126,22 +206,24 @@ class SqlRunRepository:
             status="running",
             state_version=0,
         )
-        run = run.on_conflict_do_nothing(index_elements=["id"])
+        run = run.on_conflict_do_nothing(index_elements=["run_id"])
         with self.sessions.begin() as session:
             session.execute(conversation)
-            existing_profile = session.get(UserProfileRow, profile["profile_id"])
+            stored_conversation = session.get(ConversationRow, ctx["conversation_id"])
+            if (
+                stored_conversation is None
+                or stored_conversation.user_id != ctx["user_id"]
+            ):
+                raise PermissionError("conversation 不属于当前用户")
+            existing_profile = session.get(
+                ConversationProfileRow, profile["profile_id"]
+            )
             if existing_profile is None:
-                session.add(
-                    UserProfileRow(
-                        profile_id=profile["profile_id"],
-                        user_id=ctx["user_id"],
-                        version=profile["version"],
-                        body=profile,
-                    )
-                )
+                session.add(ConversationProfileRow(**_profile_values(profile)))
                 session.flush()
             elif (
                 existing_profile.user_id != ctx["user_id"]
+                or existing_profile.conversation_id != ctx["conversation_id"]
                 or existing_profile.version != profile["version"]
             ):
                 raise PermissionError("profile 归属或版本不匹配")
@@ -177,7 +259,9 @@ class SqlRunRepository:
             values["final_result_id"] = final_result_id
         with self.sessions.begin() as session:
             result = session.execute(
-                update(AgentRunRow).where(AgentRunRow.id == run_id).values(**values)
+                update(AgentRunRow)
+                .where(AgentRunRow.run_id == run_id)
+                .values(**values)
             )
             if result.rowcount != 1:
                 raise KeyError(run_id)
@@ -195,25 +279,27 @@ class SqlQuestionRepository:
             statement = pg_insert(RunQuestionRow).values(
                 run_id=run_id,
                 question_id=question["question_id"],
-                payload=question,
+                question=question,
             )
             statement = statement.on_conflict_do_nothing(
                 index_elements=["run_id", "question_id"]
             )
             session.execute(statement)
             message = pg_insert(MessageRow).values(
-                id=f"assistant:{question['question_id']}",
+                message_id=f"assistant:{question['question_id']}",
                 conversation_id=run.conversation_id,
                 role="assistant",
-                content=question["text"],
+                text=question["text"],
                 client_message_id=None,
             )
-            session.execute(message.on_conflict_do_nothing(index_elements=["id"]))
+            session.execute(
+                message.on_conflict_do_nothing(index_elements=["message_id"])
+            )
             saved = session.get(RunQuestionRow, (run_id, question["question_id"]))
             assert saved is not None
-            if saved.payload != question:
+            if saved.question != question:
                 raise ValueError("相同 question_id 对应了不同内容")
-            return copy.deepcopy(saved.payload)
+            return copy.deepcopy(saved.question)
 
     def mark_answered(
         self,
@@ -246,10 +332,10 @@ class SqlQuestionRepository:
 
             message_id = client_message_id or f"{question_id}:answer"
             message = pg_insert(MessageRow).values(
-                id=message_id,
+                message_id=message_id,
                 conversation_id=run.conversation_id,
                 role="user",
-                content=answer_text or "",
+                text=answer_text or "",
                 client_message_id=message_id,
             )
             session.execute(
@@ -282,27 +368,29 @@ class SqlChatRepository:
             if session.get(ConversationRow, conversation_id) is None:
                 raise KeyError(conversation_id)
             statement = pg_insert(MessageRow).values(
-                id=message_id,
+                message_id=message_id,
                 conversation_id=conversation_id,
                 role=role,
-                content=content,
+                text=content,
                 client_message_id=client_message_id,
             )
-            session.execute(statement.on_conflict_do_nothing(index_elements=["id"]))
+            session.execute(
+                statement.on_conflict_do_nothing(index_elements=["message_id"])
+            )
             stored = session.get(MessageRow, message_id)
             if stored is None:
                 raise KeyError(message_id)
             if (
                 stored.conversation_id != conversation_id
                 or stored.role != role
-                or stored.content != content
+                or stored.text != content
                 or stored.client_message_id != client_message_id
             ):
                 raise ValueError("相同 message_id 对应了不同内容")
             return {
-                "message_id": stored.id,
+                "message_id": stored.message_id,
                 "role": stored.role,  # type: ignore[typeddict-item]
-                "text": stored.content,
+                "text": stored.text,
             }
 
     def list_messages(
@@ -316,7 +404,7 @@ class SqlChatRepository:
             statement = (
                 select(MessageRow)
                 .where(MessageRow.conversation_id == conversation_id)
-                .order_by(MessageRow.created_at, MessageRow.id)
+                .order_by(MessageRow.created_at, MessageRow.message_id)
             )
             if after:
                 current = session.get(MessageRow, after)
@@ -326,12 +414,12 @@ class SqlChatRepository:
                     (MessageRow.created_at > current.created_at)
                     | (
                         (MessageRow.created_at == current.created_at)
-                        & (MessageRow.id > current.id)
+                        & (MessageRow.message_id > current.message_id)
                     )
                 )
             rows = session.execute(statement.limit(limit)).scalars().all()
             return [
-                {"message_id": row.id, "role": row.role, "text": row.content}  # type: ignore[typeddict-item]
+                {"message_id": row.message_id, "role": row.role, "text": row.text}  # type: ignore[typeddict-item]
                 for row in rows
             ]
 
@@ -356,7 +444,7 @@ class SqlRecommendationRepository:
                 final_result_id=final_result_id,
                 run_id=run_id,
                 op_key=op_key,
-                body=recommendation,
+                recommendation=recommendation,
             )
             inserted = session.execute(
                 statement.on_conflict_do_nothing().returning(

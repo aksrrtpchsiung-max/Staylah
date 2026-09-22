@@ -1,4 +1,4 @@
-"""create clarification business tables
+"""create conversation-profile business tables
 
 Revision ID: 20260919_0001
 Revises:
@@ -18,46 +18,8 @@ depends_on: Sequence[str] | None = None
 
 def upgrade() -> None:
     op.create_table(
-        "user_profiles",
-        sa.Column("profile_id", sa.String(200), primary_key=True),
-        sa.Column("user_id", sa.String(200), nullable=False),
-        sa.Column("version", sa.Integer(), nullable=False),
-        sa.Column("body", postgresql.JSONB(), nullable=False),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            nullable=False,
-            server_default=sa.func.now(),
-        ),
-    )
-    op.create_index("ix_user_profiles_user_id", "user_profiles", ["user_id"])
-
-    op.create_table(
-        "profile_mutations",
-        sa.Column("op_key", sa.String(500), primary_key=True),
-        sa.Column(
-            "profile_id",
-            sa.String(200),
-            sa.ForeignKey("user_profiles.profile_id", ondelete="CASCADE"),
-            nullable=False,
-        ),
-        sa.Column("base_version", sa.Integer(), nullable=False),
-        sa.Column("result_version", sa.Integer(), nullable=False),
-        sa.Column("result_body", postgresql.JSONB(), nullable=False),
-        sa.Column(
-            "applied_at",
-            sa.DateTime(timezone=True),
-            nullable=False,
-            server_default=sa.func.now(),
-        ),
-    )
-    op.create_index(
-        "ix_profile_mutations_profile_id", "profile_mutations", ["profile_id"]
-    )
-
-    op.create_table(
         "conversations",
-        sa.Column("id", sa.String(200), primary_key=True),
+        sa.Column("conversation_id", sa.String(200), primary_key=True),
         sa.Column("user_id", sa.String(200), nullable=False),
         sa.Column("title", sa.String(500)),
         sa.Column(
@@ -70,16 +32,81 @@ def upgrade() -> None:
     op.create_index("ix_conversations_user_id", "conversations", ["user_id"])
 
     op.create_table(
-        "messages",
-        sa.Column("id", sa.String(500), primary_key=True),
+        "conversation_profiles",
+        sa.Column("profile_id", sa.String(200), primary_key=True),
+        sa.Column("user_id", sa.String(200), nullable=False),
         sa.Column(
             "conversation_id",
             sa.String(200),
-            sa.ForeignKey("conversations.id", ondelete="CASCADE"),
+            sa.ForeignKey("conversations.conversation_id", ondelete="CASCADE"),
+            nullable=False,
+            unique=True,
+        ),
+        sa.Column("version", sa.Integer(), nullable=False),
+        sa.Column("confirmed_version", sa.Integer()),
+        sa.Column("status", sa.String(30), nullable=False),
+        sa.Column("intent", sa.String(20)),
+        sa.Column("user_context", postgresql.JSONB(), nullable=False),
+        sa.Column("listing_constraints", postgresql.JSONB(), nullable=False),
+        sa.Column("derived_data_requirements", postgresql.JSONB(), nullable=False),
+        sa.Column("open_data_requirements", postgresql.JSONB(), nullable=False),
+        sa.Column("unresolved", postgresql.JSONB(), nullable=False),
+        sa.Column("field_sources", postgresql.JSONB(), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+        ),
+        sa.Column("last_user_message_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("confirmed_at", sa.DateTime(timezone=True)),
+        sa.CheckConstraint(
+            "status IN ('draft', 'pending_confirmation', 'confirmed', 'idle')",
+            name="ck_conversation_profiles_status",
+        ),
+        sa.CheckConstraint(
+            "intent IS NULL OR intent IN ('rent', 'buy')",
+            name="ck_conversation_profiles_intent",
+        ),
+    )
+    op.create_index(
+        "ix_conversation_profiles_user_id", "conversation_profiles", ["user_id"]
+    )
+
+    op.create_table(
+        "profile_mutations",
+        sa.Column("op_key", sa.String(500), primary_key=True),
+        sa.Column(
+            "profile_id",
+            sa.String(200),
+            sa.ForeignKey("conversation_profiles.profile_id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column("base_version", sa.Integer(), nullable=False),
+        sa.Column("result_version", sa.Integer(), nullable=False),
+        sa.Column("result_profile", postgresql.JSONB(), nullable=False),
+        sa.Column(
+            "applied_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
+    )
+    op.create_index(
+        "ix_profile_mutations_profile_id", "profile_mutations", ["profile_id"]
+    )
+
+    op.create_table(
+        "messages",
+        sa.Column("message_id", sa.String(500), primary_key=True),
+        sa.Column(
+            "conversation_id",
+            sa.String(200),
+            sa.ForeignKey("conversations.conversation_id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("role", sa.String(20), nullable=False),
-        sa.Column("content", sa.Text(), nullable=False),
+        sa.Column("text", sa.Text(), nullable=False),
         sa.Column("client_message_id", sa.String(500)),
         sa.Column(
             "created_at",
@@ -102,18 +129,18 @@ def upgrade() -> None:
 
     op.create_table(
         "agent_runs",
-        sa.Column("id", sa.String(200), primary_key=True),
+        sa.Column("run_id", sa.String(200), primary_key=True),
         sa.Column("user_id", sa.String(200), nullable=False),
         sa.Column(
             "conversation_id",
             sa.String(200),
-            sa.ForeignKey("conversations.id", ondelete="RESTRICT"),
+            sa.ForeignKey("conversations.conversation_id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "profile_id",
             sa.String(200),
-            sa.ForeignKey("user_profiles.profile_id", ondelete="RESTRICT"),
+            sa.ForeignKey("conversation_profiles.profile_id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column("profile_version", sa.Integer(), nullable=False),
@@ -148,11 +175,11 @@ def upgrade() -> None:
         sa.Column(
             "run_id",
             sa.String(200),
-            sa.ForeignKey("agent_runs.id", ondelete="CASCADE"),
+            sa.ForeignKey("agent_runs.run_id", ondelete="CASCADE"),
             primary_key=True,
         ),
         sa.Column("question_id", sa.String(500), primary_key=True),
-        sa.Column("payload", postgresql.JSONB(), nullable=False),
+        sa.Column("question", postgresql.JSONB(), nullable=False),
         sa.Column(
             "saved_at",
             sa.DateTime(timezone=True),
@@ -170,11 +197,11 @@ def upgrade() -> None:
         sa.Column(
             "run_id",
             sa.String(200),
-            sa.ForeignKey("agent_runs.id", ondelete="CASCADE"),
+            sa.ForeignKey("agent_runs.run_id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("op_key", sa.String(500), nullable=False),
-        sa.Column("body", postgresql.JSONB(), nullable=False),
+        sa.Column("recommendation", postgresql.JSONB(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -193,9 +220,11 @@ def downgrade() -> None:
     op.drop_table("agent_runs")
     op.drop_index("ix_messages_conversation_created", table_name="messages")
     op.drop_table("messages")
-    op.drop_index("ix_conversations_user_id", table_name="conversations")
-    op.drop_table("conversations")
     op.drop_index("ix_profile_mutations_profile_id", table_name="profile_mutations")
     op.drop_table("profile_mutations")
-    op.drop_index("ix_user_profiles_user_id", table_name="user_profiles")
-    op.drop_table("user_profiles")
+    op.drop_index(
+        "ix_conversation_profiles_user_id", table_name="conversation_profiles"
+    )
+    op.drop_table("conversation_profiles")
+    op.drop_index("ix_conversations_user_id", table_name="conversations")
+    op.drop_table("conversations")

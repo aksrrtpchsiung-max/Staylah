@@ -4,7 +4,7 @@ import unittest
 import uuid
 
 from langgraph.types import Command
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, inspect, select
 
 from property_agent.decision.boundaries import ProfileVersionConflict
 from property_agent.decision.graph import initial_state
@@ -13,12 +13,12 @@ from property_agent.decision.stubs import ScriptedModuleC, ScriptedSearchRunner
 from property_agent.persistence.database import build_engine, build_session_factory
 from property_agent.persistence.models import (
     AgentRunRow,
+    ConversationProfileRow,
     ConversationRow,
     MessageRow,
     ProfileMutationRow,
     RecommendationRow,
     RunQuestionRow,
-    UserProfileRow,
 )
 from property_agent.persistence.repositories import (
     SqlChatRepository,
@@ -46,6 +46,8 @@ class PostgresRepositoryTests(unittest.TestCase):
             user_id=f"user-{suffix}",
             conversation_id=f"conversation-{suffix}",
         )
+        self.profile["user_id"] = self.ctx["user_id"]
+        self.profile["conversation_id"] = self.ctx["conversation_id"]
         self.runs = SqlRunRepository(self.sessions)
         self.runs.prepare_run(ctx=self.ctx, profile=self.profile)
 
@@ -67,7 +69,7 @@ class PostgresRepositoryTests(unittest.TestCase):
                 )
             )
             session.execute(
-                delete(AgentRunRow).where(AgentRunRow.id == self.ctx["run_id"])
+                delete(AgentRunRow).where(AgentRunRow.run_id == self.ctx["run_id"])
             )
             session.execute(
                 delete(ProfileMutationRow).where(
@@ -75,16 +77,78 @@ class PostgresRepositoryTests(unittest.TestCase):
                 )
             )
             session.execute(
-                delete(ConversationRow).where(
-                    ConversationRow.id == self.ctx["conversation_id"]
+                delete(ConversationProfileRow).where(
+                    ConversationProfileRow.profile_id == self.profile["profile_id"]
                 )
             )
             session.execute(
-                delete(UserProfileRow).where(
-                    UserProfileRow.profile_id == self.profile["profile_id"]
+                delete(ConversationRow).where(
+                    ConversationRow.conversation_id == self.ctx["conversation_id"]
                 )
             )
         self.engine.dispose()
+
+    def test_schema_and_profile_columns_match_current_contract(self):
+        inspector = inspect(self.engine)
+        self.assertIn("conversation_profiles", inspector.get_table_names())
+        self.assertNotIn("user_profiles", inspector.get_table_names())
+        profile_columns = {
+            column["name"]
+            for column in inspector.get_columns("conversation_profiles")
+        }
+        self.assertEqual(
+            profile_columns,
+            {
+                "profile_id",
+                "user_id",
+                "conversation_id",
+                "version",
+                "confirmed_version",
+                "status",
+                "intent",
+                "user_context",
+                "listing_constraints",
+                "derived_data_requirements",
+                "open_data_requirements",
+                "unresolved",
+                "field_sources",
+                "created_at",
+                "updated_at",
+                "last_user_message_at",
+                "confirmed_at",
+            },
+        )
+        self.assertEqual(
+            {column["name"] for column in inspector.get_columns("messages")},
+            {
+                "message_id",
+                "conversation_id",
+                "role",
+                "text",
+                "client_message_id",
+                "created_at",
+            },
+        )
+        self.assertIn(
+            "run_id",
+            {column["name"] for column in inspector.get_columns("agent_runs")},
+        )
+        self.assertIn(
+            "question",
+            {column["name"] for column in inspector.get_columns("run_questions")},
+        )
+        self.assertIn(
+            "recommendation",
+            {column["name"] for column in inspector.get_columns("recommendations")},
+        )
+        with self.sessions() as session:
+            stored = session.get(
+                ConversationProfileRow, self.profile["profile_id"]
+            )
+            assert stored is not None
+            self.assertEqual(stored.conversation_id, self.profile["conversation_id"])
+            self.assertEqual(stored.confirmed_version, self.profile["confirmed_version"])
+            self.assertEqual(stored.listing_constraints, self.profile["listing_constraints"])
 
     def test_business_writes_are_idempotent(self):
         proposal = {
@@ -235,6 +299,8 @@ class PostgresCheckpointRecoveryTests(unittest.IsolatedAsyncioTestCase):
             user_id=f"user-recovery-{suffix}",
             conversation_id=f"conversation-recovery-{suffix}",
         )
+        self.profile["user_id"] = self.ctx["user_id"]
+        self.profile["conversation_id"] = self.ctx["conversation_id"]
         SqlRunRepository(self.sessions).prepare_run(
             ctx=self.ctx, profile=self.profile
         )
@@ -257,7 +323,7 @@ class PostgresCheckpointRecoveryTests(unittest.IsolatedAsyncioTestCase):
                 )
             )
             session.execute(
-                delete(AgentRunRow).where(AgentRunRow.id == self.ctx["run_id"])
+                delete(AgentRunRow).where(AgentRunRow.run_id == self.ctx["run_id"])
             )
             session.execute(
                 delete(ProfileMutationRow).where(
@@ -265,13 +331,13 @@ class PostgresCheckpointRecoveryTests(unittest.IsolatedAsyncioTestCase):
                 )
             )
             session.execute(
-                delete(ConversationRow).where(
-                    ConversationRow.id == self.ctx["conversation_id"]
+                delete(ConversationProfileRow).where(
+                    ConversationProfileRow.profile_id == self.profile["profile_id"]
                 )
             )
             session.execute(
-                delete(UserProfileRow).where(
-                    UserProfileRow.profile_id == self.profile["profile_id"]
+                delete(ConversationRow).where(
+                    ConversationRow.conversation_id == self.ctx["conversation_id"]
                 )
             )
         self.engine.dispose()
