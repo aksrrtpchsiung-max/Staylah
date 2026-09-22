@@ -23,7 +23,7 @@ from property_agent.contracts import (
     RunContext,
     ScreenResult,
     SearchDirective,
-    UserProfile,
+    ConversationProfile,
 )
 
 
@@ -32,7 +32,7 @@ class EvaluationModule(Protocol):
 
     async def evaluate(
         self,
-        profile: UserProfile,
+        profile: ConversationProfile,
         retrieval: RetrievalResult,
         screen_result: ScreenResult,
         listing_snapshot: ListingSnapshot,
@@ -45,7 +45,7 @@ class EvaluationModule(Protocol):
 
     async def review(
         self,
-        profile: UserProfile,
+        profile: ConversationProfile,
         evaluation: EvaluationResult,
         listing_snapshot: ListingSnapshot,
         *,
@@ -73,7 +73,7 @@ class SearchRunner(Protocol):
     """模块 B 一侧：按保持硬条件的补搜指令执行下一次尝试。"""
 
     async def run_attempt(
-        self, directive: SearchDirective, profile: UserProfile, *, ctx: RunContext
+        self, directive: SearchDirective, profile: ConversationProfile, *, ctx: RunContext
     ) -> Result: ...
 
 
@@ -94,7 +94,7 @@ class ProfileWriter(Protocol):
         proposal: RelaxationProposal,
         source_message_id: str,
         op_key: str,
-    ) -> UserProfile:
+    ) -> ConversationProfile:
         """按 op_key 幂等；base_version 与当前版本不一致时抛 ProfileVersionConflict。"""
         ...
 

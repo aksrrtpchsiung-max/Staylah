@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from property_agent.profiles import from_legacy_user_profile
+
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "mock_property_data 2" / "output" / "fixtures"
 
@@ -28,7 +30,8 @@ UNKNOWN_PRICE_KEY = "propertyguru:mock-000903"  # 价格未知，待核实
 
 
 def load_profile() -> dict:
-    return json.loads((FIXTURES / "profile.json").read_text())
+    raw = json.loads((FIXTURES / "profile.json").read_text())
+    return from_legacy_user_profile(raw)
 
 
 def load_snapshot() -> dict:

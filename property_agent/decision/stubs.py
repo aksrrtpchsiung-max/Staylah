@@ -24,9 +24,10 @@ from property_agent.contracts import (
     RunContext,
     ScreenResult,
     SearchDirective,
-    UserProfile,
+    ConversationProfile,
 )
 from property_agent.decision.boundaries import ProfileVersionConflict
+from property_agent.profiles import apply_relaxation, read_relaxable_value
 from property_agent.results import CallTimer, make_issue
 
 
@@ -57,7 +58,7 @@ class ScriptedModuleC:
 
     async def evaluate(
         self,
-        profile: UserProfile,
+        profile: ConversationProfile,
         retrieval: RetrievalResult,
         screen_result: ScreenResult,
         listing_snapshot: ListingSnapshot,
@@ -83,7 +84,7 @@ class ScriptedModuleC:
 
     async def review(
         self,
-        profile: UserProfile,
+        profile: ConversationProfile,
         evaluation: EvaluationResult,
         listing_snapshot: ListingSnapshot,
         *,
@@ -103,7 +104,7 @@ def _price_of(listing: dict) -> int | None:
 
 
 def _default_evaluation(
-    profile: UserProfile,
+    profile: ConversationProfile,
     screen_result: ScreenResult,
     listing_snapshot: ListingSnapshot,
     coverage: Coverage,
@@ -146,21 +147,33 @@ def _default_evaluation(
     ]
 
     short = len(ordered) < policy["min_matches"]
+    directive = _suggest_directive(profile, coverage) if short else None
+    proposals = (
+        _suggest_price_relaxation(profile, screen_result, listing_snapshot) if short else []
+    )
+    if not short:
+        next_action, next_reason = "publish", "enough_matches"
+    elif directive is not None:
+        next_action, next_reason = "research", directive["reason_code"]
+    elif proposals:
+        next_action, next_reason = "ask_user", "relaxation_available"
+    else:
+        next_action, next_reason = "finish", "insufficient_candidates"
     return {
         "profile_version": profile["version"],
         "snapshot_id": listing_snapshot["snapshot_id"],
         "recommendation": recommendation,
         "assessment": {
             "constraint_findings": findings,
-            "search_directive": _suggest_directive(profile, coverage) if short else None,
-            "relaxation_proposals": (
-                _suggest_price_relaxation(profile, screen_result, listing_snapshot) if short else []
-            ),
+            "search_directive": directive,
+            "relaxation_proposals": proposals,
+            "next_action": next_action,
+            "next_reason_code": next_reason,
         },
     }
 
 
-def _suggest_directive(profile: UserProfile, coverage: Coverage) -> SearchDirective | None:
+def _suggest_directive(profile: ConversationProfile, coverage: Coverage) -> SearchDirective | None:
     """只建议改变查找方法：还有下一页就翻页，硬条件保持不变。"""
     next_pages = coverage.get("next_pages") or []
     if not next_pages:
@@ -174,10 +187,13 @@ def _suggest_directive(profile: UserProfile, coverage: Coverage) -> SearchDirect
 
 
 def _suggest_price_relaxation(
-    profile: UserProfile, screen_result: ScreenResult, listing_snapshot: ListingSnapshot
+    profile: ConversationProfile, screen_result: ScreenResult, listing_snapshot: ListingSnapshot
 ) -> list[RelaxationProposal]:
     """依据本轮被价格筛除的记录提出提案；仍须用户明确确认才生效。"""
-    current = profile["hard_constraints"].get("max_price")
+    try:
+        current = read_relaxable_value(profile, "listing_constraints.price.amount")
+    except KeyError:
+        return []
     if not isinstance(current, int):
         return []
     by_key = {item["listing_key"]: item for item in listing_snapshot["items"]}
@@ -197,7 +213,7 @@ def _suggest_price_relaxation(
     return [
         {
             "proposal_id": f"relax-price-{amount}",
-            "field": "hard_constraints.max_price",
+            "field": "listing_constraints.price.amount",
             "old_value": current,
             "proposed_value": amount,
             "reason": f"本轮被排除的 {key} 租金为 {amount}，提高到该值可能扩大匹配，仍需重新查询。",
@@ -286,7 +302,7 @@ class ScriptedSearchRunner:
     calls: list[SearchDirective] = field(default_factory=list)
 
     async def run_attempt(
-        self, directive: SearchDirective, profile: UserProfile, *, ctx: RunContext
+        self, directive: SearchDirective, profile: ConversationProfile, *, ctx: RunContext
     ) -> Result:
         timer = CallTimer(ctx)
         self.calls.append(directive)
@@ -305,10 +321,10 @@ class ScriptedSearchRunner:
 class InMemoryProfileWriter:
     """档案服务的替身：乐观锁 + 按 op_key 幂等。"""
 
-    profiles: dict[str, UserProfile] = field(default_factory=dict)
-    _applied: dict[str, UserProfile] = field(default_factory=dict)
+    profiles: dict[str, ConversationProfile] = field(default_factory=dict)
+    _applied: dict[str, ConversationProfile] = field(default_factory=dict)
 
-    def put(self, profile: UserProfile) -> None:
+    def put(self, profile: ConversationProfile) -> None:
         self.profiles[profile["profile_id"]] = profile
 
     def current_version(self, profile_id: str) -> int:
@@ -322,30 +338,19 @@ class InMemoryProfileWriter:
         proposal: RelaxationProposal,
         source_message_id: str,
         op_key: str,
-    ) -> UserProfile:
+    ) -> ConversationProfile:
         if op_key in self._applied:
             return self._applied[op_key]
         current = self.profiles[profile_id]
         if current["version"] != base_version:
             raise ProfileVersionConflict(f"档案已是 v{current['version']}，提案基于 v{base_version}")
 
-        updated: dict[str, Any] = {
-            **current,
-            "version": current["version"] + 1,
-            "hard_constraints": dict(current["hard_constraints"]),
-            "field_sources": dict(current["field_sources"]),
-        }
-        *parents, leaf = proposal["field"].split(".")
-        target = updated
-        for part in parents:
-            target[part] = dict(target[part])
-            target = target[part]
-        target[leaf] = proposal["proposed_value"]
-        updated["field_sources"][proposal["field"]] = source_message_id
-
-        self.profiles[profile_id] = updated  # type: ignore[assignment]
-        self._applied[op_key] = updated  # type: ignore[assignment]
-        return updated  # type: ignore[return-value]
+        updated = apply_relaxation(
+            current, proposal=proposal, source_message_id=source_message_id
+        )
+        self.profiles[profile_id] = updated
+        self._applied[op_key] = updated
+        return updated
 
 
 @dataclass

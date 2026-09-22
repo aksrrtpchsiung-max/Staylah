@@ -13,13 +13,13 @@ from sqlalchemy.orm import Session
 
 from property_agent.contracts import (
     ChatMessage,
+    ConversationProfile,
     Recommendation,
     RelaxationProposal,
     RunContext,
-    UserProfile,
 )
 from property_agent.decision.boundaries import ProfileVersionConflict
-from property_agent.decision.guards import RELAXABLE_FIELDS
+from property_agent.profiles import apply_relaxation
 from property_agent.persistence.models import (
     AgentRunRow,
     ConversationRow,
@@ -37,7 +37,7 @@ class SqlProfileRepository:
     def __init__(self, sessions: SessionFactory) -> None:
         self.sessions = sessions
 
-    def put(self, profile: UserProfile, *, user_id: str) -> None:
+    def put(self, profile: ConversationProfile, *, user_id: str) -> None:
         statement = pg_insert(UserProfileRow).values(
             profile_id=profile["profile_id"],
             user_id=user_id,
@@ -66,7 +66,7 @@ class SqlProfileRepository:
         proposal: RelaxationProposal,
         source_message_id: str,
         op_key: str,
-    ) -> UserProfile:
+    ) -> ConversationProfile:
         with self.sessions.begin() as session:
             replay = session.get(ProfileMutationRow, op_key)
             if replay is not None:
@@ -84,7 +84,7 @@ class SqlProfileRepository:
                 raise ProfileVersionConflict(
                     f"档案已是 v{row.version}，提案基于 v{base_version}"
                 )
-            updated = _apply_relaxation(
+            updated = apply_relaxation(
                 row.body,
                 proposal=proposal,
                 source_message_id=source_message_id,
@@ -109,7 +109,7 @@ class SqlRunRepository:
     def __init__(self, sessions: SessionFactory) -> None:
         self.sessions = sessions
 
-    def prepare_run(self, *, ctx: RunContext, profile: UserProfile) -> None:
+    def prepare_run(self, *, ctx: RunContext, profile: ConversationProfile) -> None:
         conversation = pg_insert(ConversationRow).values(
             id=ctx["conversation_id"],
             user_id=ctx["user_id"],
@@ -373,29 +373,6 @@ class SqlRecommendationRepository:
             if existing is None:
                 raise ValueError("该 run 已由不同操作发布推荐")
             return existing.final_result_id, True
-
-
-def _apply_relaxation(
-    profile: dict[str, Any],
-    *,
-    proposal: RelaxationProposal,
-    source_message_id: str,
-) -> UserProfile:
-    field = proposal["field"]
-    if field not in RELAXABLE_FIELDS:
-        raise ValueError(f"字段不在可放宽白名单: {field}")
-    updated = copy.deepcopy(profile)
-    current: dict[str, Any] = updated
-    parts = field.split(".")
-    for part in parts[:-1]:
-        value = current.get(part)
-        if not isinstance(value, dict):
-            raise ValueError(f"档案字段路径不存在: {field}")
-        current = value
-    current[parts[-1]] = proposal["proposed_value"]
-    updated["version"] = int(updated["version"]) + 1
-    updated.setdefault("field_sources", {})[field] = source_message_id
-    return updated  # type: ignore[return-value]
 
 
 def _short_hash(text: str) -> str:

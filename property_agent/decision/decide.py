@@ -3,19 +3,15 @@
 契约要求这是确定性纯函数：只读 DecisionState，不调模型、不写库、不生成随机 ID。
 非法字段或不可能状态抛 ContractViolation，由调用边界转成系统错误并记录 trace。
 
-优先序（function-contracts-v0 §11）：
-1. 非法计数/策略/版本字段先拒绝；
-2. 取消或需求被取代先停止；
-3. 用户明确拒绝调整则结束；
-4. 准备阶段缺信息则询问；
-5. 来源或审查服务失败按错误终止；
-6. 内容阻断问题先修复；
-7. 合法且足量则发布；
-8. 不足量但可合法补搜则 research；否则有具体问题则 ask_user，无问题则 finish。
+业务路线交给 C 的 `part_c.decide_next`：review 通过后尽量执行 evaluate 的
+`next_action`。结构校验、尚未搜索的准备阶段仍由本模块处理，因为 C 假定
+已经评过一轮。
 """
 from __future__ import annotations
 
 from typing import Any
+
+import part_c
 
 from property_agent.contracts import (
     ContractViolation,
@@ -28,6 +24,7 @@ from property_agent.decision.policy import validate_policy
 
 SEARCH_STATUSES = frozenset({"not_started", "success", "partial", "error"})
 STRATEGY_KINDS = frozenset({"next_page", "alias_query", "alternate_source"})
+EVALUATION_ACTIONS = frozenset({"publish", "research", "ask_user", "finish"})
 
 # 终态与动作的原因码。字符串进入持久化与前端展示，因此集中定义。
 CANCELLED = "cancelled"
@@ -156,6 +153,20 @@ def validate_decision_state(state: DecisionState) -> None:
     if question is not None:
         _validate_question(question, state)
 
+    action = state.get("evaluation_next_action")
+    if action is not None:
+        if action not in EVALUATION_ACTIONS:
+            raise _invalid_state(
+                "state.evaluation_next_action",
+                "evaluation_next_action 必须是 publish/research/ask_user/finish 或 null",
+            )
+        reason = state.get("evaluation_next_reason_code")
+        if not isinstance(reason, str) or not reason.strip():
+            raise _invalid_state(
+                "state.evaluation_next_reason_code",
+                "提供 evaluation_next_action 时必须同时给出非空原因码",
+            )
+
 
 def _blocking_issues(review: Any) -> list[Any]:
     return [issue for issue in review.get("issues", []) if issue.get("severity") == "blocking"]
@@ -195,19 +206,8 @@ def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
     validate_policy(policy)
     validate_decision_state(state)
 
-    # 取消与被新需求取代优先于一切业务判断：旧执行结果不能覆盖新需求。
-    if state["cancelled"]:
-        return _decision("stop", CANCELLED)
-    if state["profile_version"] != state["current_profile_version"]:
-        return _decision("stop", PROFILE_SUPERSEDED)
-
-    # 用户已经明确拒绝调整，不再反复提问。
-    if state["user_declined"]:
-        return _decision("finish", USER_DECLINED)
-
     question = state.get("pending_question")
-
-    # 准备阶段：还没有搜索结果可判断，只能提问或发起第一次查询。
+    # C 假定已经评过一轮。尚未搜索时仍由编排层决定先问还是先搜。
     if state["search_status"] == "not_started":
         if question is not None:
             return _decision("ask_user", question["reason_code"], pending_question=question)
@@ -218,35 +218,11 @@ def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
             "state.search_status", "尚未搜索且没有待问问题或可执行补搜指令，无法路由"
         )
 
-    # 所有来源失败必须按错误终止；不能因为 0 条结果去建议提高预算。
-    if state["search_status"] == "error":
-        return _decision("stop", SOURCE_FAILURE)
-
-    review = state.get("review")
-    if review is None:
-        # 审查服务自身失败与"审查发现问题"是两件事，前者不能假装通过。
-        if state.get("failure_code"):
-            return _decision("stop", SERVICE_FAILURE)
-        raise _invalid_state("state.review", "已有搜索结果且无系统错误时必须带审查结果")
-
-    # 阻断性问题在额度内修复；用尽后只保留可验证信息，不发布问题草稿。
-    if _blocking_issues(review):
-        if state["deadline_exhausted"]:
-            return _decision("stop", DEADLINE_EXHAUSTED)
-        if state["repairs_used"] < policy["max_repairs"]:
-            return _decision("repair", REVIEW_BLOCKED)
-        return _decision("stop", REPAIR_EXHAUSTED)
-
-    # 达到最低有效数量且结果合法即可发布；展示上限由 publish 侧独立控制。
-    if state["eligible_count"] >= policy["min_matches"]:
-        return _decision("publish", ENOUGH_MATCHES)
-
-    # 数量不足：先找保持硬条件的补搜路径，再考虑向用户求让步。
-    if _research_available(state, policy):
-        directive = state["search_directive"]
-        return _decision("research", directive["reason_code"], search_directive=directive)
-    if question is not None:
-        return _decision("ask_user", question["reason_code"], pending_question=question)
-    return _decision(
-        "finish", DEADLINE_EXHAUSTED if state["deadline_exhausted"] else INSUFFICIENT_MATCHES
-    )
+    try:
+        return part_c.decide_next(state, policy)
+    except Exception as exc:
+        if getattr(exc, "code", None) in {"INVALID_INPUT", "INVALID_STATE"} and hasattr(
+            exc, "field_path"
+        ):
+            raise ContractViolation(exc.code, exc.field_path, str(exc)) from exc
+        raise

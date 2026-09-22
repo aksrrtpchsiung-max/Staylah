@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from property_agent.contracts import Result, UserProfile
+from property_agent.contracts import ConversationProfile, Result
 from property_agent.decision.boundaries import AttemptOutcome
 from property_agent.mock_search.screen import screen_listings
 
@@ -21,7 +21,7 @@ def load_search_fixture(name: str) -> Result:
 
 def first_attempt_from_fixture(
     name: str,
-    profile: UserProfile,
+    profile: ConversationProfile,
     *,
     attempt_id: str = "attempt-001",
     item_limit: int | None = None,
@@ -43,7 +43,7 @@ def first_attempt_from_fixture(
 
 def outcome_from_search_result(
     result: Result,
-    profile: UserProfile,
+    profile: ConversationProfile,
     *,
     attempt_id: str,
 ) -> AttemptOutcome:
@@ -78,7 +78,11 @@ def outcome_from_search_result(
             "candidates": [
                 {
                     "listing_key": key,
-                    "exact_matches": list(profile["hard_constraints"].get("locations") or []),
+                    "exact_matches": [
+                        item.get("target")
+                        for item in profile.get("derived_data_requirements") or []
+                        if item.get("target")
+                    ],
                     "vector_score": None,
                     "keyword_score": None,
                     "retrieval_rank": rank,

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from property_agent.contracts import Result, RunContext, SearchDirective, UserProfile
+from property_agent.contracts import ConversationProfile, Result, RunContext, SearchDirective
 from property_agent.mock_search.pipeline import load_search_fixture, outcome_from_search_result
 from property_agent.results import CallTimer, make_issue
 
@@ -18,7 +18,7 @@ class MockSearchRunner:
     calls: list[SearchDirective] = field(default_factory=list)
 
     async def run_attempt(
-        self, directive: SearchDirective, profile: UserProfile, *, ctx: RunContext
+        self, directive: SearchDirective, profile: ConversationProfile, *, ctx: RunContext
     ) -> Result:
         timer = CallTimer(ctx)
         self.calls.append(directive)

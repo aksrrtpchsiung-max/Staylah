@@ -23,7 +23,7 @@ from property_agent.contracts import (
     RunContext,
     ScreenResult,
     SearchDirective,
-    UserProfile,
+    ConversationProfile,
 )
 from property_agent.decision.boundaries import NextRunRequest
 
@@ -51,7 +51,7 @@ class DState(TypedDict, total=False):
     run_id: str
     conversation_id: str
     profile_id: str
-    profile_snapshot: UserProfile
+    profile_snapshot: ConversationProfile
     profile_version: int
     current_profile_version: int
 
@@ -74,6 +74,8 @@ class DState(TypedDict, total=False):
     # 程序计数与清洗后的下一步材料。
     eligible_count: int
     search_directive: SearchDirective | None
+    evaluation_next_action: str | None
+    evaluation_next_reason_code: str | None
     relaxation_proposals: list[RelaxationProposal]
     pending_question: PendingQuestion | None
     pending_answer: PendingAnswer | dict[str, Any] | str | None
@@ -125,5 +127,7 @@ def build_decision_state(state: DState) -> DecisionState:
         "failure_code": state.get("failure_code"),
         "search_directive": state.get("search_directive"),
         "pending_question": state.get("pending_question"),
+        "evaluation_next_action": state.get("evaluation_next_action"),
+        "evaluation_next_reason_code": state.get("evaluation_next_reason_code"),
     }
     return projected  # type: ignore[return-value]

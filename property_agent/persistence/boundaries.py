@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from property_agent.contracts import ChatMessage, RunContext, UserProfile
+from property_agent.contracts import ChatMessage, RunContext, ConversationProfile
 
 
 class ChatRepository(Protocol):
@@ -35,6 +35,6 @@ class ChatRepository(Protocol):
 
 
 class RunBootstrap(Protocol):
-    def prepare_run(self, *, ctx: RunContext, profile: UserProfile) -> None:
+    def prepare_run(self, *, ctx: RunContext, profile: ConversationProfile) -> None:
         """幂等创建 conversation、profile 与 agent_run；graph_thread_id 固定为 run_id。"""
         ...

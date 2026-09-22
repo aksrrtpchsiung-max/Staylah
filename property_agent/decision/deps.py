@@ -7,7 +7,7 @@ from property_agent.clarification.boundaries import OnboardingHandoff
 from property_agent.clarification.handoff import DefaultOnboardingHandoff
 from property_agent.clarification.service import ClarificationAgent
 from property_agent.clarification.stubs import PassthroughClarificationAdapter
-from property_agent.contracts import UserProfile
+from property_agent.contracts import ConversationProfile
 from property_agent.decision.boundaries import (
     EvaluationModule,
     ProfileWriter,
@@ -40,7 +40,7 @@ class DecisionDeps:
     allowed_sources: tuple[str, ...] = ("propertyguru",)
 
 
-def build_stub_deps(profile: UserProfile | None = None) -> DecisionDeps:
+def build_stub_deps(profile: ConversationProfile | None = None) -> DecisionDeps:
     """开发期依赖：模块 C 与模块 B 都用替身，档案与持久化走内存实现。"""
     writer = InMemoryProfileWriter()
     if profile is not None:

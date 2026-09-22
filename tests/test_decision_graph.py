@@ -24,6 +24,7 @@ from tests.support import (
     load_profile,
     load_snapshot,
 )
+from property_agent.profiles import read_relaxable_value
 
 
 class DecisionGraphCase(unittest.IsolatedAsyncioTestCase):
@@ -103,13 +104,83 @@ class RelaxationTests(DecisionGraphCase):
         question = self.interrupted_question(result)
         self.assertEqual(question["reason_code"], "insufficient_candidates")
         proposal = question["proposals"][0]
-        self.assertEqual(proposal["field"], "hard_constraints.max_price")
+        self.assertEqual(proposal["field"], "listing_constraints.price.amount")
         self.assertEqual(proposal["old_value"], 3500)
         self.assertEqual(proposal["proposed_value"], OVER_BUDGET_AMOUNT)
         self.assertTrue(proposal["requires_user_confirmation"])
         self.assertEqual(proposal["evidence_listing_keys"], [OVER_BUDGET_KEY])
+        self.assertIn("本轮已有 2 套符合硬条件的房源，只是数量还偏少。", question["text"])
+        self.assertNotIn("没有符合当前硬条件的房源", question["text"])
         # 提案还没被接受，档案必须一字未改。
         self.assertEqual(self.deps.profiles.current_version("mock-profile-001"), 1)
+        self.assertEqual(self.deps.recommendations.saved, {})
+
+    async def test_ask_user_says_none_when_zero_eligible(self):
+        result = await self.run_graph(eligible=0, include_over_budget=True)
+        question = self.interrupted_question(result)
+        self.assertIn("本轮没有符合当前硬条件的房源。", question["text"])
+        self.assertNotIn("数量还偏少", question["text"])
+        self.assertEqual(self.deps.recommendations.saved, {})
+
+    async def test_c_can_ask_even_when_enough_matches(self):
+        """听 C：够数时若 evaluate 仍建议 ask_user，就先问，并说明已有若干套。"""
+        snapshot = load_snapshot()
+        ordered = []
+        by_key = {item["listing_key"]: item for item in snapshot["items"]}
+        for rank, key in enumerate(ELIGIBLE_KEYS[:3], start=1):
+            price = by_key[key].get("price") or {}
+            ordered.append(
+                {
+                    "listing_key": key,
+                    "rank": rank,
+                    "reasons": [
+                        {
+                            "kind": "fact",
+                            "text": f"来源显示租金 {price.get('currency')} {price.get('amount')}，未超预算。",
+                            "evidence_ids": list(price.get("evidence_ids") or []),
+                        }
+                    ],
+                    "tradeoffs": [],
+                    "unknowns": ["当前可租状态尚未向经纪人核实"],
+                }
+            )
+        self.deps.module_c.evaluations.append(
+            {
+                "status": "success",
+                "data": {
+                    "profile_version": 1,
+                    "snapshot_id": snapshot["snapshot_id"],
+                    "recommendation": {
+                        "ordered_items": ordered,
+                        "summary": "本次共 3 条合格候选。",
+                        "limitations": ["仅覆盖本次查询"],
+                    },
+                    "assessment": {
+                        "constraint_findings": [],
+                        "search_directive": None,
+                        "relaxation_proposals": [
+                            {
+                                "proposal_id": "relax-price-3501",
+                                "field": "listing_constraints.price.amount",
+                                "old_value": 3500,
+                                "proposed_value": OVER_BUDGET_AMOUNT,
+                                "reason": "本轮被排除的房源租金为 3501。",
+                                "evidence_listing_keys": [OVER_BUDGET_KEY],
+                                "requires_user_confirmation": True,
+                            }
+                        ],
+                        "next_action": "ask_user",
+                        "next_reason_code": "relaxation_available",
+                    },
+                },
+                "issues": [],
+            }
+        )
+        result = await self.run_graph(eligible=3, include_over_budget=True)
+        question = self.interrupted_question(result)
+        self.assertEqual(result["decision"]["action"], "ask_user")
+        self.assertIn("本轮已有 3 套符合硬条件的房源，只是数量还偏少。", question["text"])
+        self.assertNotIn("没有符合当前硬条件的房源", question["text"])
         self.assertEqual(self.deps.recommendations.saved, {})
 
     async def test_accepting_proposal_updates_profile_and_supersedes_run(self):
@@ -131,8 +202,9 @@ class RelaxationTests(DecisionGraphCase):
 
         updated = self.deps.profiles.profiles["mock-profile-001"]
         self.assertEqual(updated["version"], 2)
-        self.assertEqual(updated["hard_constraints"]["max_price"], OVER_BUDGET_AMOUNT)
-        self.assertEqual(updated["field_sources"]["hard_constraints.max_price"], "msg-accept-1")
+        self.assertEqual(read_relaxable_value(updated, "listing_constraints.price.amount"), OVER_BUDGET_AMOUNT)
+        self.assertEqual(updated["field_sources"]["listing_constraints.price.amount"], "msg-accept-1")
+        self.assertEqual(updated["confirmed_version"], 2)
         # 旧 run 不拿旧候选集发推荐，新一轮搜索由新 run 负责。
         self.assertEqual(self.deps.recommendations.saved, {})
 
@@ -329,13 +401,13 @@ class FailureTests(DecisionGraphCase):
         )
         result = await self.run_graph(eligible=3)
         self.assertEqual(result["status"], "failed")
-        self.assertEqual(result["completion_reason"], "service_failure")
+        self.assertEqual(result["completion_reason"], "review_missing")
         self.assertEqual(self.deps.recommendations.saved, {})
 
     async def test_no_matches_and_no_options_finishes_cleanly(self):
         result = await self.run_graph(eligible=0)
         self.assertEqual(result["status"], "completed")
-        self.assertEqual(result["completion_reason"], "insufficient_matches")
+        self.assertEqual(result["completion_reason"], "insufficient_candidates")
         self.assertIsNone(result["final_result_id"])
 
 
@@ -464,7 +536,7 @@ class GuardTests(DecisionGraphCase):
                 [
                     {
                         "proposal_id": "tighten",
-                        "field": "hard_constraints.max_price",
+                        "field": "listing_constraints.price.amount",
                         "old_value": 3500,
                         "proposed_value": 3000,
                         "reason": "降低预算",
@@ -476,7 +548,7 @@ class GuardTests(DecisionGraphCase):
         )
         result = await self.run_graph(eligible=0)
         self.assertIsNone(result["pending_question"])
-        self.assertEqual(result["completion_reason"], "insufficient_matches")
+        self.assertEqual(result["completion_reason"], "insufficient_candidates")
         self.assertIn(
             "CONSTRAINT_CHANGE_NOT_ALLOWED", [issue["code"] for issue in result["last_issues"]]
         )
@@ -508,7 +580,7 @@ class GuardTests(DecisionGraphCase):
                 [
                     {
                         "proposal_id": "stale-base",
-                        "field": "hard_constraints.max_price",
+                        "field": "listing_constraints.price.amount",
                         "old_value": 3000,
                         "proposed_value": 4000,
                         "reason": "基于旧预算构造",
@@ -550,7 +622,7 @@ class GuardTests(DecisionGraphCase):
         result = await self.run_graph(eligible=0)
         self.assertEqual(self.deps.search_runner.calls, [])
         self.assertIn("SOURCE_UNAVAILABLE", [issue["code"] for issue in result["last_issues"]])
-        self.assertEqual(result["completion_reason"], "insufficient_matches")
+        self.assertEqual(result["completion_reason"], "insufficient_candidates")
 
 
 if __name__ == "__main__":

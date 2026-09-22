@@ -164,6 +164,7 @@ class DecisionNodes:
         directive = None
         proposals: list[Any] = []
         settled = state.get("cancelled") or state.get("user_declined")
+        eligible_count = count_eligible(state.get("screen_result"))
         if not settled:
             directive, directive_issues = sanitize_directive(
                 assessment.get("search_directive"),
@@ -176,7 +177,9 @@ class DecisionNodes:
             issues += directive_issues + proposal_issues
 
         question = (
-            self._build_question(state, proposals, next_version) if proposals and not settled else None
+            self._build_question(state, proposals, next_version, eligible_count)
+            if proposals and not settled
+            else None
         )
         if question is not None:
             question = await self.deps.clarification.prepare_question(question)
@@ -184,16 +187,22 @@ class DecisionNodes:
             "schema_version": SCHEMA_VERSION,
             # 发布前重新读一次当前档案版本：等待期间用户可能已经改了需求。
             "current_profile_version": self.deps.profiles.current_version(state["profile_id"]),
-            "eligible_count": count_eligible(state.get("screen_result")),
+            "eligible_count": eligible_count,
             "search_directive": directive,
             "relaxation_proposals": proposals,
             "pending_question": question,
+            "evaluation_next_action": assessment.get("next_action"),
+            "evaluation_next_reason_code": assessment.get("next_reason_code"),
             "state_version": next_version,
             "last_issues": issues,
         }
 
     def _build_question(
-        self, state: DState, proposals: list[Any], state_version: int
+        self,
+        state: DState,
+        proposals: list[Any],
+        state_version: int,
+        eligible_count: int,
     ) -> PendingQuestion:
         """问题 ID 由编排器预先分配，保证节点重跑不会重复发问。"""
         fingerprint = _short_hash(",".join(p["proposal_id"] for p in proposals))
@@ -201,9 +210,13 @@ class DecisionNodes:
             f"- 将 {p['field']} 从 {p['old_value']} 调整为 {p['proposed_value']}：{p['reason']}"
             for p in proposals
         ]
+        if eligible_count <= 0:
+            lead = "本轮没有符合当前硬条件的房源。"
+        else:
+            lead = f"本轮已有 {eligible_count} 套符合硬条件的房源，只是数量还偏少。"
         return {
             "question_id": f"{state['run_id']}:state-{state_version}:relax-{fingerprint}",
-            "text": "本轮合格房源不足。是否接受下列调整？不接受也可以就此结束。\n" + "\n".join(lines),
+            "text": lead + "是否接受下列调整？不接受也可以就此结束。\n" + "\n".join(lines),
             "reason_code": "insufficient_candidates",
             "proposals": proposals,
             "allowed_actions": list(ANSWER_ACTIONS),

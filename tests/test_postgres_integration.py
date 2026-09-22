@@ -89,7 +89,7 @@ class PostgresRepositoryTests(unittest.TestCase):
     def test_business_writes_are_idempotent(self):
         proposal = {
             "proposal_id": "raise-budget",
-            "field": "hard_constraints.max_price",
+            "field": "listing_constraints.price.amount",
             "old_value": 3500,
             "proposed_value": 3600,
             "reason": "扩大匹配",
@@ -179,7 +179,7 @@ class PostgresRepositoryTests(unittest.TestCase):
     def test_profile_optimistic_lock_and_chat_history(self):
         proposal = {
             "proposal_id": "raise-budget",
-            "field": "hard_constraints.max_price",
+            "field": "listing_constraints.price.amount",
             "old_value": 3500,
             "proposed_value": 3600,
             "reason": "扩大匹配",

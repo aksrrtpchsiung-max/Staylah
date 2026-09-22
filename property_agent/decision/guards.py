@@ -12,12 +12,16 @@ from __future__ import annotations
 from typing import Any, Sequence
 
 from property_agent.contracts import (
+    ConversationProfile,
     Issue,
-    JsonValue,
     Recommendation,
     RelaxationProposal,
     SearchDirective,
-    UserProfile,
+)
+from property_agent.profiles import (
+    RELAXABLE_FIELDS,
+    is_relaxation,
+    read_relaxable_value,
 )
 from property_agent.results import make_issue
 
@@ -30,50 +34,8 @@ STRATEGY_REQUIRED_KEYS = {
     "alternate_source": ("source",),
 }
 
-# 可以向用户提议放宽的字段。不在表内的字段一律拒绝，不做"看起来像放宽"的推断。
-RELAXABLE_FIELDS = frozenset({
-    "hard_constraints.max_price",
-    "hard_constraints.min_bedrooms",
-    "hard_constraints.locations",
-})
-
-
-def read_profile_field(profile: UserProfile, path: str) -> JsonValue:
-    """按 contracts 的字段路径读取当前值；路径不存在时抛 KeyError。"""
-    node: Any = profile
-    for part in path.split("."):
-        if not isinstance(node, dict) or part not in node:
-            raise KeyError(path)
-        node = node[part]
-    return node
-
-
-def _is_relaxation(field: str, old: JsonValue, proposed: JsonValue) -> bool:
-    """只认三种确定的放宽方向，其余一律不认。"""
-    if field == "hard_constraints.max_price":
-        # 没有预算时无从放宽；提高上限才是放宽。
-        return (
-            isinstance(old, int)
-            and isinstance(proposed, int)
-            and not isinstance(proposed, bool)
-            and proposed > old
-        )
-    if field == "hard_constraints.min_bedrooms":
-        if old is None:
-            return False
-        if proposed is None:
-            return True  # 取消卧室下限
-        return isinstance(proposed, int) and not isinstance(proposed, bool) and proposed < old
-    if field == "hard_constraints.locations":
-        # locations=[] 表示用户明确不限地区，已是最宽，往里加地点属于收紧。
-        if not isinstance(old, list) or not isinstance(proposed, list) or not old:
-            return False
-        return set(old) < set(proposed)
-    return False
-
-
 def sanitize_proposals(
-    proposals: Sequence[Any] | None, profile: UserProfile
+    proposals: Sequence[Any] | None, profile: ConversationProfile
 ) -> tuple[list[RelaxationProposal], list[Issue]]:
     """返回可以拿去问用户的提案，以及被拒绝原因。提案本身绝不在这里生效。"""
     issues: list[Issue] = []
@@ -120,7 +82,7 @@ def sanitize_proposals(
             continue
 
         try:
-            current = read_profile_field(profile, field)
+            current = read_relaxable_value(profile, field)
         except KeyError:
             issues.append(
                 make_issue("INVALID_OUTPUT", "提案字段在档案中不存在", field_path=f"{path}.field")
@@ -138,7 +100,7 @@ def sanitize_proposals(
             )
             continue
 
-        if not _is_relaxation(field, current, proposal.get("proposed_value")):
+        if not is_relaxation(field, current, proposal.get("proposed_value")):
             issues.append(
                 make_issue(
                     "CONSTRAINT_CHANGE_NOT_ALLOWED",

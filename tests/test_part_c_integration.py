@@ -7,7 +7,6 @@ from property_agent.decision import (
     PartCEvaluationModule,
     build_decision_graph,
     build_stub_deps,
-    confirmed_profile,
     initial_state,
 )
 from property_agent.decision.stubs import ScriptedSearchRunner
@@ -41,15 +40,15 @@ class AcceptingPartCModel:
         return []
 
 
-class PartCAdapterTests(unittest.IsolatedAsyncioTestCase):
+class PartCIntegrationTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         part_c.configure_evaluation_review_model(AcceptingPartCModel())
 
     def tearDown(self):
         part_c.configure_evaluation_review_model(None)
 
-    def test_legacy_profile_is_projected_as_confirmed_without_fabricating_quotes(self):
-        profile = confirmed_profile(load_profile(), build_ctx("run-part-c-profile"))
+    def test_fixture_profile_is_confirmed_conversation_profile(self):
+        profile = load_profile()
         self.assertEqual(profile["status"], "confirmed")
         self.assertEqual(profile["confirmed_version"], profile["version"])
         self.assertTrue(profile["listing_constraints"])
@@ -81,7 +80,7 @@ class PartCAdapterTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["completion_reason"], "published")
         self.assertEqual(result["published_recommendation"]["summary"], "Part C integration test")
 
-    async def test_part_c_relaxation_uses_current_profile_writer_path(self):
+    async def test_part_c_relaxation_uses_listing_constraint_path(self):
         profile = load_profile()
         deps = build_stub_deps(profile)
         deps.module_c = PartCEvaluationModule()
@@ -95,7 +94,8 @@ class PartCAdapterTests(unittest.IsolatedAsyncioTestCase):
             {"configurable": {"thread_id": "run-part-c-relax"}},
         )
         question = result["__interrupt__"][0].value["pending_question"]
-        self.assertEqual(question["proposals"][0]["field"], "hard_constraints.max_price")
+        self.assertEqual(question["proposals"][0]["field"], "listing_constraints.price.amount")
+        self.assertIn("本轮已有 2 套符合硬条件的房源，只是数量还偏少。", question["text"])
 
 
 if __name__ == "__main__":

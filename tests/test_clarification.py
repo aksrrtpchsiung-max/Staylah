@@ -12,7 +12,7 @@ def question(*, proposal_count: int = 1) -> dict:
     proposals = [
         {
             "proposal_id": f"proposal-{index}",
-            "field": "hard_constraints.max_price",
+            "field": "listing_constraints.price.amount",
             "old_value": 3500,
             "proposed_value": 3500 + index,
             "reason": "扩大匹配范围",

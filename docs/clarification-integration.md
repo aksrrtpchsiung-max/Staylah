@@ -8,17 +8,25 @@
 调用方沿用冻结 contract：
 
 - `RunContext`：必须提供稳定的 `user_id`、`run_id`、`conversation_id`。
-- `UserProfile`：本 run 的冻结需求版本。
+- `ConversationProfile`：本 run 的冻结需求版本，必须是 `status="confirmed"`。
 - `AttemptOutcome`：搜索团队交付的一次尝试结果。联调时可用
   `property_agent.mock_search.first_attempt_from_fixture(...)` 把夹具
   `Result[SearchResult]` 转成该对象。
 - `EvaluationModule`、`SearchRunner`：实现
   `property_agent.decision.boundaries` 中的 Protocol。默认评估模块是
-  `PartCEvaluationModule`；离线测试可显式传入 `ScriptedModuleC`。
+  `PartCEvaluationModule`，直接调用 `part_c.evaluate` / `part_c.review`；
+  离线测试可显式传入 `ScriptedModuleC`。
 
-`PartCEvaluationModule` 会把现有 decision 模块的冻结 `UserProfile` 投影为 Part C
-需要的 `ConversationProfile`。如果上游已经提供 `listing_constraints`，适配层会直接
-透传。旧合同没有保存用户原句，因此适配时不会伪造 `source.text`。
+decision 图与模块 C 使用同一份 `ConversationProfile`。旧夹具在
+`tests.support.load_profile()` 加载时转换成确认档案，不再经过独立适配器。
+
+业务路由尽量听 C 的 `part_c.decide_next`。`prepare_decision` 把
+`assessment.next_action` 写入 `evaluation_next_action`，再交给 C 执行。
+取消、档案过期、来源失败、截止时间和 review/repair 等安全门仍由 C 先处理；
+尚未搜索的准备阶段由 A 本地处理，因为 C 假定已经评过一轮。
+
+`ask_user` 文案按本轮合格套数区分：没有候选时说明没有符合硬条件的房源；
+已有若干套时说明数量偏少，而不是没有。
 
 不要把数据库连接、DeepSeek key 或模型对象写入 `RunContext`/`DState`。
 

@@ -9,7 +9,7 @@ from property_agent.clarification.service import ClarificationAgent
 from property_agent.clarification.stubs import PassthroughClarificationAdapter
 from property_agent.decision.boundaries import EvaluationModule, SearchRunner
 from property_agent.decision.deps import DecisionDeps
-from property_agent.decision.part_c_adapter import PartCEvaluationModule
+from property_agent.decision.module_c import PartCEvaluationModule
 from property_agent.persistence.repositories import (
     SessionFactory,
     SqlProfileRepository,

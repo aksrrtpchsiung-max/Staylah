@@ -5,7 +5,7 @@
 from property_agent.decision.decide import decide_next, validate_decision_state
 from property_agent.decision.deps import DecisionDeps, build_stub_deps
 from property_agent.decision.graph import build_decision_graph, initial_state
-from property_agent.decision.part_c_adapter import PartCEvaluationModule, confirmed_profile
+from property_agent.decision.module_c import PartCEvaluationModule
 from property_agent.decision.policy import DEFAULT_POLICY, validate_policy
 from property_agent.decision.runtime import postgres_decision_graph, thread_config
 
@@ -19,7 +19,6 @@ __all__ = [
     "build_decision_graph",
     "initial_state",
     "PartCEvaluationModule",
-    "confirmed_profile",
     "postgres_decision_graph",
     "thread_config",
 ]

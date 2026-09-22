@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from langgraph.graph import END, START, StateGraph
 
-from property_agent.contracts import RoutingPolicy, RunContext, UserProfile
+from property_agent.contracts import ConversationProfile, RoutingPolicy, RunContext
 from property_agent.decision.boundaries import AttemptOutcome
 from property_agent.decision.deps import DecisionDeps
 from property_agent.decision.nodes import (
@@ -84,7 +84,7 @@ def build_decision_graph(deps: DecisionDeps) -> StateGraph:
 def initial_state(
     *,
     ctx: RunContext,
-    profile: UserProfile,
+    profile: ConversationProfile,
     outcome: AttemptOutcome,
     policy: RoutingPolicy | None = None,
     search_attempts_used: int = 1,
@@ -121,6 +121,8 @@ def initial_state(
         "repairs_used": 0,
         "eligible_count": 0,
         "search_directive": None,
+        "evaluation_next_action": None,
+        "evaluation_next_reason_code": None,
         "relaxation_proposals": [],
         "pending_question": None,
         "pending_answer": None,

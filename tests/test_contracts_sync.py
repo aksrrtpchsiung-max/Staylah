@@ -9,9 +9,7 @@ from pathlib import Path
 
 from property_agent import contracts
 
-AUTHORITATIVE = (
-    Path(__file__).resolve().parents[1] / "mock_property_data 2" / "contracts" / "contracts_v0.py"
-)
+AUTHORITATIVE = Path(__file__).resolve().parents[1] / "contracts_v0.py"
 
 
 def load_authoritative():

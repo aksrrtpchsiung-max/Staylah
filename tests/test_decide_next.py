@@ -97,7 +97,7 @@ def question(**overrides) -> dict:
         "proposals": [
             {
                 "proposal_id": "proposal-001",
-                "field": "hard_constraints.max_price",
+                "field": "listing_constraints.price.amount",
                 "old_value": 3500,
                 "proposed_value": 3600,
                 "reason": "本次被排除的候选月租 3501。",
@@ -157,20 +157,64 @@ class RoutingPriorityTests(unittest.TestCase):
     def test_review_service_failure_is_not_a_pass(self):
         state = base_state(review=None, failure_code="MODEL_UNAVAILABLE")
         decision = decide_next(state, DEFAULT_POLICY)
-        self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "service_failure"))
+        self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "review_missing"))
 
     def test_blocking_review_beats_enough_matches(self):
         state = base_state(eligible_count=10, review=blocking_review())
         self.assertEqual(decide_next(state, DEFAULT_POLICY)["action"], "repair")
 
     def test_research_preferred_over_asking_for_relaxation(self):
-        """先用保持硬条件的方法补搜，再考虑让用户让步。"""
+        """没有 C 偏好时，先用保持硬条件的方法补搜，再考虑让用户让步。"""
         state = base_state(
             eligible_count=1, search_directive=directive(), pending_question=question()
         )
         decision = decide_next(state, DEFAULT_POLICY)
         self.assertEqual(decision["action"], "research")
         self.assertIsNone(decision["pending_question"])
+
+    def test_evaluation_can_prefer_asking_when_research_is_also_legal(self):
+        state = base_state(
+            eligible_count=1,
+            search_directive=directive(),
+            pending_question=question(),
+            evaluation_next_action="ask_user",
+            evaluation_next_reason_code="relaxation_available",
+        )
+        decision = decide_next(state, DEFAULT_POLICY)
+        self.assertEqual(decision["action"], "ask_user")
+        self.assertEqual(decision["reason_code"], "relaxation_available")
+        self.assertIsNone(decision["search_directive"])
+
+    def test_evaluation_can_skip_publish_to_ask_when_c_requests_it(self):
+        """听 C：够数时若 evaluate 建议 ask_user 且问题已备好，就先问用户。"""
+        state = base_state(
+            evaluation_next_action="ask_user",
+            evaluation_next_reason_code="relaxation_available",
+            pending_question=question(),
+        )
+        decision = decide_next(state, DEFAULT_POLICY)
+        self.assertEqual(decision["action"], "ask_user")
+        self.assertEqual(decision["reason_code"], "relaxation_available")
+
+    def test_evaluation_can_finish_even_when_research_remains(self):
+        """听 C：evaluate 建议 finish 时不再强制补搜。"""
+        state = base_state(
+            eligible_count=1,
+            search_directive=directive(),
+            evaluation_next_action="finish",
+            evaluation_next_reason_code="insufficient_candidates",
+        )
+        decision = decide_next(state, DEFAULT_POLICY)
+        self.assertEqual((decision["action"], decision["reason_code"]), ("finish", "insufficient_candidates"))
+
+    def test_evaluation_cannot_override_blocking_review(self):
+        state = base_state(
+            eligible_count=10,
+            review=blocking_review(),
+            evaluation_next_action="publish",
+            evaluation_next_reason_code="enough_matches",
+        )
+        self.assertEqual(decide_next(state, DEFAULT_POLICY)["action"], "repair")
 
     def test_warning_issues_do_not_block_publish(self):
         review = blocking_review()
@@ -181,7 +225,7 @@ class RoutingPriorityTests(unittest.TestCase):
     def test_finish_when_no_directive_and_no_question(self):
         decision = decide_next(base_state(eligible_count=0), DEFAULT_POLICY)
         self.assertEqual(
-            (decision["action"], decision["reason_code"]), ("finish", "insufficient_matches")
+            (decision["action"], decision["reason_code"]), ("finish", "insufficient_candidates")
         )
 
 
@@ -190,7 +234,8 @@ class BudgetTests(unittest.TestCase):
         state = base_state(
             eligible_count=1, search_attempts_used=3, search_directive=directive()
         )
-        self.assertEqual(decide_next(state, DEFAULT_POLICY)["action"], "finish")
+        decision = decide_next(state, DEFAULT_POLICY)
+        self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "budget_exhausted"))
 
     def test_deadline_forbids_research_and_repair(self):
         researching = base_state(
@@ -202,11 +247,10 @@ class BudgetTests(unittest.TestCase):
         decision = decide_next(repairing, DEFAULT_POLICY)
         self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "deadline_exhausted"))
 
-    def test_deadline_still_allows_publish(self):
-        """活动时限用尽不撤销已经合法且足量的结果。"""
-        self.assertEqual(
-            decide_next(base_state(deadline_exhausted=True), DEFAULT_POLICY)["action"], "publish"
-        )
+    def test_deadline_stops_even_with_enough_matches(self):
+        """C 把截止时间当作硬停止，即使已经有足量合法结果。"""
+        decision = decide_next(base_state(deadline_exhausted=True), DEFAULT_POLICY)
+        self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "deadline_exhausted"))
 
     def test_min_matches_is_a_boundary_not_a_range(self):
         for count, action in ((2, "finish"), (3, "publish"), (4, "publish")):
@@ -216,15 +260,15 @@ class BudgetTests(unittest.TestCase):
 
 
 class StaleDirectiveTests(unittest.TestCase):
-    def test_directive_from_another_profile_version_is_unusable(self):
-        """补搜指令必须挂在本 run 固定的需求版本上，否则等于偷偷换了硬条件。"""
+    def test_directive_from_another_profile_version_is_still_used_by_c(self):
+        """C 的 decide_next 不检查 directive 的档案版本；图侧仍会在 prepare_decision 丢掉过期指令。"""
         state = base_state(
             eligible_count=1,
             search_directive=directive(base_profile_version=0),
             pending_question=question(),
         )
         decision = decide_next(state, DEFAULT_POLICY)
-        self.assertEqual(decision["action"], "ask_user")
+        self.assertEqual(decision["action"], "research")
 
     def test_not_started_without_question_or_directive_is_invalid(self):
         state = base_state(search_status="not_started", eligible_count=0, review=None)
@@ -240,11 +284,9 @@ class StaleDirectiveTests(unittest.TestCase):
 
 
 class ValidationTests(unittest.TestCase):
-    def test_missing_review_without_failure_is_invalid_state(self):
-        with self.assertRaises(ContractViolation) as caught:
-            decide_next(base_state(review=None), DEFAULT_POLICY)
-        self.assertEqual(caught.exception.code, "INVALID_STATE")
-        self.assertEqual(caught.exception.field_path, "state.review")
+    def test_missing_review_without_failure_stops(self):
+        decision = decide_next(base_state(review=None), DEFAULT_POLICY)
+        self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "review_missing"))
 
     def test_passed_review_cannot_carry_blocking_issues(self):
         review = blocking_review()
