@@ -1,0 +1,11 @@
+{
+  "expected_unique_keys": [
+    "propertyguru:mock-000901",
+    "propertyguru:mock-000902",
+    "propertyguru:mock-000903",
+    "propertyguru:mock-000904",
+    "propertyguru:mock-000905"
+  ],
+  "repeated_key": "propertyguru:mock-000903",
+  "note": "Same key across pages is allowed; deduplicate by listing_key, never by nullable source_listing_id."
+}

@@ -1,0 +1,24 @@
+{
+  "skills": [
+    {
+      "name": "onboard",
+      "path": "can-rent-lah-onboard/SKILL.md"
+    },
+    {
+      "name": "setup",
+      "path": "can-rent-lah-setup/SKILL.md"
+    },
+    {
+      "name": "rough-screening",
+      "path": "can-rent-lah-rough-screening/SKILL.md"
+    },
+    {
+      "name": "contact",
+      "path": "can-rent-lah-contact/SKILL.md"
+    },
+    {
+      "name": "check",
+      "path": "can-rent-lah-check/SKILL.md"
+    }
+  ]
+}

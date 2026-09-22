@@ -1,0 +1,28 @@
+{
+  "plan_id": "mock-plan-sale",
+  "profile_version": 1,
+  "attempt_id": "mock-attempt-001",
+  "intent": "buy",
+  "required_filters": {
+    "currency": "SGD",
+    "max_price": 700000,
+    "price_period": "total",
+    "rental_scope": "whole_unit",
+    "locations": [
+      "CLEMENTI"
+    ],
+    "min_bedrooms": 2
+  },
+  "queries": [
+    {
+      "query_id": "mock-query-001",
+      "source": "propertyguru",
+      "text": "Clementi properties for buy",
+      "cursor": null
+    }
+  ],
+  "page_limit": 2,
+  "candidate_limit": 20,
+  "source_mode": "mock",
+  "reason": "Offline synthetic integration test"
+}

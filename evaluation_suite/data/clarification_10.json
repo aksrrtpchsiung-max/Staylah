@@ -1,0 +1,12 @@
+[
+  {"id":"A01","ambiguity":"slight","prompt":"我想租淡滨尼附近的整套房，价钱这块先看看？","must_ask_about":["budget"],"note":"只缺明确预算；不能把‘先看看’当作无上限。"},
+  {"id":"A02","ambiguity":"slight","prompt":"想在裕廊东租房，最多每月 3500 新币，合适的帮我找找。","must_ask_about":["listing_scope"],"note":"没有说整套、房间还是床位。"},
+  {"id":"A03","ambiguity":"slight","prompt":"想租整套，预算每月 4200 以内，最好两房。地点我还没想好。","must_ask_about":["location"],"note":"地点/通勤目的地未指定。"},
+  {"id":"A04","ambiguity":"moderate","prompt":"想租一整套，能住下我和我对象就行，帮我看看。","must_ask_about":["budget","location"],"note":"租房和整套明确；预算、区域缺失。"},
+  {"id":"A05","ambiguity":"moderate","prompt":"我预算一个月 3000 左右，想租房，别太偏。","must_ask_about":["listing_scope","location"],"note":"‘别太偏’不是可执行的区域/通勤点；出租范围也缺失。"},
+  {"id":"A06","ambiguity":"moderate","prompt":"武吉士附近有没有 4000 新币以内适合我的？","must_ask_about":["intent","listing_scope"],"note":"金额周期、租还是买、整套还是房间都可能被误判；至少确认租售与范围。"},
+  {"id":"A07","ambiguity":"moderate","prompt":"我想租在诺维娜那边，别太贵，最好能做饭。","must_ask_about":["budget","listing_scope"],"note":"‘别太贵’没有数值，做饭偏好不能替代出租范围。"},
+  {"id":"A08","ambiguity":"severe","prompt":"最近可能搬家，帮我看看有什么合适的吧。","must_ask_about":["intent","budget","listing_scope","location"],"note":"四个核心条件都不明确，不应进入搜索。"},
+  {"id":"A09","ambiguity":"severe","prompt":"朋友让我帮忙找个住的地方，你先推荐几套？","must_ask_about":["intent","budget","listing_scope","location"],"note":"不能擅自推定朋友租还是买、预算、范围和地区。"},
+  {"id":"A10","ambiguity":"severe","prompt":"新加坡哪里比较适合住呀？如果有房源也可以发我看看。","must_ask_about":["intent","budget","listing_scope","location"],"note":"住房问答与找房请求混合；若开始推荐具体房源，先澄清核心条件。"}
+]

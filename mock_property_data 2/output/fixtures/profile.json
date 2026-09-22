@@ -1,0 +1,26 @@
+{
+  "profile_id": "mock-profile-001",
+  "version": 1,
+  "intent": "rent",
+  "hard_constraints": {
+    "currency": "SGD",
+    "max_price": 3500,
+    "price_period": "month",
+    "rental_scope": "whole_unit",
+    "locations": [
+      "CLEMENTI"
+    ],
+    "min_bedrooms": 2
+  },
+  "preferences": [],
+  "unresolved": [],
+  "field_sources": {
+    "intent": "mock-user-message-001",
+    "hard_constraints.currency": "mock-user-message-001",
+    "hard_constraints.max_price": "mock-user-message-001",
+    "hard_constraints.price_period": "mock-user-message-001",
+    "hard_constraints.rental_scope": "mock-user-message-001",
+    "hard_constraints.locations": "mock-user-message-001",
+    "hard_constraints.min_bedrooms": "mock-user-message-001"
+  }
+}

@@ -1,0 +1,380 @@
+[
+  {
+    "group": "标识与来源",
+    "field": "source_listing_id",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.id",
+    "note": "转为字符串；不要用作内部 UUID。"
+  },
+  {
+    "group": "标识与来源",
+    "field": "source_url",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingData.url / 当前规范 URL",
+    "note": "保留来源链接。"
+  },
+  {
+    "group": "标识与来源",
+    "field": "source",
+    "level": "E：本系统生成或维护",
+    "path": "采集器配置",
+    "note": "固定标识 propertyguru。"
+  },
+  {
+    "group": "房源分类",
+    "field": "property_type",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingData.propertyTypeCode / propertyTypeGroup",
+    "note": "HDB、CONDO、LBUNG 等需映射到你们的枚举；Apartment、Shophouse 等不能强塞进错误子类。"
+  },
+  {
+    "group": "房源分类",
+    "field": "transaction_type",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.listingType.code",
+    "note": "已观察 RENT；其他交易类型本次未抽样。"
+  },
+  {
+    "group": "房源分类",
+    "field": "listing_scope",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.unitDetails.rentalType",
+    "note": "ENT = Entire Unit，ROOM = A Room Only。"
+  },
+  {
+    "group": "房源分类",
+    "field": "room_type",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.unitDetails.roomType",
+    "note": "单间样本 COM = Common Room；整租为空属于不适用。"
+  },
+  {
+    "group": "房源分类",
+    "field": "unit_layout",
+    "level": "B：需文本提取或业务定义",
+    "path": "project.metaByType[project.type].property.unitType / 标题与描述",
+    "note": "样本 unitType 为空；Studio、1+Study 等须定义自己的规则，不能用 bedrooms=0 判定 Studio。"
+  },
+  {
+    "group": "价格与空间",
+    "field": "price_sgd",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingData.price / listingDetail.price.min,max",
+    "note": "校验币种；min/max 不同则保留区间，不要任取一个。"
+  },
+  {
+    "group": "价格与空间",
+    "field": "price_period",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.price.formatted",
+    "note": "本次租赁展示 /mo，可映射 month；不能把租期 2 years 当计价周期。"
+  },
+  {
+    "group": "价格与空间",
+    "field": "area_sqft",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.dimensions.floor.size / room.size",
+    "note": "整租与单间分别选择对应面积，读取 uom；单间样本 room=120，floor 为空。"
+  },
+  {
+    "group": "价格与空间",
+    "field": "psf_sgd",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.price.perArea.floor / land",
+    "note": "可能同时存在楼面与土地两种值。"
+  },
+  {
+    "group": "价格与空间",
+    "field": "psf_basis",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "price.perArea 的 floor / land 路径",
+    "note": "明确选定计价面积基础，不能混用。"
+  },
+  {
+    "group": "价格与空间",
+    "field": "bedrooms",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.configuration.bedrooms.value",
+    "note": "单间样本详情为 null，搜索简表为 0；不应据此判定零卧室。"
+  },
+  {
+    "group": "价格与空间",
+    "field": "bathrooms",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.configuration.bathrooms.value",
+    "note": "总浴室数不等于房间有独立卫浴。"
+  },
+  {
+    "group": "居住规则",
+    "field": "ensuite_bathroom",
+    "level": "B：需文本提取或业务定义",
+    "path": "detailsData.metatable.items / 描述",
+    "note": "单间明确 Shared bath 时可提取 false；不能只因 Master Room 名称或 bathrooms>0 就填 true。"
+  },
+  {
+    "group": "居住规则",
+    "field": "owner_stays",
+    "level": "B：需文本提取或业务定义",
+    "path": "unitDetails.ownerStays / 描述",
+    "note": "4 个样本结构化值都为 null；单间描述明确 lives with 1 landlady only，可提取 true 并记录证据。"
+  },
+  {
+    "group": "居住规则",
+    "field": "cooking_policy",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.cookingType",
+    "note": "单间样本 NOT / Not Allowed；其他样本为 null，不代表允许做饭。"
+  },
+  {
+    "group": "居住规则",
+    "field": "utilities_included",
+    "level": "C：已见结构，但样本没有有效值",
+    "path": "unitDetails.utilitiesIncluded",
+    "note": "4 个样本均为 null；字段存在不代表得到政策答案。若描述明确说明，可补文本提取，未说明则未知。"
+  },
+  {
+    "group": "居住规则",
+    "field": "wifi_included",
+    "level": "C：已见结构，但样本没有有效值",
+    "path": "unitDetails.wifiIncluded",
+    "note": "4 个样本均为 null；字段存在不代表得到政策答案。若描述明确说明，可补文本提取，未说明则未知。"
+  },
+  {
+    "group": "居住规则",
+    "field": "visitors_allowed",
+    "level": "C：已见结构，但样本没有有效值",
+    "path": "unitDetails.visitorsAllowed",
+    "note": "4 个样本均为 null；字段存在不代表得到政策答案。若描述明确说明，可补文本提取，未说明则未知。"
+  },
+  {
+    "group": "居住规则",
+    "field": "pets_allowed",
+    "level": "C：已见结构，但样本没有有效值",
+    "path": "unitDetails.petFriendly",
+    "note": "4 个样本均为 null；字段存在不代表得到政策答案。若描述明确说明，可补文本提取，未说明则未知。"
+  },
+  {
+    "group": "居住规则",
+    "field": "furnishing",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.furnishing",
+    "note": "FULL/PART/UNFUR；公寓样本正文说部分家具，结构化值却为 Unfurnished，需保留冲突。"
+  },
+  {
+    "group": "地址与产权",
+    "field": "title",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingData.localizedTitle",
+    "note": "与营销副标题 descriptionBlockData.subtitle 区分。"
+  },
+  {
+    "group": "地址与产权",
+    "field": "address",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.location.address.formatted",
+    "note": "单间样本可为空，必要时从标题补充并标注来源；不保证门牌精度。"
+  },
+  {
+    "group": "地址与产权",
+    "field": "postal_code",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.location.address.postalCode",
+    "note": "保留字符串与前导零。"
+  },
+  {
+    "group": "地址与产权",
+    "field": "latitude",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.location.point.lat",
+    "note": "平台地图点，不保证精确到单元。"
+  },
+  {
+    "group": "地址与产权",
+    "field": "longitude",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.location.point.lon",
+    "note": "注意原始名是 lon。"
+  },
+  {
+    "group": "地址与产权",
+    "field": "tenure_type",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "project.metaByType[project.type].tenure",
+    "note": "样本包含 Freehold、99-year Leasehold。"
+  },
+  {
+    "group": "地址与产权",
+    "field": "lease_years",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "同上 tenure.text/code",
+    "note": "若此列表示土地产权年限，则从 99-year 提取 99；Freehold 年数应为空。若意指租赁合同年数，应改名 rental_lease_years 并映射 listingDetail.lease，勿混用。"
+  },
+  {
+    "group": "原文与扩展",
+    "field": "inclusivity_statement",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "detailsData.metatable.items",
+    "note": "两条样本出现 Welcome all races...。不要把 racismBannerData 的全站声明误当每条房源声明，也不要按用户敏感身份筛房。"
+  },
+  {
+    "group": "原文与扩展",
+    "field": "raw_description",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "descriptionBlockData.description",
+    "note": "保留原文或同时保留 HTML 与纯文本。"
+  },
+  {
+    "group": "原文与扩展",
+    "field": "raw_details",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "detailsData.metatable.items[].value",
+    "note": "封装为 text[]；比适配器拼接字符串更利于追溯。"
+  },
+  {
+    "group": "原文与扩展",
+    "field": "extra_attributes",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "相关未映射字段的 JSON 子集",
+    "note": "自己打包；不应把界面默认值、表单选项当作房源事实。"
+  },
+  {
+    "group": "状态与时间",
+    "field": "listing_status",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.statusCode",
+    "note": "本次均 ACT；这是平台状态，不能证明房屋确实仍可租。"
+  },
+  {
+    "group": "状态与时间",
+    "field": "listed_date",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "listingDetail.dates.firstPosted / lastPosted",
+    "note": "明确选首次发布还是最新刷新，两者可能相差数月。"
+  },
+  {
+    "group": "状态与时间",
+    "field": "fetched_at",
+    "level": "E：本系统生成或维护",
+    "path": "本系统",
+    "note": "实际抓取时间。"
+  },
+  {
+    "group": "状态与时间",
+    "field": "last_verified_at",
+    "level": "E：本系统生成或维护",
+    "path": "本系统",
+    "note": "由自己的复核流程维护；不能等同抓取时间或平台 verification.statusUpdatedAt。"
+  },
+  {
+    "group": "状态与时间",
+    "field": "created_at",
+    "level": "E：本系统生成或维护",
+    "path": "本系统",
+    "note": "本数据库创建时间，平台创建时间另存 source_created_at。"
+  },
+  {
+    "group": "状态与时间",
+    "field": "updated_at",
+    "level": "E：本系统生成或维护",
+    "path": "本系统",
+    "note": "本数据库更新时间，平台更新时间另存 source_updated_at。"
+  },
+  {
+    "group": "HDB 扩展",
+    "field": "block",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "location.address.streetNumber / 标题",
+    "note": "样本 address.block 为 null，但 HDB streetNumber=341；缺失时可从标题提取，不要套用所有房型。"
+  },
+  {
+    "group": "HDB 扩展",
+    "field": "town",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "location.hdbEstate.text / listingData.hdbEstateText",
+    "note": "HDB 样本 Clementi。"
+  },
+  {
+    "group": "HDB 扩展",
+    "field": "hdb_model",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.hdbType",
+    "note": "3NGm / 3NG (Modified)。"
+  },
+  {
+    "group": "HDB 扩展",
+    "field": "flat_type",
+    "level": "B：需文本提取或业务定义",
+    "path": "hdbType / 原文",
+    "note": "3-room 等 HDB flat_type 与 bedrooms 并非同一概念，需要明确定义并维护映射表。"
+  },
+  {
+    "group": "HDB 扩展",
+    "field": "floor_range",
+    "level": "C：已见结构，但样本没有有效值",
+    "path": "unitDetails.floorLevel",
+    "note": "本次只看到 High Floor，未得到 10–12 等数值范围；若允许 high/mid/low 可做枚举映射。"
+  },
+  {
+    "group": "HDB 扩展",
+    "field": "lease_commencement_year",
+    "level": "D：本次未验证可靠来源",
+    "path": "未验证",
+    "note": "TOP/竣工年并非产权起算年，不能直接复制或推算。"
+  },
+  {
+    "group": "Condo 扩展",
+    "field": "development_name",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "project.metaByType[project.type].name",
+    "note": "公寓样本 Clementi Park；verified/unverified 分支需动态选择。"
+  },
+  {
+    "group": "Condo 扩展",
+    "field": "top_year",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "project.metaByType[project.type].completionYear",
+    "note": "公寓样本 1985，页面也写 TOP in Dec 1985；有些房源无值。"
+  },
+  {
+    "group": "Condo 扩展",
+    "field": "floor_level",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.floorLevel",
+    "note": "可获得 HIGH/High Floor 等；本次公寓为空，HDB 有效，不保证具体楼层。"
+  },
+  {
+    "group": "Condo 扩展",
+    "field": "facilities",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "facilitiesData.data[].text / project.*.facilities[].description",
+    "note": "公寓样本有 8 项；原适配器误读 label/name 导致丢失。"
+  },
+  {
+    "group": "Landed 扩展",
+    "field": "landed_type",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "project.*.property.subType / listingData.propertyType",
+    "note": "样本 LBUNG / Bungalow House。"
+  },
+  {
+    "group": "Landed 扩展",
+    "field": "land_area_sqft",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.dimensions.land.size",
+    "note": "样本 8000；value 本身是对象，实际数值在 value.value，须兼容不同表示。"
+  },
+  {
+    "group": "Landed 扩展",
+    "field": "built_up_area_sqft",
+    "level": "A：有明确提取或规则映射路径",
+    "path": "unitDetails.dimensions.floor.size",
+    "note": "本例楼面面积 4000；应明确 built-up 与页面 floor area 的口径，保留原始字段名。"
+  },
+  {
+    "group": "Landed 扩展",
+    "field": "storeys",
+    "level": "D：本次未验证可靠来源",
+    "path": "project.*.floors / 描述候选",
+    "note": "本次有地样本 floors 为空，未验证有效来源；小区楼栋层数也不一定等于该房屋层数。"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "status": "error",
+  "data": null,
+  "issues": [
+    {
+      "code": "TIMEOUT",
+      "message": "Synthetic TIMEOUT",
+      "field_path": null,
+      "source": "propertyguru",
+      "retryable": true,
+      "retry_after_seconds": null
+    }
+  ],
+  "meta": {
+    "trace_id": "mock-trace-001",
+    "call_id": "mock-call-timeout",
+    "duration_ms": 12
+  }
+}
