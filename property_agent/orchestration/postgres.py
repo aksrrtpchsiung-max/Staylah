@@ -70,14 +70,14 @@ async def postgres_conversation_runtime(
     sessions = build_session_factory(engine)
     uri = checkpoint_database_uri(settings.database)
     use_deepseek = bool(os.getenv(settings.deepseek.api_key_env))
-    if os.getenv(settings.bedrock.api_key_env):
-        part_c.configure_bedrock_keyword_matcher(
-            region_name=settings.bedrock.region,
-            model_id=settings.bedrock.model,
+    if os.getenv(settings.llm_gateway.api_key_env):
+        part_c.configure_gateway_keyword_matcher(
+            base_url=settings.llm_gateway.url,
+            model_id=settings.llm_gateway.model,
         )
-        part_c.configure_bedrock_evaluation_review_model(
-            region_name=settings.bedrock.region,
-            model_id=settings.bedrock.model,
+        part_c.configure_gateway_evaluation_review_model(
+            base_url=settings.llm_gateway.url,
+            model_id=settings.llm_gateway.model,
         )
     async with AsyncPostgresSaver.from_conn_string(uri) as checkpointer:
         if setup:

@@ -34,11 +34,6 @@ timeout_seconds = 60.0
 temperature = 0.0
 max_tokens = 2000
 
-[bedrock]
-region = "ap-southeast-1"
-model = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
-api_key_env = "AWS_BEARER_TOKEN_BEDROCK"
-
 [database]
 url_env = "DATABASE_URL"
 checkpoint_url_env = "LANGGRAPH_CHECKPOINT_DB_URI"
@@ -99,17 +94,6 @@ class LlmGatewaySettings:
 
 
 @dataclass(frozen=True)
-class BedrockSettings:
-    region: str
-    model: str
-    api_key_env: str
-
-    def api_key(self, environ: Mapping[str, str] | None = None) -> str:
-        values = os.environ if environ is None else environ
-        return (values.get(self.api_key_env) or "").strip()
-
-
-@dataclass(frozen=True)
 class DatabaseSettings:
     url_env: str
     checkpoint_url_env: str
@@ -141,7 +125,6 @@ class RunSettings:
 class RuntimeSettings:
     deepseek: DeepSeekSettings
     llm_gateway: LlmGatewaySettings
-    bedrock: BedrockSettings
     database: DatabaseSettings
     search: SearchSettings
     run: RunSettings
@@ -176,7 +159,6 @@ def load_runtime_settings(
     settings = RuntimeSettings(
         deepseek=_deepseek(data.get("deepseek") or {}, merged),
         llm_gateway=_llm_gateway(data.get("llm_gateway") or {}, merged),
-        bedrock=_bedrock(data.get("bedrock") or {}, merged),
         database=_database(data.get("database") or {}, merged),
         search=_search(data.get("search") or {}, merged),
         run=_run(data.get("run") or {}, merged),
@@ -280,14 +262,6 @@ def _llm_gateway(raw: dict[str, Any], environ: Mapping[str, str]) -> LlmGatewayS
         ),
         temperature=float(_override(raw, environ, "LLM_TEMPERATURE", "temperature", 0.0)),
         max_tokens=int(_override(raw, environ, "LLM_MAX_TOKENS", "max_tokens", 2000)),
-    )
-
-
-def _bedrock(raw: dict[str, Any], environ: Mapping[str, str]) -> BedrockSettings:
-    return BedrockSettings(
-        region=_override(raw, environ, "BEDROCK_REGION", "region", "ap-southeast-1"),
-        model=str(_section(raw, "model", "global.anthropic.claude-sonnet-4-5-20250929-v1:0")),
-        api_key_env=str(_section(raw, "api_key_env", "AWS_BEARER_TOKEN_BEDROCK")),
     )
 
 

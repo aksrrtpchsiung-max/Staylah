@@ -20,11 +20,6 @@ timeout_seconds = 60.0
 temperature = 0.0
 max_tokens = 2000
 
-[bedrock]
-region = "ap-southeast-1"
-model = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
-api_key_env = "AWS_BEARER_TOKEN_BEDROCK"
-
 [database]
 url_env = "DATABASE_URL"
 checkpoint_url_env = "LANGGRAPH_CHECKPOINT_DB_URI"

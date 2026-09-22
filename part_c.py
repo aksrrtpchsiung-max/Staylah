@@ -13,6 +13,9 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 from time import perf_counter
 from typing import Any, Iterable, Protocol
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from contracts_v0 import (
     Assessment,
@@ -42,11 +45,112 @@ from contracts_v0 import (
     QueryFeatures,
 )
 
-BEDROCK_MODEL_ID = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
-BEDROCK_DEFAULT_REGION = "ap-southeast-1"
-LLM_METHOD_VERSION = "bedrock-claude-sonnet-4-5-keyword-v1"
+DEFAULT_LLM_MODEL = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
+LLM_METHOD_VERSION = "gateway-claude-sonnet-4-5-keyword-v1"
 FALLBACK_METHOD_VERSION = "deterministic-fallback-v0"
 FRESHNESS_DAYS = 14
+
+
+class GatewayError(RuntimeError):
+    """网关配置、网络或响应出错；异常文本绝不包含 API Key。"""
+
+
+class _NoRedirects(HTTPRedirectHandler):
+    """防止认证头随着 HTTP 重定向被发送到另一台服务器。"""
+
+    def redirect_request(self, req: Request, fp: Any, code: int, msg: str, headers: Any, newurl: str) -> None:
+        return None
+
+
+class GatewayChatClient:
+    """使用团队网关的 OpenAI 兼容 ``/v1/chat/completions`` 协议。
+
+    密钥只从环境变量读取，作为 Bearer header 发送；不写入源码、日志或 Result。
+    ``opener`` 可注入假对象做离线测试。
+    """
+
+    def __init__(
+        self,
+        *,
+        base_url: str | None = None,
+        api_key: str | None = None,
+        model_id: str | None = None,
+        opener: Any | None = None,
+    ) -> None:
+        url = (base_url or os.getenv("LLM_GATEWAY_URL") or "").rstrip("/")
+        key = api_key or os.getenv("LLM_GATEWAY_API_KEY")
+        model = model_id or os.getenv("LLM_MODEL") or DEFAULT_LLM_MODEL
+        parsed = urlsplit(url)
+        if (
+            parsed.scheme != "https"
+            or not parsed.netloc
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise GatewayError("LLM_GATEWAY_URL must be an HTTPS URL without credentials, query, or fragment")
+        if not key:
+            raise GatewayError("LLM_GATEWAY_API_KEY is not configured")
+        if not key.isascii() or any(ord(character) < 33 or ord(character) > 126 for character in key):
+            raise GatewayError("LLM_GATEWAY_API_KEY must contain only printable ASCII characters without spaces")
+        if not model.strip():
+            raise GatewayError("LLM_MODEL must be a non-empty model ID")
+        if url.endswith("/v1/chat/completions"):
+            self._endpoint = url
+        elif url.endswith("/v1"):
+            self._endpoint = f"{url}/chat/completions"
+        else:
+            self._endpoint = f"{url}/v1/chat/completions"
+        self._api_key = key
+        self._model_id = model
+        self._opener = opener or build_opener(_NoRedirects())
+
+    def complete(self, system: str, user: str, *, max_tokens: int) -> str:
+        payload = {
+            "model": self._model_id,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "temperature": 0,
+            "max_tokens": max_tokens,
+            "stream": False,
+        }
+        request = Request(
+            self._endpoint,
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with self._opener.open(request, timeout=45) as response:
+                raw = response.read(2_000_001)
+        except HTTPError as exc:
+            # HTTP 状态码可帮助定位权限问题；绝不包含响应正文或认证头。
+            raise GatewayError(f"LLM gateway returned HTTP {exc.code}") from exc
+        except (URLError, TimeoutError, OSError) as exc:
+            # 不把服务端错误正文或原始异常传给调用方，以免意外泄漏认证信息。
+            raise GatewayError("LLM gateway request failed") from exc
+        if len(raw) > 2_000_000:
+            raise GatewayError("LLM gateway response is too large")
+        try:
+            parsed_response = json.loads(raw)
+            content = parsed_response["choices"][0]["message"]["content"]
+            if isinstance(content, list):
+                content = "".join(
+                    block["text"]
+                    for block in content
+                    if isinstance(block, dict) and isinstance(block.get("text"), str)
+                )
+            if not isinstance(content, str) or not content.strip():
+                raise TypeError("empty message content")
+            return content
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise GatewayError("LLM gateway returned an invalid chat-completion response") from exc
 
 
 class KeywordMatcherError(RuntimeError):
@@ -108,46 +212,30 @@ class EvaluationReviewModel(Protocol):
         """独立核查 evaluation，返回固定 contract 的问题列表。"""
 
 
-class BedrockClaudeKeywordMatcher:
-    """使用 Amazon Bedrock Claude Sonnet 4.5 的关键词／语义匹配器。
-
-    API Key 只从 AWS_BEARER_TOKEN_BEDROCK 环境变量读取，由 boto3 发送；绝不写入
-    代码、日志或 contract。测试时可注入一个兼容的 fake client。
-    """
+class GatewayClaudeKeywordMatcher:
+    """通过团队 LLM Gateway 对已通过硬条件的房源做语义匹配。"""
 
     def __init__(
         self,
         *,
-        region_name: str | None = None,
-        model_id: str = BEDROCK_MODEL_ID,
+        base_url: str | None = None,
+        model_id: str | None = None,
         client: Any | None = None,
     ) -> None:
-        self._region_name = region_name or os.getenv("BEDROCK_REGION", BEDROCK_DEFAULT_REGION)
-        self._model_id = model_id
-        if client is not None:
-            self._client = client
-            return
-        if not os.getenv("AWS_BEARER_TOKEN_BEDROCK"):
-            raise KeywordMatcherError("AWS_BEARER_TOKEN_BEDROCK is not configured")
         try:
-            import boto3
-        except ImportError as exc:
-            raise KeywordMatcherError("boto3 is required for Bedrock keyword matching") from exc
-        self._client = boto3.client("bedrock-runtime", region_name=self._region_name)
+            self._client = client or GatewayChatClient(base_url=base_url, model_id=model_id)
+        except GatewayError as exc:
+            raise KeywordMatcherError(str(exc)) from exc
 
     async def match(self, query: QueryFeatures, listings: list[Listing]) -> dict[str, KeywordMatch]:
         prompt = self._prompt(query, listings)
         try:
-            response = await asyncio.to_thread(
-                self._client.converse,
-                modelId=self._model_id,
-                system=[{"text": self._system_prompt()}],
-                messages=[{"role": "user", "content": [{"text": prompt}]}],
-                inferenceConfig={"maxTokens": 1800, "temperature": 0},
+            response_text = await asyncio.to_thread(
+                self._client.complete, self._system_prompt(), prompt, max_tokens=1800
             )
         except Exception as exc:  # The outer retrieve() converts this to a safe partial result.
-            raise KeywordMatcherError("Bedrock Converse request failed") from exc
-        return self._parse_response(response, listings)
+            raise KeywordMatcherError("LLM gateway request failed") from exc
+        return self._parse_response(response_text, listings)
 
     @staticmethod
     def _system_prompt() -> str:
@@ -205,14 +293,9 @@ class BedrockClaudeKeywordMatcher:
         return json.dumps(payload, ensure_ascii=False)
 
     @staticmethod
-    def _response_text(response: dict[str, Any]) -> str:
-        try:
-            blocks = response["output"]["message"]["content"]
-            text = "".join(block["text"] for block in blocks if isinstance(block.get("text"), str))
-        except (KeyError, TypeError) as exc:
-            raise KeywordMatcherError("Bedrock response did not contain text content") from exc
+    def _response_text(text: str) -> str:
         if not text.strip():
-            raise KeywordMatcherError("Bedrock returned an empty response")
+            raise KeywordMatcherError("LLM gateway returned an empty response")
         fenced = re.search(r"```(?:json)?\s*(.*?)```", text, flags=re.IGNORECASE | re.DOTALL)
         return (fenced.group(1) if fenced else text).strip()
 
@@ -226,40 +309,40 @@ class BedrockClaudeKeywordMatcher:
         pieces.extend(str(item) for item in listing.get("raw_details", []))
         return "\n".join(pieces).casefold()
 
-    def _parse_response(self, response: dict[str, Any], listings: list[Listing]) -> dict[str, KeywordMatch]:
+    def _parse_response(self, response_text: str, listings: list[Listing]) -> dict[str, KeywordMatch]:
         try:
-            parsed = json.loads(self._response_text(response))
+            parsed = json.loads(self._response_text(response_text))
             rows = parsed["matches"] if isinstance(parsed, dict) else None
             if not isinstance(rows, list):
                 raise TypeError("matches must be a list")
         except (json.JSONDecodeError, KeyError, TypeError) as exc:
-            raise KeywordMatcherError("Bedrock did not return the required JSON schema") from exc
+            raise KeywordMatcherError("LLM gateway did not return the required JSON schema") from exc
 
         listings_by_key = {listing["listing_key"]: listing for listing in listings}
         matches: dict[str, KeywordMatch] = {}
         for row in rows:
             if not isinstance(row, dict):
-                raise KeywordMatcherError("Bedrock returned a non-object match")
+                raise KeywordMatcherError("LLM gateway returned a non-object match")
             key = row.get("listing_key")
             score = row.get("score")
             terms = row.get("matched_terms")
             if key not in listings_by_key or key in matches:
-                raise KeywordMatcherError("Bedrock returned an unknown or duplicate listing_key")
+                raise KeywordMatcherError("LLM gateway returned an unknown or duplicate listing_key")
             if not isinstance(score, (int, float)) or isinstance(score, bool) or not 0 <= score <= 100:
-                raise KeywordMatcherError("Bedrock score must be a number from 0 to 100")
+                raise KeywordMatcherError("LLM gateway score must be a number from 0 to 100")
             if not isinstance(terms, list) or not all(isinstance(term, str) for term in terms):
-                raise KeywordMatcherError("Bedrock matched_terms must be a string list")
+                raise KeywordMatcherError("LLM gateway matched_terms must be a string list")
             listing_text = self._listing_text(listings_by_key[key])
             # The score may be semantic, but any displayed match text must be supported by the source listing.
             supported_terms = [term for term in terms if term and term.casefold() in listing_text]
             matches[key] = KeywordMatch(score=float(score), matched_terms=supported_terms)
         if set(matches) != set(listings_by_key):
-            raise KeywordMatcherError("Bedrock must return exactly one match per input listing")
+            raise KeywordMatcherError("LLM gateway must return exactly one match per input listing")
         return matches
 
 
-class BedrockClaudeEvaluationReviewModel:
-    """使用同一 Bedrock Claude 模型完成 C 的评估和独立复核。
+class GatewayClaudeEvaluationReviewModel:
+    """通过同一团队 LLM Gateway 完成 C 的评估和独立复核。
 
     模型只拿到结构化、截断后的候选摘要；它不能自行加入新房源、修改硬条件，或生成
     没有来源支撑的事实性理由。所有输出都会在本地严格验证。
@@ -268,41 +351,27 @@ class BedrockClaudeEvaluationReviewModel:
     def __init__(
         self,
         *,
-        region_name: str | None = None,
-        model_id: str = BEDROCK_MODEL_ID,
+        base_url: str | None = None,
+        model_id: str | None = None,
         client: Any | None = None,
     ) -> None:
-        self._region_name = region_name or os.getenv("BEDROCK_REGION", BEDROCK_DEFAULT_REGION)
-        self._model_id = model_id
-        if client is not None:
-            self._client = client
-            return
-        if not os.getenv("AWS_BEARER_TOKEN_BEDROCK"):
-            raise EvaluationReviewModelError("AWS_BEARER_TOKEN_BEDROCK is not configured")
         try:
-            import boto3
-        except ImportError as exc:
-            raise EvaluationReviewModelError("boto3 is required for Bedrock evaluation and review") from exc
-        self._client = boto3.client("bedrock-runtime", region_name=self._region_name)
+            self._client = client or GatewayChatClient(base_url=base_url, model_id=model_id)
+        except GatewayError as exc:
+            raise EvaluationReviewModelError(str(exc)) from exc
 
     async def _converse(self, system: str, prompt: dict[str, Any]) -> dict[str, Any]:
         try:
-            response = await asyncio.to_thread(
-                self._client.converse,
-                modelId=self._model_id,
-                system=[{"text": system}],
-                messages=[{"role": "user", "content": [{"text": json.dumps(prompt, ensure_ascii=False)}]}],
-                inferenceConfig={"maxTokens": 2200, "temperature": 0},
+            text = await asyncio.to_thread(
+                self._client.complete, system, json.dumps(prompt, ensure_ascii=False), max_tokens=2200
             )
         except Exception as exc:
-            raise EvaluationReviewModelError("Bedrock Converse request failed") from exc
+            raise EvaluationReviewModelError("LLM gateway request failed") from exc
         try:
-            blocks = response["output"]["message"]["content"]
-            text = "".join(block["text"] for block in blocks if isinstance(block.get("text"), str))
             fenced = re.search(r"```(?:json)?\s*(.*?)```", text, flags=re.IGNORECASE | re.DOTALL)
             return json.loads((fenced.group(1) if fenced else text).strip())
-        except (KeyError, TypeError, json.JSONDecodeError) as exc:
-            raise EvaluationReviewModelError("Bedrock did not return the required JSON schema") from exc
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise EvaluationReviewModelError("LLM gateway did not return the required JSON schema") from exc
 
     @staticmethod
     def _listing_view(listing: Listing) -> dict[str, Any]:
@@ -416,7 +485,7 @@ class BedrockClaudeEvaluationReviewModel:
             if not isinstance(limitations, list) or not all(isinstance(item, str) for item in limitations):
                 raise TypeError("limitations must be a string list")
         except (KeyError, TypeError) as exc:
-            raise EvaluationReviewModelError("Bedrock evaluation response failed contract validation") from exc
+            raise EvaluationReviewModelError("LLM gateway evaluation response failed contract validation") from exc
         return EvaluationDecision(selected, enough, action, reason.strip(), summary.strip(), limitations)
 
     async def review(
@@ -485,11 +554,11 @@ class BedrockClaudeEvaluationReviewModel:
                 )
             return issues
         except (KeyError, TypeError) as exc:
-            raise EvaluationReviewModelError("Bedrock review response failed contract validation") from exc
+            raise EvaluationReviewModelError("LLM gateway review response failed contract validation") from exc
 
 
 _keyword_matcher: KeywordMatcher | None = None
-_auto_bedrock_matcher: KeywordMatcher | None = None
+_auto_gateway_matcher: KeywordMatcher | None = None
 _evaluation_review_model: EvaluationReviewModel | None = None
 _auto_evaluation_review_model: EvaluationReviewModel | None = None
 
@@ -500,11 +569,11 @@ def configure_keyword_matcher(matcher: KeywordMatcher | None) -> None:
     _keyword_matcher = matcher
 
 
-def configure_bedrock_keyword_matcher(
-    *, region_name: str | None = None, model_id: str = BEDROCK_MODEL_ID, client: Any | None = None
-) -> BedrockClaudeKeywordMatcher:
-    """创建并注入 Bedrock Claude 匹配器；API Key 从环境变量读取。"""
-    matcher = BedrockClaudeKeywordMatcher(region_name=region_name, model_id=model_id, client=client)
+def configure_gateway_keyword_matcher(
+    *, base_url: str | None = None, model_id: str | None = None, client: Any | None = None
+) -> GatewayClaudeKeywordMatcher:
+    """创建并注入团队网关匹配器；密钥从环境变量读取。"""
+    matcher = GatewayClaudeKeywordMatcher(base_url=base_url, model_id=model_id, client=client)
     configure_keyword_matcher(matcher)
     return matcher
 
@@ -515,11 +584,11 @@ def configure_evaluation_review_model(model: EvaluationReviewModel | None) -> No
     _evaluation_review_model = model
 
 
-def configure_bedrock_evaluation_review_model(
-    *, region_name: str | None = None, model_id: str = BEDROCK_MODEL_ID, client: Any | None = None
-) -> BedrockClaudeEvaluationReviewModel:
-    """创建并注入 Bedrock Claude 评估／审查模型；API Key 只从环境变量读取。"""
-    model = BedrockClaudeEvaluationReviewModel(region_name=region_name, model_id=model_id, client=client)
+def configure_gateway_evaluation_review_model(
+    *, base_url: str | None = None, model_id: str | None = None, client: Any | None = None
+) -> GatewayClaudeEvaluationReviewModel:
+    """创建并注入团队网关评估／审查模型；密钥从环境变量读取。"""
+    model = GatewayClaudeEvaluationReviewModel(base_url=base_url, model_id=model_id, client=client)
     configure_evaluation_review_model(model)
     return model
 
@@ -548,7 +617,7 @@ def _partial(
     *,
     retryable: bool,
     code: str = "RETRIEVAL_DEGRADED",
-    source: str = "bedrock",
+    source: str = "llm_gateway",
 ) -> Result[Any]:
     issue: Issue = {
         "code": code,  # type: ignore[typeddict-item]
@@ -817,32 +886,28 @@ def _retrieval_score(listing: Listing, query_tokens: set[str]) -> tuple[list[str
 
 
 def _resolve_keyword_matcher() -> tuple[KeywordMatcher | None, str | None]:
-    """优先使用应用注入的匹配器；有 Bedrock API Key 时自动创建默认匹配器。"""
-    global _auto_bedrock_matcher
+    """优先使用应用注入的匹配器；网关环境变量齐全时自动创建。"""
+    global _auto_gateway_matcher
     if _keyword_matcher is not None:
         return _keyword_matcher, None
-    if _auto_bedrock_matcher is not None:
-        return _auto_bedrock_matcher, None
-    if not os.getenv("AWS_BEARER_TOKEN_BEDROCK"):
-        return None, "AWS_BEARER_TOKEN_BEDROCK is not configured"
+    if _auto_gateway_matcher is not None:
+        return _auto_gateway_matcher, None
     try:
-        _auto_bedrock_matcher = BedrockClaudeKeywordMatcher()
-        return _auto_bedrock_matcher, None
+        _auto_gateway_matcher = GatewayClaudeKeywordMatcher()
+        return _auto_gateway_matcher, None
     except KeywordMatcherError as exc:
         return None, str(exc)
 
 
 def _resolve_evaluation_review_model() -> tuple[EvaluationReviewModel | None, str | None]:
-    """优先使用应用注入的模型；有 Bedrock API Key 时自动创建默认模型。"""
+    """优先使用应用注入的模型；网关环境变量齐全时自动创建。"""
     global _auto_evaluation_review_model
     if _evaluation_review_model is not None:
         return _evaluation_review_model, None
     if _auto_evaluation_review_model is not None:
         return _auto_evaluation_review_model, None
-    if not os.getenv("AWS_BEARER_TOKEN_BEDROCK"):
-        return None, "AWS_BEARER_TOKEN_BEDROCK is not configured"
     try:
-        _auto_evaluation_review_model = BedrockClaudeEvaluationReviewModel()
+        _auto_evaluation_review_model = GatewayClaudeEvaluationReviewModel()
         return _auto_evaluation_review_model, None
     except EvaluationReviewModelError as exc:
         return None, str(exc)
@@ -882,7 +947,7 @@ def _retrieval_result(
 async def retrieve(
     query: QueryFeatures, eligible_listings: list[Listing], *, top_k: int, ctx: RunContext
 ) -> Result[RetrievalResult]:
-    """让 Bedrock Claude 对已符合硬条件的房源做关键词／语义匹配与排序。
+    """让网关上的 Claude 对已符合硬条件的房源做关键词／语义匹配与排序。
 
     无 Key、网络故障或返回格式异常时，函数仍返回可用的本地降级排序，但状态为
     ``partial`` 并带有 ``RETRIEVAL_DEGRADED``，调用方不能把它当作完整 LLM 结果。
@@ -916,7 +981,7 @@ async def retrieve(
                     started,
                 )
             except (KeywordMatcherError, KeyError, TypeError):
-                unavailable_reason = "Bedrock keyword matching failed; used deterministic fallback"
+                unavailable_reason = "LLM gateway keyword matching failed; used deterministic fallback"
 
         # Fallback is deliberately secondary: it only keeps the application usable when the LLM is unavailable.
         query_tokens = _query_location_tokens(query)
@@ -929,7 +994,7 @@ async def retrieve(
             result,
             ctx,
             started,
-            unavailable_reason or "Bedrock keyword matcher is unavailable; used deterministic fallback",
+            unavailable_reason or "LLM gateway keyword matcher is unavailable; used deterministic fallback",
             retryable=bool(matcher),
         )
     except ContractViolation as exc:
@@ -1169,11 +1234,11 @@ async def evaluate(
                     or (decision.next_action == "research" and directive is None)
                     or (decision.next_action == "ask_user" and not relaxations)
                 ):
-                    raise EvaluationReviewModelError("Bedrock evaluation proposed an unsupported next action")
+                    raise EvaluationReviewModelError("LLM gateway evaluation proposed an unsupported next action")
             except Exception:
                 # 注入实现也可能抛出 SDK/网络异常；保留可解释的降级结果而不是让流程中断。
                 used_fallback = True
-                unavailable_reason = "Bedrock evaluation failed validation; used deterministic fallback"
+                unavailable_reason = "LLM gateway evaluation failed validation; used deterministic fallback"
 
         if used_fallback:
             ranked.sort(key=lambda row: (-row[1], row[0], row[2]["listing_key"]))
@@ -1244,10 +1309,10 @@ async def evaluate(
                 output,
                 ctx,
                 started,
-                unavailable_reason or "Bedrock evaluation model is unavailable; used deterministic fallback",
+                unavailable_reason or "LLM gateway evaluation model is unavailable; used deterministic fallback",
                 retryable=model is not None,
                 code="MODEL_UNAVAILABLE",
-                source="bedrock",
+                source="llm_gateway",
             )
         return _success(output, ctx, started)
     except ContractViolation as exc:
@@ -1299,10 +1364,7 @@ async def review(
     policy: RoutingPolicy,
     ctx: RunContext,
 ) -> Result[ReviewResult]:
-    """执行本地 contract 审查；模型可用时再叠加独立语义复核。
-
-    测试环境没有模型时返回 ``partial``，但仍保留全部确定性硬检查结果。
-    """
+    """执行本地 contract 审查；模型可用时再叠加独立语义复核。"""
     started = perf_counter()
     try:
         _validate_profile(profile)
@@ -1446,7 +1508,7 @@ async def review(
             except Exception:
                 model_failed = True
                 unavailable_reason = (
-                    "Bedrock review failed or returned an invalid response; "
+                    "LLM gateway review failed or returned an invalid response; "
                     "used deterministic review"
                 )
         result: ReviewResult = {
@@ -1459,7 +1521,7 @@ async def review(
                 ctx,
                 started,
                 unavailable_reason
-                or "Bedrock review model is unavailable; used deterministic review",
+                or "LLM gateway review model is unavailable; used deterministic review",
                 retryable=model is not None,
                 code="MODEL_UNAVAILABLE",
                 source="review_model",
@@ -1542,25 +1604,24 @@ def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
     if state["pending_question"] is not None:
         return _route("ask_user", "insufficient_candidates", question=state["pending_question"])
     if state["search_attempts_used"] >= policy["max_search_attempts"]:
-        # Search has completed within its configured budget and review passed.
-        # Finish cleanly so a valid short list can still be delivered, or a
-        # no-match result can be explained without reporting a service failure.
         return _route("finish", "budget_exhausted")
     return _route("finish", "insufficient_candidates")
 
 
 __all__ = [
-    "BEDROCK_MODEL_ID",
-    "BedrockClaudeKeywordMatcher",
-    "BedrockClaudeEvaluationReviewModel",
+    "DEFAULT_LLM_MODEL",
+    "GatewayChatClient",
+    "GatewayClaudeKeywordMatcher",
+    "GatewayClaudeEvaluationReviewModel",
+    "GatewayError",
     "EvaluationDecision",
     "EvaluationReviewModel",
     "EvaluationReviewModelError",
     "KeywordMatch",
     "KeywordMatcher",
     "KeywordMatcherError",
-    "configure_bedrock_keyword_matcher",
-    "configure_bedrock_evaluation_review_model",
+    "configure_gateway_keyword_matcher",
+    "configure_gateway_evaluation_review_model",
     "configure_evaluation_review_model",
     "configure_keyword_matcher",
     "screen",

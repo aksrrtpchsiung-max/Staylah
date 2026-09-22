@@ -379,7 +379,6 @@ class RuntimeSettingsTests(unittest.TestCase):
         settings = load_runtime_settings(reload=True)
         self.assertEqual(settings.deepseek.api_key_env, "DEEPSEEK_API_KEY")
         self.assertEqual(settings.llm_gateway.api_key_env, "LLM_GATEWAY_API_KEY")
-        self.assertEqual(settings.bedrock.api_key_env, "AWS_BEARER_TOKEN_BEDROCK")
         self.assertEqual(settings.deepseek.model, "deepseek-v4-flash")
         self.assertEqual(settings.deepseek.clarification_model, "deepseek-flash")
         self.assertEqual(settings.run.source_mode, "live")

@@ -180,7 +180,7 @@ graph = build_requirement_graph(interpreter=DeepSeekRequirementInterpreter())
 python3.11 build_contract_examples.py
 ```
 
-## C 模块：Bedrock LLM 评估流程
+## C 模块：团队 LLM Gateway 评估流程
 
 `part_c.py` 的流程是：
 
@@ -192,31 +192,31 @@ screen（硬条件、代码）
   → decide_next（执行 evaluate 建议，但保留安全边界）
 ```
 
-三个 LLM 步骤都使用 Amazon Bedrock 的 Claude Sonnet 4.5；模型 ID 固定为：
+三个 LLM 步骤都通过团队 LLM Gateway 使用 Claude Sonnet 4.5；默认模型 ID 为：
 
 ```text
 global.anthropic.claude-sonnet-4-5-20250929-v1:0
 ```
 
-安装 Python SDK，并把 Bedrock API Key 放在环境变量中（不要提交到 Git）：
+把团队网关配置放在 `.env` 中（不要提交到 Git）：
 
-```bash
-python3.13 -m pip install boto3
-export AWS_BEARER_TOKEN_BEDROCK="你的 Bedrock API Key"
-export BEDROCK_REGION="ap-southeast-1"
+```dotenv
+LLM_GATEWAY_URL=https://api.softwaresystems.app
+LLM_GATEWAY_API_KEY=你的团队网关密钥
+LLM_MODEL=global.anthropic.claude-sonnet-4-5-20250929-v1:0
 ```
 
-设置好 API Key 后，`retrieve()`、`evaluate()`、`review()` 会自动使用 Bedrock。应用也可以在
+设置好 API Key 后，`retrieve()`、`evaluate()`、`review()` 会自动使用网关。应用也可以在
 启动时显式注入：
 
 ```python
 from part_c import (
-    configure_bedrock_keyword_matcher,
-    configure_bedrock_evaluation_review_model,
+    configure_gateway_keyword_matcher,
+    configure_gateway_evaluation_review_model,
 )
 
-configure_bedrock_keyword_matcher()
-configure_bedrock_evaluation_review_model()
+configure_gateway_keyword_matcher()
+configure_gateway_evaluation_review_model()
 ```
 
 `evaluate()` 的输出新增了：
