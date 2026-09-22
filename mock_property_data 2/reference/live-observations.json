@@ -1,0 +1,3448 @@
+{
+  "sampled_on": "2026-09-14",
+  "search_pages": [
+    {
+      "area": "tampines",
+      "rows": [
+        {
+          "availability": "",
+          "bathrooms": 2,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500216949,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1000",
+            "pretty": "S$ 1,000 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1000
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "956A Tampines Street 96",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-956a-tampines-street-96-500216949"
+        },
+        {
+          "availability": "",
+          "bathrooms": 0,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500194723,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "900",
+            "pretty": "S$ 900 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 900
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "956a tampines street 96",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-956a-tampines-street-96-500194723"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500260062,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1200",
+            "pretty": "S$ 1,200 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 1200
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "645B Tampines Street 62",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-645b-tampines-street-62-500260062"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500252593,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1100",
+            "pretty": "S$ 1,100 /mo",
+            "type": {
+              "code": "OFF",
+              "text": "Starting From"
+            },
+            "value": 1100
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "969c tampines st 96",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-969c-tampines-st-96-500252593"
+        },
+        {
+          "availability": "",
+          "bathrooms": 0,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500216178,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "900",
+            "pretty": "S$ 900 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 900
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "956a tampines street 96",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-956a-tampines-street-96-500216178"
+        },
+        {
+          "availability": "",
+          "bathrooms": 2,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500263907,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1000",
+            "pretty": "S$ 1,000 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 1000
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "972B Tampines Street 96",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-972b-tampines-street-96-500263907"
+        },
+        {
+          "availability": "Available from 1 Oct",
+          "bathrooms": 2,
+          "bedrooms": 3,
+          "features": [
+            [
+              {
+                "dataAutomationId": "listing-card-v2-bedrooms",
+                "iconName": "bed-o",
+                "text": "3"
+              },
+              {
+                "dataAutomationId": "listing-card-v2-bathrooms",
+                "iconName": "bath-o",
+                "text": "2"
+              }
+            ],
+            {
+              "dataAutomationId": "listing-card-v2-area",
+              "text": "1,216 sqft"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 1 Oct"
+            }
+          ],
+          "floorArea": 1216,
+          "id": 23473816,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "4300",
+            "pretty": "S$ 4,300 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 4300
+          },
+          "propertyType": "HDB Flat",
+          "scope": "whole_unit",
+          "title": "618B Tampines Street 61",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-618b-tampines-street-61-23473816"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 2022"
+            }
+          ],
+          "id": 24453942,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "890",
+            "pretty": "S$ 890 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 890
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "647A Tampines St 62",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-647a-tampines-st-62-24453942"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500249401,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1200",
+            "pretty": "S$ 1,200 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1200
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "969C Tampines Street 96",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-969c-tampines-street-96-500249401"
+        },
+        {
+          "availability": "",
+          "bathrooms": 2,
+          "bedrooms": 4,
+          "features": [
+            [
+              {
+                "dataAutomationId": "listing-card-v2-bedrooms",
+                "iconName": "bed-o",
+                "text": "4"
+              },
+              {
+                "dataAutomationId": "listing-card-v2-bathrooms",
+                "iconName": "bath-o",
+                "text": "2"
+              }
+            ],
+            {
+              "dataAutomationId": "listing-card-v2-area",
+              "text": "1,323 sqft"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1997"
+            }
+          ],
+          "floorArea": 1323,
+          "id": 20276297,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "4300",
+            "pretty": "S$ 4,300 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 4300
+          },
+          "propertyType": "HDB Flat",
+          "scope": "whole_unit",
+          "title": "BLK 374 TAMPINES ST 34",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-blk-374-tampines-st-34-20276297"
+        },
+        {
+          "availability": "",
+          "bathrooms": 2,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500158312,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "950",
+            "pretty": "S$ 950 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 950
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "631A Tampines North Drive 2",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-631a-tampines-north-drive-2-500158312"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500219629,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "900",
+            "pretty": "S$ 900 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 900
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "Blk 443 Tampines Street 43",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-blk-443-tampines-street-43-500219629"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Master Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 60166449,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1600",
+            "pretty": "S$ 1,600 /mo",
+            "type": {
+              "code": "OFF",
+              "text": "Starting From"
+            },
+            "value": 1600
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "Pasir Ris / Loyang / Tampines East",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-pasir-ris-loyang-tampines-east-60166449"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Shared Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "3 pax (male)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500158354,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "550",
+            "pretty": "S$ 550 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 550
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "★2MinsWalkMRT★$550 only★Shared Room @ Tampines★",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-2minswalkmrt-550-only-shared-room-tampines-500158354"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 1,
+          "features": [
+            [
+              {
+                "dataAutomationId": "listing-card-v2-bedrooms",
+                "iconName": "bed-o",
+                "text": "1"
+              },
+              {
+                "dataAutomationId": "listing-card-v2-bathrooms",
+                "iconName": "bath-o",
+                "text": "1"
+              }
+            ],
+            {
+              "dataAutomationId": "listing-card-v2-area",
+              "text": "240 sqft (floor), 240 sqft (land)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "Terraced House"
+            }
+          ],
+          "floorArea": 240,
+          "id": 500250012,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "2900",
+            "pretty": "S$ 2,900 /mo",
+            "type": {
+              "code": "OFF",
+              "text": "Starting From"
+            },
+            "value": 2900
+          },
+          "propertyType": "Terraced House",
+          "scope": "whole_unit",
+          "title": "Fully Furnished Long-Term Stay Near Tampines & Pasir Ris MRT",
+          "url": "https://www.propertyguru.com.sg/listing/for-rent-fully-furnished-long-term-stay-near-tampines-pasir-ris-mrt-500250012"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500243976,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1000",
+            "pretty": "S$ 1,000 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1000
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "Common Room available for rent in 972A Tampines St. 96, 088",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-common-room-available-for-rent-in-972a-tampines-st-96-088-500243976"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "8 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "Condominium"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 2016"
+            }
+          ],
+          "id": 500254570,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "800",
+            "pretty": "S$ 800 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 800
+          },
+          "propertyType": "Condominium",
+          "scope": "room",
+          "title": "CityLife @ Tampines",
+          "url": "https://www.propertyguru.com.sg/listing/for-rent-citylife-tampines-500254570"
+        },
+        {
+          "availability": "",
+          "bathrooms": 2,
+          "bedrooms": 2,
+          "features": [
+            [
+              {
+                "dataAutomationId": "listing-card-v2-bedrooms",
+                "iconName": "bed-o",
+                "text": "2"
+              },
+              {
+                "dataAutomationId": "listing-card-v2-bathrooms",
+                "iconName": "bath-o",
+                "text": "2"
+              }
+            ],
+            {
+              "dataAutomationId": "listing-card-v2-area",
+              "text": "790 sqft"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "Executive Condominium"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 2016"
+            }
+          ],
+          "floorArea": 790,
+          "id": 500222119,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "3850",
+            "pretty": "S$ 3,850 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 3850
+          },
+          "propertyType": "Executive Condominium",
+          "scope": "whole_unit",
+          "title": "CityLife @ Tampines",
+          "url": "https://www.propertyguru.com.sg/listing/for-rent-citylife-tampines-500222119"
+        },
+        {
+          "availability": "Available from 1 Nov",
+          "bathrooms": 3,
+          "bedrooms": 3,
+          "features": [
+            [
+              {
+                "dataAutomationId": "listing-card-v2-bedrooms",
+                "iconName": "bed-o",
+                "text": "3"
+              },
+              {
+                "dataAutomationId": "listing-card-v2-bathrooms",
+                "iconName": "bath-o",
+                "text": "3"
+              }
+            ],
+            {
+              "dataAutomationId": "listing-card-v2-area",
+              "text": "1,195 sqft"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "Executive Condominium"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 2016"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 1 Nov"
+            }
+          ],
+          "floorArea": 1195,
+          "id": 500223839,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "5000",
+            "pretty": "S$ 5,000 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 5000
+          },
+          "propertyType": "Executive Condominium",
+          "scope": "whole_unit",
+          "title": "CityLife @ Tampines",
+          "url": "https://www.propertyguru.com.sg/listing/for-rent-citylife-tampines-500223839"
+        },
+        {
+          "availability": "",
+          "bathrooms": 0,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "Condominium"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 2016"
+            }
+          ],
+          "id": 500241045,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1400",
+            "pretty": "S$ 1,400 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1400
+          },
+          "propertyType": "Condominium",
+          "scope": "room",
+          "title": "CityLife @ Tampines",
+          "url": "https://www.propertyguru.com.sg/listing/for-rent-citylife-tampines-500241045"
+        }
+      ]
+    },
+    {
+      "area": "jurong east",
+      "rows": [
+        {
+          "availability": "Available from 15 Oct",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 15 Oct"
+            }
+          ],
+          "id": 500245430,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "700",
+            "pretty": "S$ 700 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 700
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "Common Room For Rent @ 339 Jurong East Ave 1",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-common-room-for-rent-339-jurong-east-ave-1-500245430"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Master Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            }
+          ],
+          "id": 500201948,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1200",
+            "pretty": "S$ 1,200 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1200
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "Master bedroom in Jurong East area available for rent! 025",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-master-bedroom-in-jurong-east-area-available-for-rent-025-500201948"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            }
+          ],
+          "id": 500215334,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "750",
+            "pretty": "S$ 750 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 750
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "329 Jurong East Avenue 1",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-329-jurong-east-avenue-1-500215334"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Master Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            }
+          ],
+          "id": 500220640,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1200",
+            "pretty": "S$ 1,200 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1200
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "247 Jurong East Street 24",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-247-jurong-east-street-24-500220640"
+        },
+        {
+          "availability": "Available from 1 Oct",
+          "bathrooms": 2,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1981"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 1 Oct"
+            }
+          ],
+          "id": 500245764,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1000",
+            "pretty": "S$ 1,000 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1000
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "234 Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-234-jurong-east-street-21-500245764"
+        },
+        {
+          "availability": "Available from 1 Nov",
+          "bathrooms": 2,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 1 Nov"
+            }
+          ],
+          "id": 500262652,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1000",
+            "pretty": "S$ 1,000 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1000
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "208 Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-208-jurong-east-street-21-500262652"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": -1,
+          "features": [
+            [
+              {
+                "dataAutomationId": "listing-card-v2-bedrooms",
+                "iconName": "bed-o",
+                "text": "Studio"
+              },
+              {
+                "dataAutomationId": "listing-card-v2-bathrooms",
+                "iconName": "bath-o",
+                "text": "1"
+              }
+            ],
+            {
+              "dataAutomationId": "listing-card-v2-area",
+              "text": "200 sqft"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1984"
+            }
+          ],
+          "floorArea": 200,
+          "id": 500261692,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "2000",
+            "pretty": "S$ 2,000 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 2000
+          },
+          "propertyType": "HDB Flat",
+          "scope": "whole_unit",
+          "title": "344 Jurong East Street 31",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-344-jurong-east-street-31-500261692"
+        },
+        {
+          "availability": "",
+          "bathrooms": 0,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax (male)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1980"
+            }
+          ],
+          "id": 500238727,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "750",
+            "pretty": "S$ 750 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 750
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "112 Jurong East Street 13",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-112-jurong-east-street-13-500238727"
+        },
+        {
+          "availability": "Available from 30 Sep",
+          "bathrooms": 2,
+          "bedrooms": 2,
+          "features": [
+            [
+              {
+                "dataAutomationId": "listing-card-v2-bedrooms",
+                "iconName": "bed-o",
+                "text": "2"
+              },
+              {
+                "dataAutomationId": "listing-card-v2-bathrooms",
+                "iconName": "bath-o",
+                "text": "2"
+              }
+            ],
+            {
+              "dataAutomationId": "listing-card-v2-area",
+              "text": "1,055 sqft"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 30 Sep"
+            }
+          ],
+          "floorArea": 1055,
+          "id": 22527556,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "3250",
+            "pretty": "S$ 3,250 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 3250
+          },
+          "propertyType": "HDB Flat",
+          "scope": "whole_unit",
+          "title": "204 Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-204-jurong-east-street-21-22527556"
+        },
+        {
+          "availability": "",
+          "bathrooms": 0,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax (male)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            }
+          ],
+          "id": 500258102,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "650",
+            "pretty": "S$ 650 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 650
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "205 Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-205-jurong-east-street-21-500258102"
+        },
+        {
+          "availability": "Available from 1 Oct",
+          "bathrooms": 2,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 1 Oct"
+            }
+          ],
+          "id": 500245623,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "700",
+            "pretty": "S$ 700 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 700
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "339 Jurong East Avenue 1",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-339-jurong-east-avenue-1-500245623"
+        },
+        {
+          "availability": "",
+          "bathrooms": 0,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            }
+          ],
+          "id": 500250262,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "700",
+            "pretty": "S$ 700 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 700
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "339 Jurong East Avenue 1",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-339-jurong-east-avenue-1-500250262"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1984"
+            }
+          ],
+          "id": 500181900,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "900",
+            "pretty": "S$ 900 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 900
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "332 Jurong East Avenue 1",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-332-jurong-east-avenue-1-500181900"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            }
+          ],
+          "id": 60183379,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1500",
+            "pretty": "S$ 1,500 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 1500
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "212 Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-212-jurong-east-street-21-60183379"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1984"
+            }
+          ],
+          "id": 500011407,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "900",
+            "pretty": "S$ 900 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 900
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "221A Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-221a-jurong-east-street-21-500011407"
+        },
+        {
+          "availability": "Available from 25 Sep",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 25 Sep"
+            }
+          ],
+          "id": 25242801,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1500",
+            "pretty": "S$ 1,500 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1500
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "212 Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-212-jurong-east-street-21-25242801"
+        },
+        {
+          "availability": "Ready to Move",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1984"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Ready to Move"
+            }
+          ],
+          "id": 24321367,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1500",
+            "pretty": "S$ 1,500 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 1500
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "216 Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-216-jurong-east-street-21-24321367"
+        },
+        {
+          "availability": "Available from 15 Oct",
+          "bathrooms": 2,
+          "bedrooms": 3,
+          "features": [
+            [
+              {
+                "dataAutomationId": "listing-card-v2-bedrooms",
+                "iconName": "bed-o",
+                "text": "3"
+              },
+              {
+                "dataAutomationId": "listing-card-v2-bathrooms",
+                "iconName": "bath-o",
+                "text": "2"
+              }
+            ],
+            {
+              "dataAutomationId": "listing-card-v2-area",
+              "text": "882 sqft"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1983"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-availability",
+              "text": "Available from 15 Oct"
+            }
+          ],
+          "floorArea": 882,
+          "id": 500263743,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "3600",
+            "pretty": "S$ 3,600 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 3600
+          },
+          "propertyType": "HDB Flat",
+          "scope": "whole_unit",
+          "title": "210 Jurong East Street 21",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-210-jurong-east-street-21-500263743"
+        },
+        {
+          "availability": "",
+          "bathrooms": 1,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "2 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1982"
+            }
+          ],
+          "id": 60071218,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "700",
+            "pretty": "S$ 700 /mo",
+            "type": {
+              "code": null,
+              "text": null
+            },
+            "value": 700
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "339 Jurong East Avenue 1",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-339-jurong-east-avenue-1-60071218"
+        },
+        {
+          "availability": "",
+          "bathrooms": 0,
+          "bedrooms": 0,
+          "features": [
+            {
+              "dataAutomationId": "listing-card-v2-room-type",
+              "iconName": "room-o",
+              "text": "Common Room"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-tenants",
+              "iconName": "people-shadow-o",
+              "text": "1 pax (female)"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-unit-type",
+              "text": "HDB Flat"
+            },
+            {
+              "dataAutomationId": "listing-card-v2-build-year",
+              "text": "Built: 1984"
+            }
+          ],
+          "id": 60109934,
+          "price": {
+            "currency": "SGD",
+            "localeStringValue": "1000",
+            "pretty": "S$ 1,000 /mo",
+            "type": {
+              "code": "NEG",
+              "text": "Negotiable"
+            },
+            "value": 1000
+          },
+          "propertyType": "HDB Flat",
+          "scope": "room",
+          "title": "352 Jurong East Street 31",
+          "url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-352-jurong-east-street-31-60109934"
+        }
+      ]
+    }
+  ],
+  "details": [
+    {
+      "amenities": [
+        {
+          "icon": "aircon-o",
+          "text": "Air conditioner"
+        },
+        {
+          "icon": "bed-o",
+          "text": "Bed"
+        },
+        {
+          "icon": "walk-in-wardrobe-o",
+          "text": "Bedroom cabinets"
+        }
+      ],
+      "dates": {
+        "auction": null,
+        "available": null,
+        "contentUpdated": {
+          "date": "2026-07-29 10:18:55",
+          "timestamp": 1785291535
+        },
+        "created": {
+          "date": "2026-07-29 10:18:54",
+          "timestamp": 1785291534
+        },
+        "expiry": {
+          "date": "2026-10-16 16:03:33",
+          "timestamp": 1792137813
+        },
+        "firstPosted": {
+          "date": "2026-07-29 10:20:20",
+          "timestamp": 1785291620
+        },
+        "lastPosted": {
+          "date": "2026-09-14 16:03:33",
+          "timestamp": 1789373013
+        },
+        "timezone": "UTC+08:00",
+        "updated": {
+          "date": "2026-09-14 16:03:33",
+          "timestamp": 1789373013
+        }
+      },
+      "details": [
+        {
+          "icon": "home-open-o",
+          "value": "5A HDB for rent"
+        },
+        {
+          "icon": "room-o",
+          "value": "Common room (Shared bath)"
+        },
+        {
+          "icon": "people-o",
+          "value": "Staying with owner"
+        },
+        {
+          "icon": "cooker-o",
+          "value": "No cooking"
+        },
+        {
+          "icon": "document-with-lines-o",
+          "value": "Utilities included"
+        },
+        {
+          "icon": "wifi-2-f",
+          "value": "Wi-Fi included"
+        },
+        {
+          "icon": "furnished-o",
+          "value": "Fully furnished"
+        },
+        {
+          "icon": "calendar-time-o",
+          "value": "Listed on 14 Sep 2026"
+        },
+        {
+          "icon": "document-with-lines-o",
+          "value": "Listing ID - 500216949"
+        },
+        {
+          "icon": "auto-size-o",
+          "value": "S$ 8.33 psf (floor)"
+        },
+        {
+          "icon": "calendar-days-o",
+          "value": "99-year lease"
+        }
+      ],
+      "location": {
+        "address": {
+          "block": null,
+          "floor": null,
+          "formatted": "Tampines Street 96",
+          "maskLocation": false,
+          "maskUnitNumber": false,
+          "postalCode": "521956",
+          "streetNumber": null,
+          "unit": null
+        },
+        "hdbEstate": {
+          "code": 24,
+          "text": "Tampines"
+        },
+        "id": null,
+        "levels": [],
+        "noLevel600": false,
+        "noLevel700": false,
+        "noLevel800": false,
+        "point": {
+          "lat": 1.34195798248023,
+          "lon": 103.934703145535
+        },
+        "street": "Tampines Street 96",
+        "streetId": null,
+        "streetName": "Tampines Street 96",
+        "streetName2": null,
+        "subZoneIds": [
+          "41179"
+        ],
+        "zoneIds": [
+          "40047"
+        ]
+      },
+      "price": {
+        "currency": "SGD",
+        "formatted": "S$ 1,000 /mo",
+        "maintenanceFee": null,
+        "maintenanceFeePerUnit": null,
+        "max": 1000,
+        "min": 1000,
+        "perArea": {
+          "floor": [
+            {
+              "max": 8.33,
+              "min": 8.33,
+              "text": "S$ 8.33 psf",
+              "uom": "sqft"
+            }
+          ],
+          "land": []
+        },
+        "type": null
+      },
+      "project": {
+        "categoryType": {
+          "code": "R",
+          "text": "Residential"
+        },
+        "completionYear": null,
+        "facilities": [],
+        "floors": null,
+        "id": 500216949,
+        "name": "956A Tampines Street 96",
+        "names": [
+          {
+            "locale": "en",
+            "text": "956A Tampines Street 96"
+          }
+        ],
+        "property": {
+          "subType": {
+            "code": "HDB",
+            "text": "HDB Flat"
+          },
+          "type": {
+            "code": "H",
+            "text": "HDB"
+          },
+          "unitType": {
+            "code": null,
+            "text": null
+          }
+        },
+        "tenure": {
+          "code": "L99",
+          "text": "99-year Leasehold"
+        }
+      },
+      "propertyType": "HDB Flat",
+      "source_id": 500216949,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-956a-tampines-street-96-500216949",
+      "status": "ACT",
+      "unitDetails": {
+        "ceilingHeight": null,
+        "centralAircon": null,
+        "centralAirconHours": null,
+        "condition": null,
+        "configuration": {
+          "bathrooms": {
+            "text": "2 Bathrooms",
+            "value": 2
+          },
+          "bedrooms": {
+            "text": null,
+            "value": null
+          },
+          "extrarooms": {
+            "text": null,
+            "value": null
+          }
+        },
+        "cookingType": {
+          "code": "NOT",
+          "description": "Not Allowed"
+        },
+        "dimensions": {
+          "floor": {
+            "length": null,
+            "size": [],
+            "width": null
+          },
+          "land": {
+            "length": null,
+            "size": [],
+            "width": null
+          },
+          "room": {
+            "size": [
+              {
+                "formatted": "120 sqft",
+                "uom": "sqft",
+                "value": 120
+              }
+            ]
+          }
+        },
+        "direction": null,
+        "electricity": {
+          "phase": null,
+          "supply": null
+        },
+        "features": [
+          {
+            "code": "ARCON",
+            "description": "Air Conditioner"
+          }
+        ],
+        "floorLevel": null,
+        "floorLoadingCapacity": null,
+        "floorLoadingCategory": null,
+        "furnishing": {
+          "code": "FULL",
+          "description": "Fully Furnished"
+        },
+        "furnishingDetails": [
+          {
+            "code": "BED",
+            "description": "Bed"
+          },
+          {
+            "code": "CBNT",
+            "description": "Bedroom Cabinets"
+          }
+        ],
+        "hdbType": {
+          "code": "5A",
+          "description": "5A (5 Room Adjustable)"
+        },
+        "isAvailableNow": true,
+        "isBumiLot": null,
+        "isHighCeiling": null,
+        "landTitleType": null,
+        "lift": {
+          "capacity": null,
+          "cargo": null,
+          "totalPassenger": null
+        },
+        "maxTenants": 2,
+        "occupancy": null,
+        "ownerStays": true,
+        "ownerType": null,
+        "parkingFee": null,
+        "parkingSpots": null,
+        "petFriendly": null,
+        "propertyUses": [],
+        "quotaEthnic": null,
+        "quotaSpr": null,
+        "ramp": null,
+        "rentalType": {
+          "code": "ROOM",
+          "description": "A Room Only"
+        },
+        "roomType": {
+          "code": "COM",
+          "description": "Common Room"
+        },
+        "sellerEthnic": null,
+        "sellerResidency": null,
+        "tenancy": {
+          "tenantedUntilDate": {
+            "date": null,
+            "timestamp": null
+          },
+          "value": "UNTENANTED"
+        },
+        "tenantEligibility": false,
+        "tenantGender": "FEMA",
+        "titleType": null,
+        "utilitiesIncluded": true,
+        "visitorsAllowed": null,
+        "wifiIncluded": true
+      },
+      "description_signals": {
+        "no cooking": true,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": false,
+        "wifi": false,
+        "utilities": true,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      },
+      "sample_area": "tampines"
+    },
+    {
+      "amenities": [
+        {
+          "icon": "light-bulb-simple-o",
+          "text": "Basic lights"
+        },
+        {
+          "icon": "corner-unit-o",
+          "text": "Corner unit"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Dining table"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Fans"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Oven"
+        },
+        {
+          "icon": "renovated-o",
+          "text": "Renovated"
+        },
+        {
+          "icon": "television-2-o",
+          "text": "Tv"
+        },
+        {
+          "icon": "walk-in-wardrobe-o",
+          "text": "Wardrobe"
+        },
+        {
+          "icon": "washer-o",
+          "text": "Washing machine"
+        },
+        {
+          "icon": "heater-o",
+          "text": "Water heater"
+        }
+      ],
+      "dates": {
+        "auction": null,
+        "available": {
+          "date": "2026-10-01 00:00:00",
+          "timestamp": 1790784000
+        },
+        "contentUpdated": {
+          "date": "2026-09-13 16:17:36",
+          "timestamp": 1789287456
+        },
+        "created": {
+          "date": "2021-04-22 12:12:14",
+          "timestamp": 1619064734
+        },
+        "expiry": {
+          "date": "2026-10-15 16:17:36",
+          "timestamp": 1792052256
+        },
+        "firstPosted": {
+          "date": "2026-09-13 16:17:36",
+          "timestamp": 1789287456
+        },
+        "lastPosted": {
+          "date": "2026-09-13 16:17:36",
+          "timestamp": 1789287456
+        },
+        "timezone": "UTC+08:00",
+        "updated": {
+          "date": "2026-09-13 16:17:36",
+          "timestamp": 1789287456
+        }
+      },
+      "details": [
+        {
+          "icon": "home-open-o",
+          "value": "5I HDB for rent"
+        },
+        {
+          "icon": "furnished-o",
+          "value": "Partially furnished"
+        },
+        {
+          "icon": "asterisk-o",
+          "value": "Flexible lease"
+        },
+        {
+          "icon": "calendar-time-o",
+          "value": "Listed on 13 Sep 2026"
+        },
+        {
+          "icon": "document-with-lines-o",
+          "value": "Listing ID - 23473816"
+        },
+        {
+          "icon": "ruler-o",
+          "value": "1,216 sqft floor area"
+        },
+        {
+          "icon": "auto-size-o",
+          "value": "S$ 3.54 psf (floor)"
+        },
+        {
+          "icon": "loading-bay-o",
+          "value": "Available from 1 Oct 2026"
+        },
+        {
+          "icon": "layers-2-o",
+          "value": "Middle floor level"
+        },
+        {
+          "icon": "calendar-days-o",
+          "value": "99-year lease"
+        }
+      ],
+      "location": {
+        "address": {
+          "block": null,
+          "floor": null,
+          "formatted": "618B Tampines Street 61",
+          "maskLocation": false,
+          "maskUnitNumber": false,
+          "postalCode": "522618",
+          "streetNumber": null,
+          "unit": null
+        },
+        "hdbEstate": {
+          "code": 24,
+          "text": "Tampines"
+        },
+        "id": null,
+        "levels": [],
+        "noLevel600": false,
+        "noLevel700": false,
+        "noLevel800": false,
+        "point": {
+          "lat": 1.362546,
+          "lon": 103.9391522
+        },
+        "street": "618B Tampines Street 61",
+        "streetId": null,
+        "streetName": "618B Tampines Street 61",
+        "streetName2": null,
+        "subZoneIds": [
+          "41169"
+        ],
+        "zoneIds": [
+          "40047"
+        ]
+      },
+      "price": {
+        "currency": "SGD",
+        "formatted": "S$ 4,300 /mo",
+        "maintenanceFee": null,
+        "maintenanceFeePerUnit": null,
+        "max": 4300,
+        "min": 4300,
+        "perArea": {
+          "floor": [
+            {
+              "max": 3.54,
+              "min": 3.54,
+              "text": "S$ 3.54 psf",
+              "uom": "sqft"
+            }
+          ],
+          "land": []
+        },
+        "type": {
+          "code": "NEG",
+          "text": "Negotiable"
+        }
+      },
+      "project": {
+        "categoryType": {
+          "code": "R",
+          "text": "Residential"
+        },
+        "completionYear": null,
+        "facilities": [],
+        "floors": null,
+        "id": 23473816,
+        "name": "618B Tampines Street 61",
+        "names": [
+          {
+            "locale": "en",
+            "text": "618B Tampines Street 61"
+          }
+        ],
+        "property": {
+          "subType": {
+            "code": "HDB",
+            "text": "HDB Flat"
+          },
+          "type": {
+            "code": "H",
+            "text": "HDB"
+          },
+          "unitType": {
+            "code": null,
+            "text": null
+          }
+        },
+        "tenure": {
+          "code": "L99",
+          "text": "99-year Leasehold"
+        }
+      },
+      "propertyType": "HDB Flat",
+      "source_id": 23473816,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-618b-tampines-street-61-23473816",
+      "status": "ACT",
+      "unitDetails": {
+        "ceilingHeight": null,
+        "centralAircon": null,
+        "centralAirconHours": null,
+        "condition": null,
+        "configuration": {
+          "bathrooms": {
+            "text": "2 Bathrooms",
+            "value": 2
+          },
+          "bedrooms": {
+            "text": "3 Bedrooms",
+            "value": 3
+          },
+          "extrarooms": {
+            "text": null,
+            "value": null
+          }
+        },
+        "cookingType": null,
+        "dimensions": {
+          "floor": {
+            "length": null,
+            "size": [
+              {
+                "formatted": "1,216 sqft",
+                "uom": "sqft",
+                "value": 1216
+              }
+            ],
+            "width": null
+          },
+          "land": {
+            "length": null,
+            "size": [],
+            "width": null
+          },
+          "room": {
+            "size": []
+          }
+        },
+        "direction": null,
+        "electricity": {
+          "phase": null,
+          "supply": null
+        },
+        "features": [
+          {
+            "code": "CORN",
+            "description": "Corner Unit"
+          },
+          {
+            "code": "RENO",
+            "description": "Renovated"
+          }
+        ],
+        "floorLevel": {
+          "code": "MID",
+          "description": "Middle Floor"
+        },
+        "floorLoadingCapacity": null,
+        "floorLoadingCategory": null,
+        "furnishing": {
+          "code": "PART",
+          "description": "Partially Furnished"
+        },
+        "furnishingDetails": [
+          {
+            "code": "BSLT",
+            "description": "Basic Lights"
+          },
+          {
+            "code": "DNTBL",
+            "description": "Dining Table"
+          },
+          {
+            "code": "FANS",
+            "description": "Fans"
+          },
+          {
+            "code": "OVEN",
+            "description": "Oven"
+          },
+          {
+            "code": "TV",
+            "description": "TV"
+          },
+          {
+            "code": "WAS",
+            "description": "Washing Machine"
+          },
+          {
+            "code": "WRDRB",
+            "description": "Wardrobe"
+          },
+          {
+            "code": "WTHTR",
+            "description": "Water Heater"
+          }
+        ],
+        "hdbType": {
+          "code": "5I",
+          "description": "5I (5 Room Improved)"
+        },
+        "isAvailableNow": null,
+        "isBumiLot": null,
+        "isHighCeiling": null,
+        "landTitleType": null,
+        "lift": {
+          "capacity": null,
+          "cargo": null,
+          "totalPassenger": null
+        },
+        "maxTenants": null,
+        "occupancy": null,
+        "ownerStays": null,
+        "ownerType": null,
+        "parkingFee": null,
+        "parkingSpots": null,
+        "petFriendly": null,
+        "propertyUses": [],
+        "quotaEthnic": null,
+        "quotaSpr": null,
+        "ramp": null,
+        "rentalType": {
+          "code": "ENT",
+          "description": "Entire Unit"
+        },
+        "roomType": null,
+        "sellerEthnic": null,
+        "sellerResidency": null,
+        "tenancy": {
+          "tenantedUntilDate": {
+            "date": null,
+            "timestamp": null
+          },
+          "value": "UNTENANTED"
+        },
+        "tenantEligibility": false,
+        "tenantGender": null,
+        "titleType": null,
+        "utilitiesIncluded": null,
+        "visitorsAllowed": null,
+        "wifiIncluded": null
+      },
+      "description_signals": {
+        "no cooking": false,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": false,
+        "wifi": false,
+        "utilities": false,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      },
+      "sample_area": "tampines"
+    },
+    {
+      "amenities": [
+        {
+          "icon": "aircon-o",
+          "text": "Air conditioner"
+        },
+        {
+          "icon": "bed-o",
+          "text": "Bed"
+        },
+        {
+          "icon": "walk-in-wardrobe-o",
+          "text": "Cabinets"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Fans"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Fridge"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Mattress"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Microwave"
+        },
+        {
+          "icon": "television-2-o",
+          "text": "Tv"
+        },
+        {
+          "icon": "walk-in-wardrobe-o",
+          "text": "Wardrobe"
+        },
+        {
+          "icon": "washer-o",
+          "text": "Washing machine"
+        },
+        {
+          "icon": "heater-o",
+          "text": "Water heater"
+        }
+      ],
+      "dates": {
+        "auction": null,
+        "available": null,
+        "contentUpdated": {
+          "date": "2026-08-31 16:09:52",
+          "timestamp": 1788163792
+        },
+        "created": {
+          "date": "2026-08-31 16:09:52",
+          "timestamp": 1788163792
+        },
+        "expiry": {
+          "date": "2026-10-02 16:13:09",
+          "timestamp": 1790928789
+        },
+        "firstPosted": {
+          "date": "2026-08-31 16:13:09",
+          "timestamp": 1788163989
+        },
+        "lastPosted": {
+          "date": "2026-08-31 16:13:09",
+          "timestamp": 1788163989
+        },
+        "timezone": "UTC+08:00",
+        "updated": {
+          "date": "2026-08-31 16:13:09",
+          "timestamp": 1788163989
+        }
+      },
+      "details": [
+        {
+          "icon": "home-open-o",
+          "value": "Terraced House for rent"
+        },
+        {
+          "icon": "furnished-o",
+          "value": "Fully furnished"
+        },
+        {
+          "icon": "asterisk-o",
+          "value": "Flexible lease"
+        },
+        {
+          "icon": "calendar-time-o",
+          "value": "Listed on 31 Aug 2026"
+        },
+        {
+          "icon": "document-with-lines-o",
+          "value": "Listing ID - 500250012"
+        },
+        {
+          "icon": "ruler-o",
+          "value": "240 sqft floor area"
+        },
+        {
+          "icon": "asterisk-o",
+          "value": "240 sqft land area"
+        },
+        {
+          "icon": "auto-size-o",
+          "value": "S$ 12.08 psf (floor)"
+        },
+        {
+          "icon": "auto-size-o",
+          "value": "S$ 12.08 psf (land)"
+        },
+        {
+          "icon": "calendar-days-o",
+          "value": "Prefer not to say"
+        }
+      ],
+      "facilities": [
+        {
+          "icon": "gym-o",
+          "text": "Gymnasium room"
+        },
+        {
+          "icon": "microphone-o",
+          "text": "Karaoke"
+        },
+        {
+          "icon": "swim-o",
+          "text": "Swimming pool"
+        }
+      ],
+      "location": {
+        "address": {
+          "block": null,
+          "floor": null,
+          "formatted": "Pasir Ris / Tampines",
+          "maskLocation": true,
+          "maskUnitNumber": true,
+          "postalCode": "509404",
+          "streetNumber": null,
+          "unit": null
+        },
+        "hdbEstate": {
+          "code": null,
+          "text": null
+        },
+        "id": null,
+        "levels": [
+          {
+            "id": "F",
+            "level": 200,
+            "levelName": "region",
+            "slug": "changi-pasir-ris-d17-18",
+            "value": "Changi / Pasir Ris (D17-18)"
+          },
+          {
+            "id": "D18",
+            "level": 500,
+            "levelName": "district",
+            "slug": "pasir-ris-tampines",
+            "value": "Pasir Ris / Tampines"
+          }
+        ],
+        "noLevel600": false,
+        "noLevel700": false,
+        "noLevel800": false,
+        "point": {
+          "lat": 1.3808,
+          "lon": 103.96102
+        },
+        "street": null,
+        "streetId": null,
+        "streetName": "",
+        "streetName2": null,
+        "subZoneIds": [
+          "41255"
+        ],
+        "zoneIds": [
+          "40014"
+        ]
+      },
+      "price": {
+        "currency": "SGD",
+        "formatted": "S$ 2,900 /mo",
+        "maintenanceFee": null,
+        "maintenanceFeePerUnit": null,
+        "max": 2900,
+        "min": 2900,
+        "perArea": {
+          "floor": [
+            {
+              "max": 12.08,
+              "min": 12.08,
+              "text": "S$ 12.08 psf",
+              "uom": "sqft"
+            }
+          ],
+          "land": [
+            {
+              "max": 12.08,
+              "min": 12.08,
+              "text": "S$ 12.08 psf",
+              "uom": "sqft"
+            }
+          ]
+        },
+        "type": {
+          "code": "OFF",
+          "text": "Starting From"
+        }
+      },
+      "project": {
+        "categoryType": {
+          "code": "R",
+          "text": "Residential"
+        },
+        "completionYear": null,
+        "facilities": [
+          {
+            "code": "GYM",
+            "description": "Gymnasium room"
+          },
+          {
+            "code": "KAR",
+            "description": "Karaoke"
+          },
+          {
+            "code": "SWI",
+            "description": "Swimming pool"
+          }
+        ],
+        "floors": null,
+        "id": 500250012,
+        "name": "Fully Furnished Long-Term Stay Near Tampines & Pasir Ris MRT",
+        "names": [
+          {
+            "locale": "en",
+            "text": "Fully Furnished Long-Term Stay Near Tampines & Pasir Ris MRT"
+          }
+        ],
+        "property": {
+          "subType": {
+            "code": "TERRA",
+            "text": "Terraced House"
+          },
+          "type": {
+            "code": "L",
+            "text": "Landed"
+          },
+          "unitType": {
+            "code": null,
+            "text": null
+          }
+        },
+        "tenure": {
+          "code": "PNTS",
+          "text": "Prefer Not to Say"
+        }
+      },
+      "propertyType": "Terraced House",
+      "source_id": 500250012,
+      "source_url": "https://www.propertyguru.com.sg/listing/for-rent-fully-furnished-long-term-stay-near-tampines-pasir-ris-mrt-500250012",
+      "status": "ACT",
+      "unitDetails": {
+        "ceilingHeight": null,
+        "centralAircon": null,
+        "centralAirconHours": null,
+        "condition": null,
+        "configuration": {
+          "bathrooms": {
+            "text": "1 Bathroom",
+            "value": 1
+          },
+          "bedrooms": {
+            "text": "1 Bedroom",
+            "value": 1
+          },
+          "extrarooms": {
+            "text": null,
+            "value": null
+          }
+        },
+        "cookingType": null,
+        "dimensions": {
+          "floor": {
+            "length": null,
+            "size": [
+              {
+                "formatted": "240 sqft",
+                "uom": "sqft",
+                "value": 240
+              }
+            ],
+            "width": null
+          },
+          "land": {
+            "length": null,
+            "size": [
+              {
+                "formatted": "240 sqft",
+                "uom": "sqft",
+                "value": {
+                  "ngan": null,
+                  "rai": null,
+                  "value": 240,
+                  "waSquared": null
+                }
+              }
+            ],
+            "width": null
+          },
+          "room": {
+            "size": []
+          }
+        },
+        "direction": null,
+        "electricity": {
+          "phase": null,
+          "supply": null
+        },
+        "features": [
+          {
+            "code": "ARCON",
+            "description": "Air Conditioner"
+          }
+        ],
+        "floorLevel": null,
+        "floorLoadingCapacity": null,
+        "floorLoadingCategory": null,
+        "furnishing": {
+          "code": "FULL",
+          "description": "Fully Furnished"
+        },
+        "furnishingDetails": [
+          {
+            "code": "BED",
+            "description": "Bed"
+          },
+          {
+            "code": "CABN",
+            "description": "Cabinets"
+          },
+          {
+            "code": "FANS",
+            "description": "Fans"
+          },
+          {
+            "code": "FRIDG",
+            "description": "Fridge"
+          },
+          {
+            "code": "MCWAV",
+            "description": "Microwave"
+          },
+          {
+            "code": "MTRS",
+            "description": "Mattress"
+          },
+          {
+            "code": "TV",
+            "description": "TV"
+          },
+          {
+            "code": "WAS",
+            "description": "Washing Machine"
+          },
+          {
+            "code": "WRDRB",
+            "description": "Wardrobe"
+          },
+          {
+            "code": "WTHTR",
+            "description": "Water Heater"
+          }
+        ],
+        "hdbType": null,
+        "isAvailableNow": true,
+        "isBumiLot": null,
+        "isHighCeiling": null,
+        "landTitleType": null,
+        "lift": {
+          "capacity": null,
+          "cargo": null,
+          "totalPassenger": null
+        },
+        "maxTenants": null,
+        "occupancy": null,
+        "ownerStays": null,
+        "ownerType": null,
+        "parkingFee": null,
+        "parkingSpots": null,
+        "petFriendly": null,
+        "propertyUses": [],
+        "quotaEthnic": null,
+        "quotaSpr": null,
+        "ramp": null,
+        "rentalType": {
+          "code": "ENT",
+          "description": "Entire Unit"
+        },
+        "roomType": null,
+        "sellerEthnic": null,
+        "sellerResidency": null,
+        "tenancy": {
+          "tenantedUntilDate": {
+            "date": null,
+            "timestamp": null
+          },
+          "value": "UNTENANTED"
+        },
+        "tenantEligibility": false,
+        "tenantGender": null,
+        "titleType": null,
+        "utilitiesIncluded": null,
+        "visitorsAllowed": null,
+        "wifiIncluded": null
+      },
+      "description_signals": {
+        "no cooking": false,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": false,
+        "wifi": false,
+        "utilities": false,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      },
+      "sample_area": "tampines"
+    },
+    {
+      "dates": {
+        "auction": null,
+        "available": {
+          "date": "2026-10-15 00:00:00",
+          "timestamp": 1791993600
+        },
+        "contentUpdated": {
+          "date": "2026-08-26 15:24:21",
+          "timestamp": 1787729061
+        },
+        "created": {
+          "date": "2026-08-26 15:24:21",
+          "timestamp": 1787729061
+        },
+        "expiry": {
+          "date": "2026-09-27 15:25:45",
+          "timestamp": 1790493945
+        },
+        "firstPosted": {
+          "date": "2026-08-26 15:25:45",
+          "timestamp": 1787729145
+        },
+        "lastPosted": {
+          "date": "2026-08-26 15:25:45",
+          "timestamp": 1787729145
+        },
+        "timezone": "UTC+08:00",
+        "updated": {
+          "date": "2026-08-26 15:25:45",
+          "timestamp": 1787729145
+        }
+      },
+      "details": [
+        {
+          "icon": "home-open-o",
+          "value": "4A HDB for rent"
+        },
+        {
+          "icon": "room-o",
+          "value": "Common room (Shared bath)"
+        },
+        {
+          "icon": "people-o",
+          "value": "Staying with owner"
+        },
+        {
+          "icon": "cooker-o",
+          "value": "Light cooking only"
+        },
+        {
+          "icon": "document-with-lines-o",
+          "value": "Utilities included"
+        },
+        {
+          "icon": "people-behind-o",
+          "value": "Visitors not allowed"
+        },
+        {
+          "icon": "wifi-2-f",
+          "value": "Wi-Fi included"
+        },
+        {
+          "icon": "pet-o",
+          "value": "Pets not allowed"
+        },
+        {
+          "icon": "furnished-o",
+          "value": "Fully furnished"
+        },
+        {
+          "icon": "asterisk-o",
+          "value": "1 year lease"
+        },
+        {
+          "icon": "calendar-time-o",
+          "value": "Listed on 26 Aug 2026"
+        },
+        {
+          "icon": "document-with-lines-o",
+          "value": "Listing ID - 500245430"
+        },
+        {
+          "icon": "auto-size-o",
+          "value": "S$ 4.67 psf (floor)"
+        },
+        {
+          "icon": "loading-bay-o",
+          "value": "Available from 15 Oct 2026"
+        },
+        {
+          "icon": "calendar-days-o",
+          "value": "99-year lease"
+        }
+      ],
+      "location": {
+        "address": {
+          "block": null,
+          "floor": null,
+          "formatted": "Common Room For Rent @ 339 Jurong East Ave 1",
+          "maskLocation": false,
+          "maskUnitNumber": false,
+          "postalCode": "609959",
+          "streetNumber": null,
+          "unit": null
+        },
+        "hdbEstate": {
+          "code": 13,
+          "text": "Jurong East"
+        },
+        "id": null,
+        "levels": [],
+        "noLevel600": false,
+        "noLevel700": false,
+        "noLevel800": false,
+        "point": {
+          "lat": 1.34235,
+          "lon": 103.732342
+        },
+        "street": "Common Room For Rent @ 339 Jurong East Ave 1",
+        "streetId": null,
+        "streetName": "Common Room For Rent @ 339 Jurong East Ave 1",
+        "streetName2": null,
+        "subZoneIds": [
+          "41209"
+        ],
+        "zoneIds": [
+          "40012"
+        ]
+      },
+      "price": {
+        "currency": "SGD",
+        "formatted": "S$ 700 /mo",
+        "maintenanceFee": null,
+        "maintenanceFeePerUnit": null,
+        "max": 700,
+        "min": 700,
+        "perArea": {
+          "floor": [
+            {
+              "max": 4.67,
+              "min": 4.67,
+              "text": "S$ 4.67 psf",
+              "uom": "sqft"
+            }
+          ],
+          "land": []
+        },
+        "type": null
+      },
+      "project": {
+        "categoryType": {
+          "code": "R",
+          "text": "Residential"
+        },
+        "completionYear": null,
+        "facilities": [],
+        "floors": null,
+        "id": 500245430,
+        "name": "Common Room For Rent @ 339 Jurong East Ave 1",
+        "names": [
+          {
+            "locale": "en",
+            "text": "Common Room For Rent @ 339 Jurong East Ave 1"
+          }
+        ],
+        "property": {
+          "subType": {
+            "code": "HDB",
+            "text": "HDB Flat"
+          },
+          "type": {
+            "code": "H",
+            "text": "HDB"
+          },
+          "unitType": {
+            "code": null,
+            "text": null
+          }
+        },
+        "tenure": {
+          "code": "L99",
+          "text": "99-year Leasehold"
+        }
+      },
+      "propertyType": "HDB Flat",
+      "source_id": 500245430,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-common-room-for-rent-339-jurong-east-ave-1-500245430",
+      "status": "ACT",
+      "unitDetails": {
+        "ceilingHeight": null,
+        "centralAircon": null,
+        "centralAirconHours": null,
+        "condition": null,
+        "configuration": {
+          "bathrooms": {
+            "text": "1 Bathroom",
+            "value": 1
+          },
+          "bedrooms": {
+            "text": null,
+            "value": null
+          },
+          "extrarooms": {
+            "text": null,
+            "value": null
+          }
+        },
+        "cookingType": {
+          "code": "LIGHT",
+          "description": "Light Cooking"
+        },
+        "dimensions": {
+          "floor": {
+            "length": null,
+            "size": [],
+            "width": null
+          },
+          "land": {
+            "length": null,
+            "size": [],
+            "width": null
+          },
+          "room": {
+            "size": [
+              {
+                "formatted": "150 sqft",
+                "uom": "sqft",
+                "value": 150
+              }
+            ]
+          }
+        },
+        "direction": null,
+        "electricity": {
+          "phase": null,
+          "supply": null
+        },
+        "features": [],
+        "floorLevel": null,
+        "floorLoadingCapacity": null,
+        "floorLoadingCategory": null,
+        "furnishing": {
+          "code": "FULL",
+          "description": "Fully Furnished"
+        },
+        "furnishingDetails": [],
+        "hdbType": {
+          "code": "4A",
+          "description": "4A"
+        },
+        "isAvailableNow": null,
+        "isBumiLot": null,
+        "isHighCeiling": null,
+        "landTitleType": null,
+        "lift": {
+          "capacity": null,
+          "cargo": null,
+          "totalPassenger": null
+        },
+        "maxTenants": 2,
+        "occupancy": null,
+        "ownerStays": true,
+        "ownerType": null,
+        "parkingFee": null,
+        "parkingSpots": null,
+        "petFriendly": false,
+        "propertyUses": [],
+        "quotaEthnic": null,
+        "quotaSpr": null,
+        "ramp": null,
+        "rentalType": {
+          "code": "ROOM",
+          "description": "A Room Only"
+        },
+        "roomType": {
+          "code": "COM",
+          "description": "Common Room"
+        },
+        "sellerEthnic": null,
+        "sellerResidency": null,
+        "tenancy": {
+          "tenantedUntilDate": {
+            "date": null,
+            "timestamp": null
+          },
+          "value": "UNTENANTED"
+        },
+        "tenantEligibility": false,
+        "tenantGender": "FEMA",
+        "titleType": null,
+        "utilitiesIncluded": true,
+        "visitorsAllowed": false,
+        "wifiIncluded": true
+      },
+      "description_signals": {
+        "no cooking": false,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": true,
+        "wifi": true,
+        "utilities": true,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      },
+      "sample_area": "jurong east"
+    },
+    {
+      "amenities": [
+        {
+          "icon": "aircon-o",
+          "text": "Air conditioner"
+        },
+        {
+          "icon": "bed-o",
+          "text": "Bed"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Dryer"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Fridge"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Mattress"
+        },
+        {
+          "icon": "asterisk-o",
+          "text": "Microwave"
+        },
+        {
+          "icon": "renovated-o",
+          "text": "Renovated"
+        },
+        {
+          "icon": "walk-in-wardrobe-o",
+          "text": "Wardrobe"
+        },
+        {
+          "icon": "washer-o",
+          "text": "Washing machine"
+        },
+        {
+          "icon": "heater-o",
+          "text": "Water heater"
+        }
+      ],
+      "dates": {
+        "auction": null,
+        "available": null,
+        "contentUpdated": {
+          "date": "2026-09-12 11:42:52",
+          "timestamp": 1789184572
+        },
+        "created": {
+          "date": "2026-09-12 11:42:52",
+          "timestamp": 1789184572
+        },
+        "expiry": {
+          "date": "2026-10-14 11:44:06",
+          "timestamp": 1791949446
+        },
+        "firstPosted": {
+          "date": "2026-09-12 11:44:06",
+          "timestamp": 1789184646
+        },
+        "lastPosted": {
+          "date": "2026-09-12 11:44:06",
+          "timestamp": 1789184646
+        },
+        "timezone": "UTC+08:00",
+        "updated": {
+          "date": "2026-09-12 11:44:06",
+          "timestamp": 1789184646
+        }
+      },
+      "details": [
+        {
+          "icon": "home-open-o",
+          "value": "1-Room / Studio HDB for rent"
+        },
+        {
+          "icon": "furnished-o",
+          "value": "Fully furnished"
+        },
+        {
+          "icon": "document-with-lines-o",
+          "value": "TOP in 1984"
+        },
+        {
+          "icon": "asterisk-o",
+          "value": "2 years lease"
+        },
+        {
+          "icon": "calendar-time-o",
+          "value": "Listed on 12 Sep 2026"
+        },
+        {
+          "icon": "everyone-welcome-o",
+          "value": "Welcome all races, religions, genders, and sexual orientations."
+        },
+        {
+          "icon": "document-with-lines-o",
+          "value": "Listing ID - 500261692"
+        },
+        {
+          "icon": "ruler-o",
+          "value": "200 sqft floor area"
+        },
+        {
+          "icon": "auto-size-o",
+          "value": "S$ 10.00 psf (floor)"
+        },
+        {
+          "icon": "layers-2-o",
+          "value": "Low floor level"
+        },
+        {
+          "icon": "calendar-days-o",
+          "value": "99-year lease"
+        },
+        {
+          "icon": "new-project-o",
+          "value": "Developed by Housing & Development Board (HDB)"
+        }
+      ],
+      "location": {
+        "address": {
+          "block": null,
+          "floor": null,
+          "formatted": "344 Jurong East Street 31, Boon Lay / Jurong / Tuas",
+          "maskLocation": false,
+          "maskUnitNumber": true,
+          "postalCode": "600344",
+          "streetNumber": "344",
+          "unit": null
+        },
+        "hdbEstate": {
+          "code": 13,
+          "text": "Jurong East"
+        },
+        "id": 28526,
+        "levels": [
+          {
+            "id": "H",
+            "level": 200,
+            "levelName": "region",
+            "slug": "west-d22-24",
+            "value": "West (D22-24)"
+          },
+          {
+            "id": "D22",
+            "level": 500,
+            "levelName": "district",
+            "slug": "boon-lay-jurong-tuas",
+            "value": "Boon Lay / Jurong / Tuas"
+          }
+        ],
+        "noLevel600": false,
+        "noLevel700": false,
+        "noLevel800": false,
+        "point": {
+          "lat": 1.345709244,
+          "lon": 103.730681
+        },
+        "street": "Jurong East Street 31",
+        "streetId": null,
+        "streetName": "Jurong East Street 31",
+        "streetName2": null,
+        "subZoneIds": [
+          "41204"
+        ],
+        "zoneIds": [
+          "40012"
+        ]
+      },
+      "price": {
+        "currency": "SGD",
+        "formatted": "S$ 2,000 /mo",
+        "maintenanceFee": null,
+        "maintenanceFeePerUnit": null,
+        "max": 2000,
+        "min": 2000,
+        "perArea": {
+          "floor": [
+            {
+              "max": 10,
+              "min": 10,
+              "text": "S$ 10.00 psf",
+              "uom": "sqft"
+            }
+          ],
+          "land": []
+        },
+        "type": null
+      },
+      "project": {
+        "availableUnits": null,
+        "categoryType": {
+          "code": "R",
+          "text": "Residential"
+        },
+        "completionMonth": null,
+        "completionYear": 1984,
+        "developer": "Housing & Development Board (HDB)",
+        "facilities": [],
+        "floors": 2,
+        "id": "ijk8ol",
+        "legacyId": 7338,
+        "name": "344 Jurong East Street 31",
+        "newProject": false,
+        "projectId": 11071,
+        "property": {
+          "subType": {
+            "code": "HDB",
+            "text": "HDB Flat"
+          },
+          "type": {
+            "code": "H",
+            "text": "HDB"
+          },
+          "unitType": {
+            "code": null,
+            "text": null
+          }
+        },
+        "statusCode": null,
+        "tenure": {
+          "code": "L99",
+          "text": "99-year Leasehold"
+        },
+        "totalUnits": null
+      },
+      "propertyType": "HDB Flat",
+      "source_id": 500261692,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-344-jurong-east-street-31-500261692",
+      "status": "ACT",
+      "unitDetails": {
+        "ceilingHeight": null,
+        "centralAircon": null,
+        "centralAirconHours": null,
+        "condition": null,
+        "configuration": {
+          "bathrooms": {
+            "text": "1 Bathroom",
+            "value": 1
+          },
+          "bedrooms": {
+            "text": "Studio",
+            "value": -1
+          },
+          "extrarooms": {
+            "text": null,
+            "value": null
+          }
+        },
+        "cookingType": null,
+        "dimensions": {
+          "floor": {
+            "length": null,
+            "size": [
+              {
+                "formatted": "200 sqft",
+                "uom": "sqft",
+                "value": 200
+              }
+            ],
+            "width": null
+          },
+          "land": {
+            "length": null,
+            "size": [],
+            "width": null
+          },
+          "room": {
+            "size": []
+          }
+        },
+        "direction": null,
+        "electricity": {
+          "phase": null,
+          "supply": null
+        },
+        "features": [
+          {
+            "code": "ARCON",
+            "description": "Air Conditioner"
+          },
+          {
+            "code": "RENO",
+            "description": "Renovated"
+          }
+        ],
+        "floorLevel": {
+          "code": "LOW",
+          "description": "Low Floor"
+        },
+        "floorLoadingCapacity": null,
+        "floorLoadingCategory": null,
+        "furnishing": {
+          "code": "FULL",
+          "description": "Fully Furnished"
+        },
+        "furnishingDetails": [
+          {
+            "code": "BED",
+            "description": "Bed"
+          },
+          {
+            "code": "DRYER",
+            "description": "Dryer"
+          },
+          {
+            "code": "FRIDG",
+            "description": "Fridge"
+          },
+          {
+            "code": "MCWAV",
+            "description": "Microwave"
+          },
+          {
+            "code": "MTRS",
+            "description": "Mattress"
+          },
+          {
+            "code": "WAS",
+            "description": "Washing Machine"
+          },
+          {
+            "code": "WRDRB",
+            "description": "Wardrobe"
+          },
+          {
+            "code": "WTHTR",
+            "description": "Water Heater"
+          }
+        ],
+        "hdbType": {
+          "code": "1R",
+          "description": "1-Room / Studio"
+        },
+        "isAvailableNow": true,
+        "isBumiLot": null,
+        "isHighCeiling": null,
+        "landTitleType": null,
+        "lift": {
+          "capacity": null,
+          "cargo": null,
+          "totalPassenger": null
+        },
+        "maxTenants": null,
+        "occupancy": null,
+        "ownerStays": null,
+        "ownerType": null,
+        "parkingFee": null,
+        "parkingSpots": null,
+        "petFriendly": null,
+        "propertyUses": [],
+        "quotaEthnic": null,
+        "quotaSpr": null,
+        "ramp": null,
+        "rentalType": {
+          "code": "ENT",
+          "description": "Entire Unit"
+        },
+        "roomType": null,
+        "sellerEthnic": null,
+        "sellerResidency": null,
+        "tenancy": {
+          "tenantedUntilDate": {
+            "date": null,
+            "timestamp": null
+          },
+          "value": "UNTENANTED"
+        },
+        "tenantEligibility": true,
+        "tenantGender": null,
+        "titleType": null,
+        "utilitiesIncluded": null,
+        "visitorsAllowed": null,
+        "wifiIncluded": null
+      },
+      "description_signals": {
+        "no cooking": false,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": true,
+        "wifi": true,
+        "utilities": true,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      },
+      "sample_area": "jurong east"
+    }
+  ]
+}

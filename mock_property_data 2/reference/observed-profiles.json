@@ -1,0 +1,435 @@
+{
+  "note": "Small convenience sample, not market distribution; generated data is entirely synthetic.",
+  "search_rows_observed": 40,
+  "details_observed": 9,
+  "sample_date": "2026-09-14",
+  "profiles": [
+    {
+      "prototype_id": "P01",
+      "source_id": 20534659,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-341-clementi-avenue-5-20534659",
+      "area": "CLEMENTI",
+      "property_type": "hdb",
+      "scope": "whole_unit",
+      "amount": 3000,
+      "area_sqft": 721,
+      "land_area_sqft": null,
+      "bedrooms": 2,
+      "bedrooms_text": "2 Bedrooms",
+      "bathrooms": 2,
+      "room_type": "unknown",
+      "rules": {
+        "owner_stays": null,
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "cooking_policy": "unknown",
+        "furnishing": "fully"
+      },
+      "tenure_type": "leasehold",
+      "lease_years": 99,
+      "top_year": 1978,
+      "floor_level": "HIGH",
+      "hdb_model": "3NG (Modified)",
+      "landed_type": null,
+      "facilities": [],
+      "center": {
+        "lat": 1.3174256,
+        "lon": 103.7686382
+      },
+      "description_signals": {
+        "owner_explicitly_stays": false
+      }
+    },
+    {
+      "prototype_id": "P02",
+      "source_id": 500153299,
+      "source_url": "https://www.propertyguru.com.sg/listing/for-rent-clementi-park-500153299",
+      "area": "CLEMENTI",
+      "property_type": "condo",
+      "scope": "whole_unit",
+      "amount": 3900,
+      "area_sqft": 1076,
+      "land_area_sqft": null,
+      "bedrooms": 2,
+      "bedrooms_text": "2 Bedrooms",
+      "bathrooms": 2,
+      "room_type": "unknown",
+      "rules": {
+        "owner_stays": null,
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "cooking_policy": "unknown",
+        "furnishing": "unfurnished"
+      },
+      "tenure_type": "freehold",
+      "lease_years": null,
+      "top_year": 1985,
+      "floor_level": null,
+      "hdb_model": null,
+      "landed_type": null,
+      "facilities": [
+        "Badminton hall",
+        "Car Park",
+        "Playground",
+        "Sauna",
+        "24 hours security",
+        "Squash court",
+        "Swimming pool",
+        "Tennis courts"
+      ],
+      "center": {
+        "lat": 1.3299,
+        "lon": 103.7664
+      },
+      "description_signals": {
+        "owner_explicitly_stays": false
+      }
+    },
+    {
+      "prototype_id": "P03",
+      "source_id": 500218343,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-blk-319-clementi-ave-4-500218343",
+      "area": "CLEMENTI",
+      "property_type": "hdb",
+      "scope": "room",
+      "amount": 1000,
+      "area_sqft": 120,
+      "land_area_sqft": null,
+      "bedrooms": null,
+      "bedrooms_text": null,
+      "bathrooms": 1,
+      "room_type": "common",
+      "rules": {
+        "owner_stays": null,
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "cooking_policy": "none",
+        "furnishing": "fully"
+      },
+      "tenure_type": "leasehold",
+      "lease_years": 99,
+      "top_year": null,
+      "floor_level": null,
+      "hdb_model": "3NG (Modified)",
+      "landed_type": null,
+      "facilities": [],
+      "center": {
+        "lat": 1.317748,
+        "lon": 103.764718
+      },
+      "description_signals": {
+        "owner_explicitly_stays": true
+      }
+    },
+    {
+      "prototype_id": "P04",
+      "source_id": 24386810,
+      "source_url": "https://www.propertyguru.com.sg/listing/for-rent-clementi-park-24386810",
+      "area": "CLEMENTI",
+      "property_type": "landed",
+      "scope": "whole_unit",
+      "amount": 18000,
+      "area_sqft": 4000,
+      "land_area_sqft": 8000,
+      "bedrooms": 5,
+      "bedrooms_text": "5 Bedrooms",
+      "bathrooms": 4,
+      "room_type": "unknown",
+      "rules": {
+        "owner_stays": null,
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "cooking_policy": "unknown",
+        "furnishing": "partially"
+      },
+      "tenure_type": "freehold",
+      "lease_years": null,
+      "top_year": null,
+      "floor_level": null,
+      "hdb_model": null,
+      "landed_type": "Bungalow House",
+      "facilities": [
+        "Covered car park",
+        "Family Lounge",
+        "Open car park",
+        "Playground",
+        "Swimming pool"
+      ],
+      "center": {
+        "lat": 1.327183,
+        "lon": 103.7688
+      },
+      "description_signals": {
+        "owner_explicitly_stays": false
+      }
+    },
+    {
+      "prototype_id": "P05",
+      "source_id": 500216949,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-956a-tampines-street-96-500216949",
+      "area": "TAMPINES",
+      "property_type": "hdb",
+      "scope": "room",
+      "amount": 1000,
+      "area_sqft": 120,
+      "land_area_sqft": null,
+      "bedrooms": null,
+      "bedrooms_text": null,
+      "bathrooms": 2,
+      "room_type": "common",
+      "rules": {
+        "owner_stays": true,
+        "utilities_included": true,
+        "wifi_included": true,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "cooking_policy": "none",
+        "furnishing": "fully"
+      },
+      "tenure_type": "leasehold",
+      "lease_years": 99,
+      "top_year": null,
+      "floor_level": null,
+      "hdb_model": "5A (5 Room Adjustable)",
+      "landed_type": null,
+      "facilities": [],
+      "center": {
+        "lat": 1.34195798248023,
+        "lon": 103.934703145535
+      },
+      "description_signals": {
+        "no cooking": true,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": false,
+        "wifi": false,
+        "utilities": true,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      }
+    },
+    {
+      "prototype_id": "P06",
+      "source_id": 23473816,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-618b-tampines-street-61-23473816",
+      "area": "TAMPINES",
+      "property_type": "hdb",
+      "scope": "whole_unit",
+      "amount": 4300,
+      "area_sqft": 1216,
+      "land_area_sqft": null,
+      "bedrooms": 3,
+      "bedrooms_text": "3 Bedrooms",
+      "bathrooms": 2,
+      "room_type": "unknown",
+      "rules": {
+        "owner_stays": null,
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "cooking_policy": "unknown",
+        "furnishing": "partially"
+      },
+      "tenure_type": "leasehold",
+      "lease_years": 99,
+      "top_year": null,
+      "floor_level": "MID",
+      "hdb_model": "5I (5 Room Improved)",
+      "landed_type": null,
+      "facilities": [],
+      "center": {
+        "lat": 1.362546,
+        "lon": 103.9391522
+      },
+      "description_signals": {
+        "no cooking": false,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": false,
+        "wifi": false,
+        "utilities": false,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      }
+    },
+    {
+      "prototype_id": "P07",
+      "source_id": 500250012,
+      "source_url": "https://www.propertyguru.com.sg/listing/for-rent-fully-furnished-long-term-stay-near-tampines-pasir-ris-mrt-500250012",
+      "area": "TAMPINES",
+      "property_type": "landed",
+      "scope": "whole_unit",
+      "amount": 2900,
+      "area_sqft": 240,
+      "land_area_sqft": 240,
+      "bedrooms": 1,
+      "bedrooms_text": "1 Bedroom",
+      "bathrooms": 1,
+      "room_type": "unknown",
+      "rules": {
+        "owner_stays": null,
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "cooking_policy": "unknown",
+        "furnishing": "fully"
+      },
+      "tenure_type": "leasehold",
+      "lease_years": null,
+      "top_year": null,
+      "floor_level": null,
+      "hdb_model": null,
+      "landed_type": "Terraced House",
+      "facilities": [
+        "Gymnasium room",
+        "Karaoke",
+        "Swimming pool"
+      ],
+      "center": {
+        "lat": 1.3808,
+        "lon": 103.96102
+      },
+      "description_signals": {
+        "no cooking": false,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": false,
+        "wifi": false,
+        "utilities": false,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      }
+    },
+    {
+      "prototype_id": "P08",
+      "source_id": 500245430,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-common-room-for-rent-339-jurong-east-ave-1-500245430",
+      "area": "JURONG_EAST",
+      "property_type": "hdb",
+      "scope": "room",
+      "amount": 700,
+      "area_sqft": 150,
+      "land_area_sqft": null,
+      "bedrooms": null,
+      "bedrooms_text": null,
+      "bathrooms": 1,
+      "room_type": "common",
+      "rules": {
+        "owner_stays": true,
+        "utilities_included": true,
+        "wifi_included": true,
+        "visitors_allowed": false,
+        "pets_allowed": false,
+        "cooking_policy": "light",
+        "furnishing": "fully"
+      },
+      "tenure_type": "leasehold",
+      "lease_years": 99,
+      "top_year": null,
+      "floor_level": null,
+      "hdb_model": "4A",
+      "landed_type": null,
+      "facilities": [],
+      "center": {
+        "lat": 1.34235,
+        "lon": 103.732342
+      },
+      "description_signals": {
+        "no cooking": false,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": true,
+        "wifi": true,
+        "utilities": true,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      }
+    },
+    {
+      "prototype_id": "P09",
+      "source_id": 500261692,
+      "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-344-jurong-east-street-31-500261692",
+      "area": "JURONG_EAST",
+      "property_type": "hdb",
+      "scope": "whole_unit",
+      "amount": 2000,
+      "area_sqft": 200,
+      "land_area_sqft": null,
+      "bedrooms": -1,
+      "bedrooms_text": "Studio",
+      "bathrooms": 1,
+      "room_type": "unknown",
+      "rules": {
+        "owner_stays": null,
+        "utilities_included": null,
+        "wifi_included": null,
+        "visitors_allowed": null,
+        "pets_allowed": null,
+        "cooking_policy": "unknown",
+        "furnishing": "fully"
+      },
+      "tenure_type": "leasehold",
+      "lease_years": 99,
+      "top_year": 1984,
+      "floor_level": "LOW",
+      "hdb_model": "1-Room / Studio",
+      "landed_type": null,
+      "facilities": [],
+      "center": {
+        "lat": 1.345709244,
+        "lon": 103.730681
+      },
+      "description_signals": {
+        "no cooking": false,
+        "light cooking": false,
+        "no owner": false,
+        "landlord": true,
+        "wifi": true,
+        "utilities": true,
+        "pets": false,
+        "visitors": false,
+        "shared bath": false
+      }
+    }
+  ],
+  "statistics": {
+    "room": {
+      "n": 3,
+      "missing_rules": {
+        "owner_stays": 1,
+        "utilities_included": 1,
+        "wifi_included": 1,
+        "visitors_allowed": 2,
+        "pets_allowed": 2,
+        "cooking_policy": 0,
+        "furnishing": 0
+      }
+    },
+    "whole_unit": {
+      "n": 6,
+      "missing_rules": {
+        "owner_stays": 6,
+        "utilities_included": 6,
+        "wifi_included": 6,
+        "visitors_allowed": 6,
+        "pets_allowed": 6,
+        "cooking_policy": 6,
+        "furnishing": 0
+      }
+    }
+  }
+}

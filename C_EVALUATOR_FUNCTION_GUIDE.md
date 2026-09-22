@@ -12,7 +12,7 @@ screen ──► retrieve ──► evaluate ──► review ──► decide_n
 硬条件筛选   相关度排序     选房与建议      独立核查       执行路线
 ```
 
-其中，`screen` 和 `decide_next` 不调用 LLM；`retrieve`、`evaluate`、`review` 会调用 Amazon Bedrock 上的 Claude Sonnet 4.5。模型 ID 为：
+其中，`screen` 和 `decide_next` 不调用 LLM；`retrieve`、`evaluate`、`review` 会通过团队 LLM Gateway 调用 Claude Sonnet 4.5。模型 ID 为：
 
 ```text
 global.anthropic.claude-sonnet-4-5-20250929-v1:0
@@ -134,7 +134,7 @@ await retrieve(query, eligible_listings, top_k=10, ctx=ctx)
 
 ### LLM 看到什么
 
-`BedrockClaudeKeywordMatcher._prompt()` 会把以下内容发给 Claude：
+`GatewayClaudeKeywordMatcher._prompt()` 会把以下内容发给 Claude：
 
 ```text
 用户的语义查询
@@ -264,7 +264,7 @@ eligible = 2 套
 
 ### LLM 看到什么
 
-`BedrockClaudeEvaluationReviewModel.evaluate()` 会发送结构化 JSON，包括：
+`GatewayClaudeEvaluationReviewModel.evaluate()` 会发送结构化 JSON，包括：
 
 ```text
 profile：用户条件与软偏好
