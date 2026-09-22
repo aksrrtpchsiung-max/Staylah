@@ -4,6 +4,8 @@
 不跨 conversation 缓存条件。历史、重试与分页由 B 的内部服务管理。
 """
 from copy import deepcopy
+from functools import wraps
+import logging
 from time import monotonic
 from typing import TypedDict
 
@@ -43,6 +45,20 @@ class FulfillmentService:
         self.planner_factory, self.search_factory = planner_factory, search_factory
 
     def _graph(self, started):
+        def timed(name):
+            def decorate(function):
+                @wraps(function)
+                async def measured(state):
+                    before = monotonic()
+                    try:
+                        return await function(state)
+                    finally:
+                        logging.getLogger('search.audit').info('履约阶段完成', extra={'audit': dict(
+                            event='stage', stage=name, duration_ms=round((monotonic() - before) * 1000))})
+                return measured
+            return decorate
+
+        @timed('prepare')
         async def prepare(state):
             request, ctx = state['request'], state['ctx']
             prepared = await prepare_request_query(request, ctx=ctx)
@@ -61,6 +77,7 @@ class FulfillmentService:
                     meta=dict(trace_id=ctx['trace_id'], call_id=ctx['call_id'], duration_ms=0))}
             return {'query': query}
 
+        @timed('plan')
         async def plan(state):
             # 先完成输入及澄清检查，再读取模型配置；不要求 A 提供历史或策略。
             remaining_seconds(state['ctx'])
@@ -71,12 +88,14 @@ class FulfillmentService:
                 return {'result': planned}
             return {'plan': planned['data']}
 
+        @timed('search')
         async def retrieve(state):
             remaining_seconds(state['ctx'])
             service = self.search_service if self.search_service is not None else self.search_factory()
             return {'search_result': await service.search_for_request(state['plan'], state['request'], ctx=state['ctx'])}
 
-        def summarize(state):
+        @timed('summarize')
+        async def summarize(state):
             return {'result': build_fulfillment(state['request'], state['search_result'],
                 ctx=state['ctx'], started=started, filters=state['plan']['required_filters'])}
 

@@ -610,8 +610,8 @@ request_4: RequirementRequest = {
 }
 
 
-INPUTS = (request_1, request_2, request_3, request_4)
-
+#INPUTS = (request_1, request_2, request_3, request_4)
+INPUTS = (request_1,)
 
 async def run_all():
     for request in INPUTS:

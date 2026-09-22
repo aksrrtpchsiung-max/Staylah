@@ -1,7 +1,7 @@
 """外部服务协议。依赖在构造时注入，业务参数不携带连接。"""
 from typing import Literal, Protocol
 
-from contracts_v0 import HardConstraints, Issue, Listing, RunContext, SearchQuery
+from contracts_v0 import HardConstraints, Issue, Listing, ListingConstraint, RunContext, SearchQuery
 from execution.tasks import GeocodeMatches, ListingDetail, ListingPage, PlaceMatches, RouteFact
 
 
@@ -23,7 +23,7 @@ class ListingProvider(Protocol):
 
     async def search_page(self, query: SearchQuery, *, intent: str,
                           filters: HardConstraints, limit: int,
-                          ctx: RunContext) -> ListingPage: ...
+                          ctx: RunContext, constraints: list[ListingConstraint] | None = None) -> ListingPage: ...
 
     async def read_detail(self, listing: Listing, *, ctx: RunContext) -> ListingDetail: ...
 

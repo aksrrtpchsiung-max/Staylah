@@ -32,6 +32,7 @@ class SearchState(TypedDict):
     result: Result[SearchResult] | None
     requirement_request: dict | None
     investigations: dict[str, dict]
+    screened_out: dict[str, list[dict]]
 
 
 def initial_state(plan, ctx, requirement_request=None) -> SearchState:
@@ -40,4 +41,4 @@ def initial_state(plan, ctx, requirement_request=None) -> SearchState:
                 queries={q['query_id']: dict(cursor=q['cursor'], done=False, blocked=False, seen_cursors=[]) for q in plan['queries']},
                 listings={}, locations={}, completed_tasks=[], attempts={}, history=[], pages=[], task_issues={}, issues=[],
                 selected_task=None, decision_reason='', pages_used=0, candidates_used=0, stop_reason=None, result=None,
-                requirement_request=deepcopy(requirement_request), investigations={})
+                requirement_request=deepcopy(requirement_request), investigations={}, screened_out={})

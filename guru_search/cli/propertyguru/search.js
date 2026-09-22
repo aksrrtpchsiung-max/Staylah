@@ -43,11 +43,17 @@ cli({
     { name: 'max', type: 'int', help: 'Maximum monthly rent (SGD)' },
     { name: 'min', type: 'int', help: 'Minimum monthly rent (SGD)' },
     { name: 'bedrooms', type: 'int', help: 'Number of bedrooms' },
+    { name: 'bedroom-buckets', type: 'string', help: 'Explicit website buckets, e.g. 2,3,4,5 (5 means 5+)' },
+    { name: 'min-bedrooms', type: 'int', help: 'Minimum bedrooms; selects all matching website bedroom buckets' },
+    { name: 'rental-scope', type: 'string', choices: ['whole_unit', 'room'], help: 'Entire unit or room only' },
+    { name: 'room-type', type: 'string', choices: ['common', 'master', 'shared'], help: 'Room type for room-only rentals' },
+    { name: 'property-group', type: 'string', choices: ['H', 'N', 'L'], help: 'Verified website property group' },
+    { name: 'property-codes', type: 'string', help: 'Verified condo subtypes: CONDO,EXCON' },
     { name: 'type', type: 'string', choices: PROPERTY_TYPES, help: 'Property type: hdb, condo, landed, semi-d, etc.' },
     { name: 'limit', type: 'int', default: 20, help: 'Max results (default 20)' },
     { name: 'page', type: 'int', default: 1, help: 'Search result page' },
     { name: 'offset', type: 'int', default: 0, help: 'Resume within a page after a candidate limit' },
-    { name: 'output-mode', type: 'string', default: 'listings', choices: ['listings', 'page'], help: 'page includes continuation metadata' },
+    { name: 'output-mode', type: 'string', default: 'listings', choices: ['listings', 'page', 'full-page'], help: 'full-page returns the native page for request-scoped slicing/cache' },
   ],
   columns: ['listing_key', 'title', 'transaction_type', 'price', 'attributes', 'bedrooms', 'listing_status', 'source_url'],
   func: async (page, kwargs) => {
@@ -79,6 +85,42 @@ cli({
     }
     if (kwargs.bedrooms) {
       params.set('bedrooms', String(normalizePositiveInteger(kwargs.bedrooms, null, 'bedrooms')));
+    }
+    if (kwargs['min-bedrooms']) {
+      if (kwargs.bedrooms) throw new ArgumentError('bedrooms and min-bedrooms are mutually exclusive');
+      const minimum = normalizePositiveInteger(kwargs['min-bedrooms'], null, 'min-bedrooms');
+      // 网站已核对：2、3、4、5+ 为独立多选项；5 表示 5+，不是正好五间。
+      for (let n = Math.min(minimum, 5); n <= 5; n++) params.append('bedrooms', String(n));
+    }
+    if (kwargs['bedroom-buckets']) {
+      if (kwargs.bedrooms != null || kwargs['min-bedrooms'] != null) {
+        throw new ArgumentError('bedroom-buckets cannot be combined with other bedroom options');
+      }
+      const buckets = String(kwargs['bedroom-buckets']).split(',');
+      if (!buckets.length || buckets.some(value => !/^[0-5]$/.test(value))) {
+        throw new ArgumentError('bedroom-buckets must contain integers from 0 to 5');
+      }
+      for (const bucket of new Set(buckets)) params.append('bedrooms', bucket);
+    }
+    if (kwargs['rental-scope']) {
+      if (listingType !== 'rent') throw new ArgumentError('rental-scope only applies to rent');
+      params.set('entireUnitOrRoom', kwargs['rental-scope'] === 'whole_unit' ? 'ent' : 'room');
+    }
+    if (kwargs['room-type']) {
+      if (kwargs['rental-scope'] !== 'room') throw new ArgumentError('room-type requires rental-scope=room');
+      params.set('roomType', kwargs['room-type']);
+    }
+    if (kwargs['property-group']) params.set('propertyTypeGroup', kwargs['property-group']);
+    if (kwargs['property-codes']) {
+      const codes = String(kwargs['property-codes']).split(',');
+      if (kwargs.type || codes.some(code => !['CONDO', 'EXCON'].includes(code))) {
+        throw new ArgumentError('property-codes accepts CONDO,EXCON and cannot be combined with type');
+      }
+      if (kwargs['property-group'] && kwargs['property-group'] !== 'N') {
+        throw new ArgumentError('condo property-codes requires property-group=N');
+      }
+      params.set('propertyTypeGroup', 'N');
+      for (const code of new Set(codes)) params.append('propertyTypeCode', code);
     }
     if (kwargs.type) {
       const pt = String(kwargs.type).toLowerCase().trim();
@@ -117,7 +159,8 @@ cli({
           // normalizes query keys, e.g. maxprice -> maxPrice and market -> isCommercial.
           const expected = new URL(expectedHref);
           const actual = new URL(window.location.href);
-          const actualParams = new Map(Array.from(actual.searchParams, ([key, value]) => [key.replace(/[_-]/g, '').toLowerCase(), value]));
+          const actualParams = new URLSearchParams();
+          for (const [key, value] of actual.searchParams) actualParams.append(key.replace(/[_-]/g, '').toLowerCase(), value);
           const matchesRequest = actual.origin === expected.origin && actual.pathname === expected.pathname
             && Array.from(expected.searchParams).every(([key, value]) => {
               const normalized = key.replace(/[_-]/g, '').toLowerCase();
@@ -127,7 +170,7 @@ cli({
               }
               if (normalized === 'page') return (observed ?? '1') === value;
               if (normalized === 'freetext') return observed?.trim().toLowerCase() === value.trim().toLowerCase();
-              return observed === value;
+              return actualParams.getAll(normalized).includes(value);
             });
           if (!matchesRequest) return { pending: true };
           // The bridge may evaluate in an isolated world; read the public SSR script.
@@ -185,8 +228,9 @@ cli({
     if (offset > data.results.length || (offset > 0 && offset === data.results.length)) {
       throw new CommandExecutionError('PARSE_ERROR: page changed; continuation offset is no longer valid');
     }
+    const fullPage = kwargs['output-mode'] === 'full-page';
     const listings = data.results
-      .slice(offset, offset + limit)
+      .slice(fullPage ? 0 : offset, fullPage ? undefined : offset + limit)
       .map((raw) => buildSearchListing(raw, {
         baseUrl: BASE_URL,
         requestedListingType: listingType,
@@ -194,7 +238,7 @@ cli({
       }))
       .filter(Boolean);
 
-    const truncated = offset + limit < data.results.length;
+    const truncated = !fullPage && offset + limit < data.results.length;
     const nextPage = data.links.map(link => {
       try {
         const url = new URL(link, BASE_URL);
@@ -209,7 +253,7 @@ cli({
     const paginationKnown = truncated || following !== null || data.nextDisabled || hasPageCount || data.explicitlyEmpty;
     const nextCursor = truncated ? `pg:v1:${pageNumber}:${offset + limit}`
       : following !== null ? `pg:v1:${following}:0` : null;
-    if ((kwargs['output-mode'] ?? 'listings') === 'page') {
+    if (['page', 'full-page'].includes(kwargs['output-mode'])) {
       return [{ items: listings, next_cursor: nextCursor, pagination_known: paginationKnown, truncated }];
     }
 
