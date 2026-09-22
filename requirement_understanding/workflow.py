@@ -18,6 +18,7 @@ from .models import (
     Intent,
     IssueCode,
     NormalizedRequirement,
+    PreferenceRequirement,
     PreferenceTopic,
     ProfileChangeModel,
     RequirementConfirmationModel,
@@ -55,6 +56,27 @@ QUERYABLE_LISTING_FIELDS = {
     "listed_date",
 }
 LISTING_OPERATORS = {"eq", "neq", "lt", "lte", "gt", "gte", "between", "in", "contains"}
+# Listing.furnishing 在共享契约中是枚举字符串；布尔 True 会被 B 判为 INVALID_INPUT。
+FURNISHING_VALUES = frozenset({"fully", "partially", "unfurnished"})
+# 顺序即优先级：先判否定词，因为“不带家具”包含“带家具”。
+FURNISHING_RULES: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    ("eq", "unfurnished", (
+        "unfurnished", "not furnished", "no furniture", "without furniture",
+        "无家具", "不带家具", "不配家具", "不要家具",
+    )),
+    ("eq", "fully", (
+        "fully furnished", "full furnished", "fully-furnished",
+        "家具齐全", "全装修", "精装修", "拎包入住",
+    )),
+    ("eq", "partially", (
+        "partially furnished", "partly furnished", "semi furnished", "semi-furnished",
+        "部分家具", "部分家私", "半装修",
+    )),
+    # 只说“有家具/带家具”时只是“不能没有家具”，用 neq 才不会误杀家具齐全的房源。
+    ("neq", "unfurnished", (
+        "带家具", "有家具", "配家具", "家具", "家私", "furnished", "furniture",
+    )),
+)
 DERIVED_CATEGORIES = {"commute", "nearby_amenity", "environment", "accessibility"}
 DERIVED_OPERATORS = {"eq", "lte", "gte", "between", "minimize", "maximize", "preferred"}
 OPEN_REQUIREMENT_HANDLING = {"best_effort"}
@@ -309,7 +331,8 @@ def normalized_requirement_to_patch(requirement: NormalizedRequirement) -> list[
             [item.value.value for item in requirement.property_types],
             first.strength.value, "medium", first.source,
         ))
-    listing_constraints.extend(_preference_listing_constraints(requirement))
+    preference_constraints, unparsed_preferences = _preference_listing_constraints(requirement)
+    listing_constraints.extend(preference_constraints)
     for value in listing_constraints:
         changes.append(ProfileChangeModel(
             operation="append", field="listing_constraints", value=value,
@@ -322,7 +345,7 @@ def normalized_requirement_to_patch(requirement: NormalizedRequirement) -> list[
             operation="append", field="derived_data_requirements", value=value,
             source_message_id=message_id,
         ))
-    for value in _open_data_requirements(requirement):
+    for value in _open_data_requirements(requirement, unparsed_preferences):
         changes.append(ProfileChangeModel(
             operation="append", field="open_data_requirements", value=value,
             source_message_id=message_id,
@@ -486,6 +509,10 @@ def assess_completeness(state: RequirementGraphState) -> dict[str, Any]:
     )
     if not has_location:
         missing.add("derived_data_requirements.location")
+    # 与 B 共用核心过滤检查；缺少周期/币种必须在确认前澄清。
+    if profile.get("intent") is not None:
+        from part1.requirements import normalize_requirements
+        missing.update(q["field"] for q in normalize_requirements({**profile, "unresolved": []})["clarification_questions"])
     profile["unresolved"] = sorted(missing)
     if missing:
         return {"profile": profile, "workflow_route": "select_clarification"}
@@ -503,6 +530,8 @@ def select_clarification(
     questions = {
         "intent": "Are you looking to rent or buy?",
         "listing_constraints.price.amount": "What is your budget in SGD?",
+        "listing_constraints.price.period": "Is your rental budget per month or per week?",
+        "listing_constraints.price.currency": "Which currency is your budget in?",
         "listing_constraints.attributes.listing_scope": (
             "Are you looking for a whole unit, a private room, or a bedspace?"
         ),
@@ -513,6 +542,8 @@ def select_clarification(
     priority = [
         "intent",
         "listing_constraints.price.amount",
+        "listing_constraints.price.period",
+        "listing_constraints.price.currency",
         "listing_constraints.attributes.listing_scope",
         "rental_scope",
         "derived_data_requirements.location",
@@ -712,7 +743,24 @@ def _derived_requirements(requirement: NormalizedRequirement) -> list[dict[str, 
     return values
 
 
-def _open_data_requirements(requirement: NormalizedRequirement) -> list[dict[str, Any]]:
+def _open_data_requirement(preference: PreferenceRequirement) -> dict[str, Any]:
+    """按逐字原文构造一条非阻塞的 best-effort 开放需求。"""
+
+    source = preference.source
+    return {
+        "requirement_id": f"requirement:open:{source.message_id}:{source.start}:{source.end}",
+        "description": source.text,
+        "handling": "best_effort",
+        "strength": preference.strength.value,
+        "priority": preference.priority.value,
+        "source": source.model_dump(mode="json"),
+    }
+
+
+def _open_data_requirements(
+    requirement: NormalizedRequirement,
+    extra_preferences: list[PreferenceRequirement] | None = None,
+) -> list[dict[str, Any]]:
     """把无法映射到稳定字段的偏好保存为非阻塞 best-effort 需求。"""
 
     values: list[dict[str, Any]] = []
@@ -723,16 +771,9 @@ def _open_data_requirements(requirement: NormalizedRequirement) -> list[dict[str
         source_text = source.text.casefold()
         if requirement.commute and ("commute" in source_text or "通勤" in source_text):
             continue
-        values.append({
-            "requirement_id": (
-                f"requirement:open:{source.message_id}:{source.start}:{source.end}"
-            ),
-            "description": source.text,
-            "handling": "best_effort",
-            "strength": preference.strength.value,
-            "priority": preference.priority.value,
-            "source": source.model_dump(mode="json"),
-        })
+        values.append(_open_data_requirement(preference))
+    for preference in extra_preferences or []:
+        values.append(_open_data_requirement(preference))
     return values
 
 
@@ -764,8 +805,39 @@ def _derived(
     }
 
 
-def _preference_listing_constraints(requirement: NormalizedRequirement) -> list[dict[str, Any]]:
-    """把可直接匹配 Listing 字段的稳定偏好主题转换为约束。"""
+def _furnishing_value(preference: PreferenceRequirement) -> tuple[str, str] | None:
+    """把家具偏好收敛成 Listing.furnishing 的枚举取值；无法判断时返回 None。
+
+    逐字原文优先，模型给出的值只作为兜底，避免布尔 True 直接进入共享契约。
+    """
+
+    value = preference.value
+    haystack = preference.source.text.casefold()
+    if isinstance(value, str):
+        # 模型偶尔写成 "fully-furnished" 这类变体，一并参与关键词判断。
+        haystack = f"{value.casefold()}\n{haystack}"
+    for operator, normalized, keywords in FURNISHING_RULES:
+        if any(keyword in haystack for keyword in keywords):
+            return operator, normalized
+    if isinstance(value, str):
+        candidate = value.strip().casefold()
+        if candidate in FURNISHING_VALUES:
+            return "eq", candidate
+    elif value is True:
+        return "neq", "unfurnished"
+    elif value is False:
+        return "eq", "unfurnished"
+    return None
+
+
+def _preference_listing_constraints(
+    requirement: NormalizedRequirement,
+) -> tuple[list[dict[str, Any]], list[PreferenceRequirement]]:
+    """把可直接匹配 Listing 字段的稳定偏好主题转换为约束。
+
+    取值固定的主题在这里写死取值；需要透传模型取值的主题必须显式规一化，否则会把
+    共享契约不允许的值交给 B。无法规一化的家具偏好返回给调用方降级处理。
+    """
 
     mapping: dict[PreferenceTopic, tuple[str, Any]] = {
         PreferenceTopic.ENSUITE_BATHROOM: ("attributes.ensuite_bathroom", True),
@@ -775,20 +847,30 @@ def _preference_listing_constraints(requirement: NormalizedRequirement) -> list[
         PreferenceTopic.WIFI_INCLUDED: ("attributes.wifi_included", True),
         PreferenceTopic.VISITORS_ALLOWED: ("attributes.visitors_allowed", True),
         PreferenceTopic.PETS_ALLOWED: ("attributes.pets_allowed", True),
-        PreferenceTopic.FURNISHING: ("attributes.furnishing", None),
     }
     values: list[dict[str, Any]] = []
+    unparsed: list[PreferenceRequirement] = []
     for preference in requirement.preferences:
+        if preference.topic == PreferenceTopic.FURNISHING:
+            normalized = _furnishing_value(preference)
+            if normalized is None:
+                unparsed.append(preference)
+                continue
+            operator, value = normalized
+            values.append(_listing_constraint(
+                "attributes.furnishing", operator, value, preference.strength.value,
+                preference.priority.value, preference.source,
+            ))
+            continue
         mapped = mapping.get(preference.topic)
         if mapped is None:
             continue
-        field_path, default = mapped
-        value = preference.value if default is None else default
+        field_path, fixed_value = mapped
         values.append(_listing_constraint(
-            field_path, "eq", value, preference.strength.value,
+            field_path, "eq", fixed_value, preference.strength.value,
             preference.priority.value, preference.source,
         ))
-    return values
+    return values, unparsed
 
 
 def _validate_listing_constraint(value: Any, state: RequirementGraphState) -> None:
