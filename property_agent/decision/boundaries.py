@@ -8,14 +8,16 @@ AttemptOutcome 和 NextRunRequest 是**新增的内部交付对象**，不属于
 """
 from __future__ import annotations
 
-from typing import Protocol, TypedDict
+from typing import NotRequired, Protocol, TypedDict
 
 from property_agent.contracts import (
     Coverage,
+    AttemptSummary,
     EvaluationResult,
     ListingSnapshot,
     Recommendation,
     RelaxationProposal,
+    RequirementCoverage,
     Result,
     RetrievalResult,
     ReviewResult,
@@ -67,13 +69,20 @@ class AttemptOutcome(TypedDict):
     screen_result: ScreenResult | None
     retrieval_result: RetrievalResult | None
     coverage: Coverage | None
+    requirement_coverage: NotRequired[RequirementCoverage | None]
+    attempt_summary: NotRequired[AttemptSummary]
 
 
 class SearchRunner(Protocol):
     """模块 B 一侧：按保持硬条件的补搜指令执行下一次尝试。"""
 
     async def run_attempt(
-        self, directive: SearchDirective, profile: ConversationProfile, *, ctx: RunContext
+        self,
+        directive: SearchDirective,
+        profile: ConversationProfile,
+        *,
+        previous_attempts: list[AttemptSummary],
+        ctx: RunContext,
     ) -> Result: ...
 
 

@@ -57,15 +57,22 @@ def outcome_from_search_result(
             "screen_result": None,
             "retrieval_result": None,
             "coverage": None,
+            "attempt_summary": {
+                "attempt_id": attempt_id,
+                "query_fingerprints": [],
+                "status": "error",
+                "eligible_count": 0,
+            },
         }
 
     data: dict[str, Any] = copy.deepcopy(result["data"])
     listings = data.get("items") or []
     screen_result = screen_listings(listings, profile)
     eligible_keys = [item["listing_key"] for item in screen_result["eligible"]]
+    search_status = result["status"] if result["status"] in {"success", "partial"} else "success"
     return {
         "attempt_id": attempt_id,
-        "search_status": result["status"] if result["status"] in {"success", "partial"} else "success",
+        "search_status": search_status,
         "failure_code": None,
         "listing_snapshot": {
             "snapshot_id": f"mock-snapshot-{attempt_id}",
@@ -105,5 +112,11 @@ def outcome_from_search_result(
             "truncated": False,
             "applied_filters": [],
             "unsupported_filters": [],
+        },
+        "attempt_summary": {
+            "attempt_id": attempt_id,
+            "query_fingerprints": [],
+            "status": search_status,
+            "eligible_count": len(eligible_keys),
         },
     }

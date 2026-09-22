@@ -359,16 +359,26 @@ class ResearchTests(DecisionGraphCase):
         result = await self.run_graph(eligible=2, include_over_budget=True, has_more=True)
         self.assertEqual(len(self.deps.search_runner.calls), 1)
         self.assertEqual(
+            [item["attempt_id"] for item in self.deps.search_runner.histories[0]],
+            ["attempt-001"],
+        )
+        self.assertEqual(
             self.deps.search_runner.calls[0]["strategy_changes"][0]["kind"], "next_page"
         )
         self.assertEqual(result["search_attempts_used"], 2)
         self.assertEqual(result["attempt_id"], "attempt-002")
+        self.assertEqual(
+            [item["attempt_id"] for item in result["previous_attempts"]],
+            ["attempt-001", "attempt-002"],
+        )
         self.assertEqual(result["status"], "completed")
         self.assertEqual(result["completion_reason"], "published")
 
     async def test_failed_research_attempt_still_counts_and_stops(self):
         result = await self.run_graph(eligible=2, include_over_budget=True, has_more=True)
         self.assertEqual(result["search_attempts_used"], 2)
+        self.assertEqual(len(result["previous_attempts"]), 2)
+        self.assertEqual(result["previous_attempts"][-1]["status"], "error")
         self.assertEqual(result["status"], "failed")
         self.assertEqual(result["completion_reason"], "source_failure")
         self.assertEqual(self.deps.recommendations.saved, {})

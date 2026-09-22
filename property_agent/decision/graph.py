@@ -97,6 +97,7 @@ def initial_state(
     """
     resolved_policy = policy or DEFAULT_POLICY
     validate_policy(resolved_policy)
+    first_summary = outcome.get("attempt_summary")
     return {
         "schema_version": SCHEMA_VERSION,
         "ctx": ctx,
@@ -115,6 +116,8 @@ def initial_state(
         "screen_result": outcome.get("screen_result"),
         "retrieval_result": outcome.get("retrieval_result"),
         "coverage": outcome.get("coverage"),
+        "requirement_coverage": outcome.get("requirement_coverage"),
+        "previous_attempts": [first_summary] if first_summary is not None else [],
         "evaluation": None,
         "review": None,
         "repair_context": None,

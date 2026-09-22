@@ -22,5 +22,18 @@ dependencies = [
     "psycopg[binary,pool]>=3.2,<4",
 ]
 
+[tool.setuptools]
+py-modules = ["api", "config", "contracts_v0", "fulfillment", "graph", "part_c", "state"]
+
 [tool.setuptools.packages.find]
-include = ["deepseek_agent*", "property_agent*"]
+include = [
+    "deepseek_agent*",
+    "execution*",
+    "part1*",
+    "part2*",
+    "part3*",
+    "part45*",
+    "property_agent*",
+    "providers*",
+    "requirement_understanding*",
+]

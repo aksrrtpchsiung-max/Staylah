@@ -92,6 +92,17 @@ def _write_profile(row: ConversationProfileRow, profile: ConversationProfile) ->
             setattr(row, field, value)
 
 
+def _row_matches_profile(
+    row: ConversationProfileRow, profile: ConversationProfile
+) -> bool:
+    """判断相同版本的保存是否为完整幂等重放。"""
+
+    return all(
+        getattr(row, field) == value
+        for field, value in _profile_values(profile).items()
+    )
+
+
 class SqlProfileRepository:
     def __init__(self, sessions: SessionFactory) -> None:
         self.sessions = sessions
@@ -123,6 +134,78 @@ class SqlProfileRepository:
                 or stored.conversation_id != profile["conversation_id"]
             ):
                 raise PermissionError("profile 不属于当前用户")
+
+    def save_confirmed(
+        self, profile: ConversationProfile, *, user_id: str
+    ) -> None:
+        """保存 A 确认的画像；允许版本前进，并拒绝陈旧或冲突写入。"""
+
+        if profile["user_id"] != user_id:
+            raise PermissionError("profile.user_id 与当前用户不一致")
+        if (
+            profile["status"] != "confirmed"
+            or profile["confirmed_version"] != profile["version"]
+            or profile["confirmed_at"] is None
+        ):
+            raise ValueError("A 只能保存当前版本已经确认的 profile")
+
+        conversation = pg_insert(ConversationRow).values(
+            conversation_id=profile["conversation_id"],
+            user_id=user_id,
+        )
+        conversation = conversation.on_conflict_do_nothing(
+            index_elements=["conversation_id"]
+        )
+        # 不指定冲突目标，同时覆盖 profile_id 与 conversation_id 唯一约束；随后
+        # 读取并显式验证实际冲突对象，避免把归属冲突静默当成成功。
+        insert_profile = pg_insert(ConversationProfileRow).values(
+            **_profile_values(profile)
+        ).on_conflict_do_nothing()
+
+        with self.sessions.begin() as session:
+            session.execute(conversation)
+            stored_conversation = session.execute(
+                select(ConversationRow)
+                .where(ConversationRow.conversation_id == profile["conversation_id"])
+                .with_for_update()
+            ).scalar_one()
+            if stored_conversation.user_id != user_id:
+                raise PermissionError("conversation 不属于当前用户")
+
+            session.execute(insert_profile)
+            stored = session.execute(
+                select(ConversationProfileRow)
+                .where(ConversationProfileRow.profile_id == profile["profile_id"])
+                .with_for_update()
+            ).scalar_one_or_none()
+            if stored is None:
+                conflicting = session.execute(
+                    select(ConversationProfileRow).where(
+                        ConversationProfileRow.conversation_id
+                        == profile["conversation_id"]
+                    )
+                ).scalar_one_or_none()
+                if conflicting is not None:
+                    raise ProfileVersionConflict(
+                        "conversation 已绑定到另一个 profile"
+                    )
+                raise RuntimeError("confirmed profile insert did not persist")
+            if (
+                stored.user_id != user_id
+                or stored.conversation_id != profile["conversation_id"]
+            ):
+                raise PermissionError("profile 不属于当前用户或 conversation")
+            if stored.version > profile["version"]:
+                raise ProfileVersionConflict(
+                    f"档案已是 v{stored.version}，不能写入旧版本 v{profile['version']}"
+                )
+            if stored.version == profile["version"]:
+                if _row_matches_profile(stored, profile):
+                    return
+                raise ProfileVersionConflict(
+                    f"档案 v{stored.version} 已存在不同内容"
+                )
+            _write_profile(stored, profile)
 
     def current_version(self, profile_id: str) -> int:
         with self.sessions() as session:
@@ -174,6 +257,16 @@ class SqlProfileRepository:
                 )
             )
             return copy.deepcopy(updated)
+
+
+class SqlRequirementProfileRepository:
+    """把 A 的 ``save(profile, user_id=...)`` 边界接到 SQL profile 仓储。"""
+
+    def __init__(self, sessions: SessionFactory) -> None:
+        self._profiles = SqlProfileRepository(sessions)
+
+    def save(self, profile: dict[str, Any], *, user_id: str) -> None:
+        self._profiles.save_confirmed(profile, user_id=user_id)  # type: ignore[arg-type]
 
 
 class SqlRunRepository:

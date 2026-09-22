@@ -78,6 +78,12 @@ def build_outcome(
             "screen_result": None,
             "retrieval_result": None,
             "coverage": None,
+            "attempt_summary": {
+                "attempt_id": attempt_id,
+                "query_fingerprints": [],
+                "status": "error",
+                "eligible_count": 0,
+            },
         }
 
     keys = ELIGIBLE_KEYS[:eligible]
@@ -146,4 +152,10 @@ def build_outcome(
         "screen_result": screen_result,
         "retrieval_result": retrieval_result,
         "coverage": coverage,
+        "attempt_summary": {
+            "attempt_id": attempt_id,
+            "query_fingerprints": [],
+            "status": search_status,
+            "eligible_count": len(keys),
+        },
     }

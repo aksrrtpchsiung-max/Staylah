@@ -6,11 +6,13 @@
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 from dataclasses import dataclass, field
 from typing import Any
 
 from property_agent.contracts import (
+    AttemptSummary,
     Coverage,
     EvaluationResult,
     ListingSnapshot,
@@ -300,12 +302,19 @@ class ScriptedSearchRunner:
 
     outcomes: list[Result] = field(default_factory=list)
     calls: list[SearchDirective] = field(default_factory=list)
+    histories: list[list[AttemptSummary]] = field(default_factory=list)
 
     async def run_attempt(
-        self, directive: SearchDirective, profile: ConversationProfile, *, ctx: RunContext
+        self,
+        directive: SearchDirective,
+        profile: ConversationProfile,
+        *,
+        previous_attempts: list[AttemptSummary],
+        ctx: RunContext,
     ) -> Result:
         timer = CallTimer(ctx)
         self.calls.append(directive)
+        self.histories.append(copy.deepcopy(previous_attempts))
         if not self.outcomes:
             return timer.error(
                 make_issue(

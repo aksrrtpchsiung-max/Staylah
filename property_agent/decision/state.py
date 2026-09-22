@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any, Literal, TypedDict
 
 from property_agent.contracts import (
+    AttemptSummary,
     Coverage,
     DecisionState,
     EvaluationResult,
@@ -15,6 +16,7 @@ from property_agent.contracts import (
     ListingSnapshot,
     PendingQuestion,
     Recommendation,
+    RequirementCoverage,
     RelaxationProposal,
     RetrievalResult,
     ReviewResult,
@@ -27,7 +29,7 @@ from property_agent.contracts import (
 )
 from property_agent.decision.boundaries import NextRunRequest
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 RunStatus = Literal["running", "waiting_user", "completed", "failed", "cancelled", "superseded"]
 
@@ -64,6 +66,8 @@ class DState(TypedDict, total=False):
     screen_result: ScreenResult | None
     retrieval_result: RetrievalResult | None
     coverage: Coverage | None
+    requirement_coverage: RequirementCoverage | None
+    previous_attempts: list[AttemptSummary]
 
     # 模块 C 的产物与修复预算。
     evaluation: EvaluationResult | None

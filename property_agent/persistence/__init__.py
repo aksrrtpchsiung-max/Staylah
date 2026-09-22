@@ -11,6 +11,7 @@ from property_agent.persistence.repositories import (
     SqlProfileRepository,
     SqlQuestionRepository,
     SqlRecommendationRepository,
+    SqlRequirementProfileRepository,
     SqlRunRepository,
 )
 from property_agent.persistence.wiring import build_postgres_deps
@@ -22,6 +23,7 @@ __all__ = [
     "SqlProfileRepository",
     "SqlQuestionRepository",
     "SqlRecommendationRepository",
+    "SqlRequirementProfileRepository",
     "SqlRunRepository",
     "build_engine",
     "build_postgres_deps",

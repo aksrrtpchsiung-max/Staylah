@@ -264,7 +264,10 @@ class DecisionNodes:
         """补搜由上游执行；这里只交出保持硬条件的指令并累计尝试次数。"""
         directive = state["decision"]["search_directive"]
         result = await self.deps.search_runner.run_attempt(
-            directive, state["profile_snapshot"], ctx=state["ctx"]
+            directive,
+            state["profile_snapshot"],
+            previous_attempts=state.get("previous_attempts", []),
+            ctx=state["ctx"],
         )
         # 无论成败都算一次尝试，避免失败重试绕过预算。
         used = state.get("search_attempts_used", 0) + 1
@@ -277,12 +280,48 @@ class DecisionNodes:
             "last_issues": result["issues"],
         }
         if not is_usable(result):
+            history = list(state.get("previous_attempts", []))
+            failed_attempt_id = f"{state['run_id']}:attempt:{used:03d}"
+            if not any(
+                item["attempt_id"] == failed_attempt_id for item in history
+            ):
+                history.append(
+                    {
+                        "attempt_id": failed_attempt_id,
+                        "query_fingerprints": [],
+                        "status": "error",
+                        "eligible_count": 0,
+                    }
+                )
             return {
                 **cleared,
+                "attempt_id": failed_attempt_id,
                 "search_status": "error",
                 "failure_code": first_issue_code(result),
+                "previous_attempts": history,
             }
         outcome = result["data"]
+        history = list(state.get("previous_attempts", []))
+        summary = outcome.get("attempt_summary")
+        if summary is not None:
+            matching = [
+                item for item in history if item["attempt_id"] == summary["attempt_id"]
+            ]
+            if matching and matching[0] != summary:
+                return {
+                    **cleared,
+                    "search_status": "error",
+                    "failure_code": "STATE_CONFLICT",
+                    "last_issues": [
+                        make_issue(
+                            "STATE_CONFLICT",
+                            "同一 attempt_id 对应了不同搜索摘要。",
+                            field_path="previous_attempts",
+                        )
+                    ],
+                }
+            if not matching:
+                history.append(summary)
         return {
             **cleared,
             "attempt_id": outcome["attempt_id"],
@@ -292,6 +331,8 @@ class DecisionNodes:
             "screen_result": outcome["screen_result"],
             "retrieval_result": outcome["retrieval_result"],
             "coverage": outcome["coverage"],
+            "requirement_coverage": outcome.get("requirement_coverage"),
+            "previous_attempts": history,
         }
 
     def ask_user(self, state: DState) -> dict:

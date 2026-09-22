@@ -25,6 +25,7 @@ from property_agent.persistence.repositories import (
     SqlProfileRepository,
     SqlQuestionRepository,
     SqlRecommendationRepository,
+    SqlRequirementProfileRepository,
     SqlRunRepository,
 )
 from property_agent.persistence.wiring import build_postgres_deps
@@ -285,6 +286,63 @@ class PostgresRepositoryTests(unittest.TestCase):
         self.assertEqual(first, replay)
         self.assertEqual(len(chat.list_messages(self.ctx["conversation_id"])), 1)
 
+    def test_a_profile_adapter_updates_versions_and_rejects_stale_writes(self):
+        adapter = SqlRequirementProfileRepository(self.sessions)
+        updated = copy.deepcopy(self.profile)
+        updated["version"] = 3
+        updated["confirmed_version"] = 3
+        updated["status"] = "confirmed"
+        updated["updated_at"] = "2026-09-22T12:00:00+00:00"
+        updated["last_user_message_at"] = "2026-09-22T12:00:00+00:00"
+        updated["confirmed_at"] = "2026-09-22T12:00:00+00:00"
+
+        adapter.save(updated, user_id=self.ctx["user_id"])
+        adapter.save(updated, user_id=self.ctx["user_id"])
+        with self.sessions() as session:
+            stored = session.get(ConversationProfileRow, updated["profile_id"])
+            self.assertEqual(stored.version, 3)
+            self.assertEqual(stored.confirmed_version, 3)
+
+        stale = copy.deepcopy(updated)
+        stale["version"] = 2
+        stale["confirmed_version"] = 2
+        with self.assertRaises(ProfileVersionConflict):
+            adapter.save(stale, user_id=self.ctx["user_id"])
+
+        conflicting = copy.deepcopy(updated)
+        conflicting["unresolved"] = ["conflicting-field"]
+        with self.assertRaises(ProfileVersionConflict):
+            adapter.save(conflicting, user_id=self.ctx["user_id"])
+        with self.assertRaises(PermissionError):
+            adapter.save(updated, user_id="another-user")
+
+    def test_a_profile_adapter_inserts_the_first_confirmed_version(self):
+        suffix = uuid.uuid4().hex
+        profile = copy.deepcopy(self.profile)
+        profile["profile_id"] = f"profile-a-first-{suffix}"
+        profile["conversation_id"] = f"conversation-a-first-{suffix}"
+        adapter = SqlRequirementProfileRepository(self.sessions)
+        try:
+            adapter.save(profile, user_id=self.ctx["user_id"])
+            adapter.save(profile, user_id=self.ctx["user_id"])
+            with self.sessions() as session:
+                stored = session.get(ConversationProfileRow, profile["profile_id"])
+                self.assertIsNotNone(stored)
+                self.assertEqual(stored.version, profile["version"])
+                self.assertEqual(stored.user_id, self.ctx["user_id"])
+        finally:
+            with self.sessions.begin() as session:
+                session.execute(
+                    delete(ConversationProfileRow).where(
+                        ConversationProfileRow.profile_id == profile["profile_id"]
+                    )
+                )
+                session.execute(
+                    delete(ConversationRow).where(
+                        ConversationRow.conversation_id == profile["conversation_id"]
+                    )
+                )
+
 
 @unittest.skipUnless(TEST_DATABASE_URL, "set TEST_DATABASE_URL for PostgreSQL tests")
 class PostgresCheckpointRecoveryTests(unittest.IsolatedAsyncioTestCase):
@@ -378,6 +436,10 @@ class PostgresCheckpointRecoveryTests(unittest.IsolatedAsyncioTestCase):
             )
         self.assertEqual(final["completion_reason"], "user_declined")
         self.assertEqual(final["status"], "completed")
+        self.assertEqual(
+            [item["attempt_id"] for item in final["previous_attempts"]],
+            ["attempt-001"],
+        )
 
         with self.sessions() as session:
             self.assertEqual(

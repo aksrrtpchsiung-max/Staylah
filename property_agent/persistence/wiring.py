@@ -22,11 +22,15 @@ from property_agent.persistence.repositories import (
 def build_postgres_deps(
     *,
     module_c: EvaluationModule | None = None,
-    search_runner: SearchRunner,
+    search_runner: SearchRunner | None = None,
     sessions: SessionFactory,
     use_deepseek: bool = True,
     allowed_sources: tuple[str, ...] = ("propertyguru",),
 ) -> DecisionDeps:
+    if search_runner is None:
+        from property_agent.integration import BSearchRunner
+
+        search_runner = BSearchRunner()
     adapter = _clarification_adapter(use_deepseek=use_deepseek)
     return DecisionDeps(
         module_c=module_c if module_c is not None else PartCEvaluationModule(),
