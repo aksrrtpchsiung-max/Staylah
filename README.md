@@ -1,128 +1,161 @@
-# falcon-show-me-you-agents
+# Falcon — Singapore Property Agent
 
-## 分支说明：`codex/a-workflow-b-integration`
+Falcon 是一个面向新加坡租房与买房场景的多 Agent 工作流。系统把需求理解、真实房源搜索、候选评估和追问决策串成一条可持久化的 A → B → C 会话，并通过 PostgreSQL 保存画像、消息、运行状态和 LangGraph checkpoint。
 
-本分支基于最新 `main`，合并了 A 的需求理解 workflow、`binzhi` 分支的 B 房源搜索模块，
-以及 main 上的 C 评估模块。模块边界如下：
+## 当前能力
 
-```text
-A requirement_understanding
-  -> confirmed RequirementRequest
-  -> B api.fulfill_requirements(request, ctx=ctx)
-  -> Result[RequirementFulfillment]
-  -> C part_c / decision graph
+- **A · Requirement Understanding**：从多轮对话提取结构化住房需求，处理冲突、澄清与用户确认。
+- **B · Search and Investigation**：调用 PropertyGuru、OneMap 和 OpenStreetMap，完成搜索、详情读取、地址定位、周边设施与通勤调查。
+- **C · Evaluation and Decision**：执行硬条件筛选、语义检索、推荐评估、独立复核，并决定发布、补搜、追问或结束。
+- **Orchestration**：连接 A、B、C；支持 B → A 澄清、C → B 补搜和 Decision interrupt/resume。
+- **Persistence**：使用 PostgreSQL 保存业务数据，并使用 `AsyncPostgresSaver` 保存 A/C 图状态。
+
+```mermaid
+flowchart LR
+    U[User] --> A[A · Requirements]
+    A -->|confirmed RequirementRequest| B[B · Live Search]
+    B -->|needs clarification| A
+    B -->|AttemptOutcome| C[C · Evaluate and Review]
+    C -->|research directive| B
+    C -->|question| U
+    C -->|publish| R[Recommendation]
+    A -. profile/checkpoint .-> P[(PostgreSQL)]
+    C -. run/checkpoint .-> P
 ```
 
-产品主循环是 `python -m property_agent.orchestration`。它把 A 接到 PostgreSQL
-（profile 仓储 + checkpoint），并闭合 B 的 `needs_clarification` 回 A，以及 C 的
-`next_run_request` / 追问 interrupt。
-
-模型、超时和搜索额度集中在 `runtime.toml`；密钥只放 `.env`。
-
-- A：多轮需求提取、澄清、用户确认、持久化与 `RequirementRequest` 构造。
-- B：校验已确认请求、制定 `SearchPlan`、检索和补查、返回需求覆盖与候选房源。
-- C：硬条件筛选、候选检索、评估、复核与下一步决策。
-- 共享边界：`contracts_v0.py`；A 只调用 B 的公开入口，不直接构造 B 的内部查询或计划。
-- 编排：`property_agent.orchestration.ConversationOrchestrator`。
-
-离线联调测试会把 A 实际生成的 `RequirementRequest` 传入 B 的公开入口，并注入确定性
-planner/search doubles，因此不需要密钥、浏览器或外部服务：
+共享业务契约位于 `contracts_v0.py`，正式产品入口是：
 
 ```bash
-python3.11 -m unittest discover -s tests -p 'test_a_b_integration.py' -v
+.venv/bin/python -m property_agent.orchestration --conversation demo-001
 ```
 
-该测试证明 A/B 的字段、版本、会话、追踪标识和返回封装能够贯通；真实房源联调仍需按下文
-配置 LLM Gateway、OpenCLI/Browser Bridge 与 OneMap，不能用离线测试替代真实来源验收。
+## 主要目录
 
-- `contracts_v0.py`：A、B、C 共享的 Python 接口契约。
-- `build_contract_examples.py`：生成并验证接口示例。
-- `CONTRACT_CHANGES_FOR_BC.md`：字段变更和迁移说明（2026/09/14）。
-- `requirement_understanding/`：A 部分的 LLM 直接结构化需求模型和 LangGraph 节点。
-- `tests/test_requirement_understanding.py`：结构化输出、来源核验和 checkpoint 测试。
+| 路径 | 职责 |
+| --- | --- |
+| `requirement_understanding/` | A 的需求提取、澄清、确认和 RequirementRequest 构造 |
+| `part1/`、`part2/`、`part3/`、`part45/` | B 的计划、监督、来源能力、调查与汇总 |
+| `guru_search/` | PropertyGuru OpenCLI 适配器与技能 |
+| `part_c.py` | C 的筛选、检索、评估、复核与路线判断 |
+| `property_agent/orchestration/` | A → B → C 外层会话循环与 CLI |
+| `property_agent/decision/` | C 后的 Decision LangGraph |
+| `property_agent/persistence/` | SQLAlchemy 模型、仓储和依赖接线 |
+| `runtime.toml` | 非敏感模型参数、超时、搜索额度和运行模式 |
+| `.env` | 本地密钥与数据库连接，不提交到 Git |
 
-## A 部分当前开发边界
+更完整的边界与时序说明见 [`docs/architecture/`](docs/architecture/) 和 [`docs/clarification-integration.md`](docs/clarification-integration.md)。
 
-当前实现以下 A-side 需求闭环：
+## 本地启动
 
-```text
-validate_input -> classify_turn_intent
-   -> requirement_update/listing_request with new constraints
-      -> understand_requirement(LLM) -> validate_patch -> detect_conflicts
-      -> merge_profile -> assess_completeness -> clarify/confirm
-   -> confirmation/cancellation -> handle_confirmation
-   -> housing_question -> A-side housing web search -> answer without profile mutation
-   -> listing_request without new constraints -> wait for confirmation or downstream handoff
-```
+### 1. Python 环境
 
-`validate_input` 使用独立输入守卫判断消息是否合法且与新加坡住房相关；范围外消息固定
-返回 Falcon 英文提示，不调用需求解析器、不修改 profile。需求解析器输出
-`NormalizedRequirement`，确定性节点再把它转换、校验并合并为 `ConversationProfile`。
-同一字段的新值直接替换旧 constraint，并生成新的 draft version。
-住房知识、市场、政策、通勤或区域问题由 A 自有的受限网页搜索工具回答；该分支只读
-`ConversationProfile`，不得创建 patch 或递增 version。查找、比较、排序、联系或确认具体房源
-属于 `listing_request`，不能使用 A 的网页搜索工具，仍需进入确认后的房源检索与推荐流程。
-
-只有用户确认且 repository 保存成功后，图才会生成 `RequirementRequest`：
-
-```text
-用户消息 -> ProfileChange -> draft ConversationProfile -> 用户确认
-         -> RequirementRequest -> B.fulfill_requirements
-```
-
-`ConversationProfile` 只属于一个 conversation。A 负责需求提取、版本合并和用户确认；
-B 负责把已确认的 `listing_constraints` 与 `derived_data_requirements` 转换为数据库、CLI、
-地图或搜索工具调用。A 子图停在 `RequirementRequest`；产品外层
-`property_agent.orchestration` 负责调用 B、把 B 的澄清交回 A，并启动 C 决策图。
-`prepare_query`、`build_search_plan` 和 `search` 是 B 的内部接口。
-
-无法映射到现有 Listing 字段或派生类别的偏好保存在 `open_data_requirements`，并固定使用
-`handling="best_effort"`。它们可以辅助 B 验证或排序，但不能阻塞核心条件检索。B 无法处理时
-应记录到 `skipped_best_effort_requirement_ids`，继续返回已匹配房源，而不是报告“没有符合要求的房源”。
-
-安装依赖并运行测试：
+项目要求 Python 3.11 或更高版本：
 
 ```bash
-python3.11 -m pip install -r requirements.txt
-python3.11 -m unittest discover -s tests -v
+python3 -m venv .venv
+.venv/bin/python -m pip install -e .
 ```
 
-端到端会话（A 使用 PostgreSQL profile/checkpoint，B/C 走正式接线）：
+### 2. 配置密钥
+
+复制模板并填写本地值：
+
+```bash
+cp .env.example .env
+```
+
+核心变量：
+
+```dotenv
+# A：需求理解与澄清
+DEEPSEEK_API_KEY=
+
+# B 的 planner/supervisor 与 C 的语义评估/复核
+LLM_GATEWAY_API_KEY=
+
+# OneMap：二选一，也可以同时配置
+ONEMAP_TOKEN=
+ONEMAP_EMAIL=
+ONEMAP_PASSWORD=
+
+# PostgreSQL
+DATABASE_URL=postgresql+psycopg://property_agent:property_agent_dev@127.0.0.1:5432/property_agent
+LANGGRAPH_CHECKPOINT_DB_URI=postgresql://property_agent:property_agent_dev@127.0.0.1:5432/property_agent
+```
+
+模型 ID、网关 URL、超时、搜索页数和候选额度统一放在 [`runtime.toml`](runtime.toml)。进程环境变量可以覆盖配置文件；真实密钥只应保存在 `.env`。
+
+### 3. PropertyGuru / OpenCLI
+
+真实房源搜索需要 Node.js 20+、OpenCLI 和已连接的 Browser Bridge：
+
+```bash
+npm install -g @jackwener/opencli@1.8.7
+mkdir -p ~/.opencli/clis/propertyguru
+cp guru_search/cli/propertyguru/{search,detail,contract-listing}.js ~/.opencli/clis/propertyguru/
+opencli doctor
+```
+
+`opencli doctor` 应显示 daemon 和浏览器扩展均已连接。适配器使用持久 PropertyGuru 会话，B 会依次读取搜索页和房源详情；详情读取成功后才会把房源状态记录为 active。
+
+### 4. PostgreSQL
+
+启动项目自带的 PostgreSQL 并初始化业务表与 checkpoint 表：
 
 ```bash
 docker compose up -d --wait
-python3.11 scripts/init_postgres.py
-python3.11 -m property_agent.orchestration --conversation demo-001
+.venv/bin/python scripts/init_postgres.py
 ```
 
-先在 `runtime.toml` 确认模型与额度，再把密钥写入 `.env`。A 的独立 CLI
-`python -m requirement_understanding.cli` 仍可用于只调试需求理解，默认内存仓储。
+如果本机 `5432` 端口已被现有 PostgreSQL 容器占用，请复用该数据库并修改 `.env` 中的两个数据库 URI，不要再启动第二个占用相同端口的容器。
 
-LangGraph 子图可按需注入 checkpointer：
+### 5. 运行完整 CLI
 
-```python
-from langgraph.checkpoint.memory import InMemorySaver
-from requirement_understanding import DeepSeekRequirementInterpreter, build_requirement_graph
-
-graph = build_requirement_graph(
-    interpreter=DeepSeekRequirementInterpreter(),
-    checkpointer=InMemorySaver(),
-)
-result = graph.invoke(
-    {
-        "message_id": "msg-001",
-        "user_id": "user-001",
-        "conversation_id": "thread-001",
-        "current_input": "整套租房，月租最多3500，淡滨尼，至少两个卧室。",
-        "status": "new",
-    },
-    {"configurable": {"thread_id": "thread-001"}},
-)
+```bash
+.venv/bin/python -m property_agent.orchestration --conversation demo-001
 ```
 
-未注入 `profile_repository` 时使用的 `InMemoryProfileRepository` 只适合本地开发和测试；
-生产环境必须注入真实数据库 repository。LangGraph checkpointer 保存活跃 workflow 状态，
-repository 只在用户确认后保存 confirmed profile。
+每个 `conversation` 都有独立 checkpoint。需要从空白会话重新测试时，请换一个 ID，例如 `demo-002`。输入 `/quit` 退出。
+
+## 模型降级行为
+
+- A 依赖 DeepSeek；缺少密钥时无法完成真实需求解析。
+- B 的模型计划或监督调用失败时，会在额度和截止时间内使用确定性调度继续执行，并保留 issue。
+- C 的团队 LLM Gateway 不可用时，会使用确定性 retrieve/evaluate/review fallback。结果标记为 `partial` 并在 limitations 中披露降级，不会把“模型不可用”误报成“房源搜索失败”。
+- 房源事实只来自 Provider 及对应 evidence；模型不能创建房源、修改硬条件或放行无证据事实。
+
+## 测试
+
+完整离线测试不需要外部密钥：
+
+```bash
+.venv/bin/python -m unittest discover -s tests
+```
+
+PostgreSQL 集成测试：
+
+```bash
+TEST_DATABASE_URL=postgresql+psycopg://property_agent:property_agent_dev@127.0.0.1:5432/property_agent \
+  .venv/bin/python -m unittest tests.test_postgres_integration
+```
+
+常用单模块检查：
+
+```bash
+.venv/bin/python -m unittest tests.test_a_b_integration
+.venv/bin/python -m unittest tests.test_search_integration
+.venv/bin/python -m unittest tests.test_part_c_integration
+.venv/bin/python -m unittest tests.test_orchestration
+```
+
+真实来源检查会访问 LLM Gateway、PropertyGuru、OneMap 或 OpenStreetMap，不能用来替代离线回归测试；具体命令见后续模块说明。
+
+## 进一步阅读
+
+- [`docs/architecture/contracts.md`](docs/architecture/contracts.md)：共享契约与模块边界
+- [`docs/architecture/pipeline-v1.md`](docs/architecture/pipeline-v1.md)：搜索管线设计
+- [`docs/clarification-integration.md`](docs/clarification-integration.md)：追问、补搜与持久化接线
+- [`C_EVALUATOR_FUNCTION_GUIDE.md`](C_EVALUATOR_FUNCTION_GUIDE.md)：C 的函数级说明
 
 ## 本地多轮 CLI 调试
 
@@ -135,8 +168,8 @@ DEEPSEEK_API_KEY=你的本地密钥
 首次使用时创建项目内虚拟环境并安装依赖：
 
 ```bash
-/opt/homebrew/bin/python3.11 -m venv .venv
-./.venv/bin/python -m pip install -r requirements.txt
+python3 -m venv .venv
+.venv/bin/python -m pip install -e .
 ```
 
 启动同一 `thread_id` 的交互调试：
@@ -177,7 +210,7 @@ graph = build_requirement_graph(interpreter=DeepSeekRequirementInterpreter())
 运行契约示例检查：
 
 ```bash
-python3.11 build_contract_examples.py
+.venv/bin/python docs/examples/build_contract_examples.py
 ```
 
 ## C 模块：团队 LLM Gateway 评估流程
