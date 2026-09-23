@@ -269,14 +269,7 @@ function card(c) {
     content.append(el("p", "reason", c.reasons.map(claim).join(" · ")));
   if (c.tradeoffs?.length || c.unknowns?.length) {
     const detail = el("details", "details");
-    const detailCount = (c.tradeoffs?.length || 0) + (c.unknowns?.length || 0);
-    detail.append(
-      el(
-        "summary",
-        "details-toggle",
-        `View ${detailCount} ${detailCount === 1 ? "detail" : "details"}`,
-      ),
-    );
+    detail.append(el("summary", "", "A closer look"));
     for (const x of [...(c.tradeoffs || []), ...(c.unknowns || [])])
       detail.append(el("p", "", claim(x)));
     content.append(detail);
@@ -541,7 +534,7 @@ async function send(text, extra = {}) {
   state.active = active;
   const pending = el("div", "pending");
   const hint = el("span", "pending-hint");
-  const node = el("small", "pending-node", "Current node: starting workflow…");
+  const node = el("small", "pending-node", "Starting your search…");
   const elapsed = el("small", "pending-elapsed");
   pending.append(hint, node, elapsed);
   const hints = extra.confirmation_id ? [
@@ -581,10 +574,7 @@ async function send(text, extra = {}) {
     try {
       const progress = await api("/api/progress", { message_id: id });
       if (state.active !== active) return;
-      if (progress.stage && progress.operation) {
-        const operation = progress.operation.replaceAll("_", " ");
-        node.textContent = `Current node: ${progress.stage} · ${operation}`;
-      }
+      if (progress.label) node.textContent = progress.label;
     } catch {}
     finally {
       progressRequestActive = false;

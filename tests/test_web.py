@@ -117,8 +117,7 @@ class CancellationTests(unittest.IsolatedAsyncioTestCase):
         progress = await self.bridge.progress(self.token, payload)
         self.assertEqual(progress, {
             'status': 'running',
-            'stage': 'B',
-            'operation': 'search_for_request',
+            'label': 'Searching available homes…',
         })
         await self.bridge.cancel(self.token, payload)
         await task

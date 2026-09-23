@@ -15,6 +15,20 @@ ROOT = Path(__file__).resolve().parent
 
 class WebBridge:
     """按浏览器会话串行调用既有编排；仅接受服务端已返回的房源标识。"""
+
+    PROGRESS_LABELS = {
+        ('A', 'requirement_turn'): 'Understanding your requirements…',
+        ('B', 'prepare_query'): 'Preparing your search…',
+        ('B', 'build_search_plan'): 'Building your search…',
+        ('B', 'initial_search'): 'Initializing the search…',
+        ('B', 'search_for_request'): 'Searching available homes…',
+        ('C', 'retrieve'): 'Gathering listing details…',
+        ('C', 'evaluate'): 'Evaluating the best matches…',
+        ('C', 'review'): 'Reviewing recommendations…',
+        ('C', 'decide_next'): 'Finalizing recommendations…',
+        ('A', 'return_from_c'): 'Preparing your results…',
+    }
+
     def __init__(self, orchestrator, *, turn_timeout_seconds=330):
         self.orchestrator = orchestrator
         self.turn_timeout_seconds = turn_timeout_seconds
@@ -67,16 +81,18 @@ class WebBridge:
         message_id = self._message_id(payload)
         current = session.get('progress')
         if not current or current['message_id'] != message_id:
-            return {'status': 'idle', 'stage': None, 'operation': None}
+            return {'status': 'idle', 'label': 'Starting your search…'}
         spans = current['trace']['spans']
         if not spans:
-            return {'status': 'starting', 'stage': None, 'operation': None}
+            return {'status': 'starting', 'label': 'Starting your search…'}
         running = [span for span in spans if span['status'] == 'running']
         span = running[-1] if running else spans[-1]
         return {
             'status': span['status'],
-            'stage': span['stage'],
-            'operation': span['operation'],
+            'label': self.PROGRESS_LABELS.get(
+                (span['stage'], span['operation']),
+                'Working on your search…',
+            ),
         }
 
     async def turn(self, token, payload):
