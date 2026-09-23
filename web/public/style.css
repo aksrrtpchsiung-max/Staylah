@@ -163,6 +163,20 @@ a {
   overflow-y: auto;
   padding-right: 3px;
   scrollbar-width: thin;
+  scrollbar-color: rgba(83, 111, 122, 0.24) transparent;
+}
+.conversation-list::-webkit-scrollbar {
+  width: 6px;
+}
+.conversation-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.conversation-list::-webkit-scrollbar-thumb {
+  background: rgba(83, 111, 122, 0.22);
+  border-radius: 999px;
+}
+.conversation-list:hover::-webkit-scrollbar-thumb {
+  background: rgba(83, 111, 122, 0.38);
 }
 .identity {
   border-top: 1px solid #dfe5e5;
