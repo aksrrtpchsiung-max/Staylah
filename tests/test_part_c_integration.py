@@ -5,6 +5,7 @@ import part_c
 from langgraph.checkpoint.memory import InMemorySaver
 
 from property_agent.decision import (
+    DEFAULT_POLICY,
     PartCEvaluationModule,
     build_decision_graph,
     build_stub_deps,
@@ -86,6 +87,40 @@ class PartCIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("来源显示该房源为单间出租。", texts)
         self.assertFalse(any("0 间卧室" in text for text in texts))
 
+    async def test_evaluation_prompt_describes_card_evidence_as_sufficient_without_detail_lookup(self):
+        class CapturingEvaluationModel(part_c.DeepSeekEvaluationReviewModel):
+            def __init__(self):
+                self.system_prompt = ""
+
+            async def _converse(self, system, prompt):
+                self.system_prompt = system
+                return {
+                    "next_action": prompt["allowed_next_actions"][0],
+                    "next_reason_code": "prompt_check",
+                    "summary": "Prompt check",
+                    "limitations": [],
+                }
+
+        outcome = build_outcome(eligible=3)
+        model = CapturingEvaluationModel()
+        await model.evaluate(
+            load_profile(),
+            outcome["retrieval_result"],
+            outcome["screen_result"],
+            outcome["listing_snapshot"]["items"],
+            outcome["coverage"],
+            DEFAULT_POLICY,
+        )
+
+        self.assertIn(
+            "no additional detail-page lookup was required",
+            model.system_prompt,
+        )
+        self.assertIn(
+            "Never phrase this as 'no detail page was fetched'",
+            model.system_prompt,
+        )
+
     async def test_graph_publishes_through_real_part_c(self):
         profile = load_profile()
         deps = build_stub_deps(profile)
@@ -101,6 +136,15 @@ class PartCIntegrationTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(result["completion_reason"], "published")
         self.assertEqual(result["published_recommendation"]["summary"], "Part C integration test")
+        self.assertEqual(
+            result["published_recommendation"]["limitations"][0],
+            "Recommendations are based on the available PropertyGuru evidence. "
+            "Any requirement without explicit evidence is identified separately below.",
+        )
+        self.assertNotIn(
+            "Module C did not independently verify every hard requirement; check Module B's evidence and unresolved fields.",
+            result["published_recommendation"]["limitations"],
+        )
 
     async def test_graph_publishes_with_deterministic_fallback_without_bedrock(self):
         part_c.configure_evaluation_review_model(None)

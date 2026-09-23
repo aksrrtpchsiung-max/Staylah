@@ -436,7 +436,16 @@ class DeepSeekEvaluationReviewModel:
                 "Python has already selected the top listings from the DeepSeek retrieval scores. Do not "
                 "change, reorder, add, or remove those selections. C only summarizes and evaluates these "
                 "candidates; do not re-screen or exclude them for hard-constraint fields. Do not claim that B candidates "
-                "have been independently verified against every hard constraint. "
+                "have been independently verified against every hard constraint. A null last_verified_at means only "
+                "that no detail-page verification timestamp was recorded; it does not say that the page was missing, "
+                "that a lookup failed, or that facts with explicit search-card evidence are doubtful. When the available "
+                "search-card evidence covers the supported listing-level hard constraints and no field issue contradicts "
+                "them, say positively that those constraints are supported and that no additional detail-page lookup was "
+                "required. Never phrase this as 'no detail page was fetched', 'the detail page was not opened', or "
+                "'details were not checked'. Mention optional unknown attributes separately from supported hard constraints. "
+                "If a hard field is actually unknown or conflicting, identify that exact field. Keep unsupported derived "
+                "requirements such as distance or accessibility separate; search-card evidence for listing fields does not "
+                "verify them. A non-null last_verified_at also does not prove that every hard constraint was verified. "
                 "Treat open_data_requirements as best-effort ranking context only, even when their strength "
                 "is hard; never disqualify a candidate because an open requirement is missing. Do not assume "
                 "an unsupported derived requirement is fulfilled. "
@@ -1274,8 +1283,10 @@ async def evaluate(
         limitations = list(dict.fromkeys(item.strip() for item in decision.limitations if item.strip()))
         if ctx["source_mode"] == "mock":
             limitations.append("These results use mock data for demonstration only.")
-        limitations.append(
-            "Module C did not independently verify every hard requirement; check Module B's evidence and unresolved fields."
+        limitations.insert(
+            0,
+            "Recommendations are based on the available PropertyGuru evidence. Any requirement without explicit "
+            "evidence is identified separately below."
         )
         if repair_context and not repair_context["passed"]:
             limitations.append("An earlier review found issues; these recommendations require a new review.")
