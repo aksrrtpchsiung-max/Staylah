@@ -5,6 +5,7 @@ import asyncio
 from dataclasses import asdict
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
 import threading
 from uuid import uuid4
@@ -154,7 +155,9 @@ class Handler(SimpleHTTPRequestHandler):
     def do_POST(self):
         # 本地开发入口：拒绝跨源网页写入，无外部绑定或 CORS。
         origin = self.headers.get('Origin')
-        if origin and origin != f"http://{self.headers.get('Host')}":
+        request_host = self.headers.get('Host')
+        same_host_origins = {f'http://{request_host}', f'https://{request_host}'}
+        if origin and origin not in same_host_origins:
             return self.respond(403, {'error': 'Origin not allowed.'})
         try:
             length = int(self.headers.get('Content-Length', '0'))
@@ -183,32 +186,42 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
+    from dotenv import load_dotenv
+
+    env_path = Path(__file__).resolve().parents[1] / '.env'
+    load_dotenv(env_path)
     parser = argparse.ArgumentParser()
     parser.add_argument('--live', action='store_true')
-    parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--host', default=os.getenv('STAYLAH_HOST', '127.0.0.1'))
+    parser.add_argument('--port', type=int, default=os.getenv('STAYLAH_PORT', '8080'))
     args = parser.parse_args()
     async def run():
         from contextlib import AsyncExitStack
         async with AsyncExitStack() as stack:
             orchestrator = None
             if args.live:
-                from dotenv import load_dotenv
-                load_dotenv(Path(__file__).resolve().parents[1] / '.env')
                 from property_agent.orchestration.postgres import postgres_conversation_runtime
                 orchestrator = await stack.enter_async_context(postgres_conversation_runtime())
-            server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
+            server = ThreadingHTTPServer((args.host, args.port), Handler)
             server.daemon_threads = True
             server.loop = asyncio.get_running_loop()
             server.bridge = WebBridge(orchestrator)
             server.mode = 'live' if args.live else 'preview'
             threading.Thread(target=server.serve_forever, daemon=True).start()
-            print(f'StayLah: http://127.0.0.1:{args.port} ({server.mode})', flush=True)
+            if args.host in {'0.0.0.0', '::'}:
+                location = f'{args.host}:{server.server_port}'
+                print(f'StayLah listening on {location} ({server.mode})', flush=True)
+            else:
+                print(f'StayLah: http://{args.host}:{server.server_port} ({server.mode})', flush=True)
             try:
                 await asyncio.Event().wait()
             finally:
                 server.shutdown()
                 server.server_close()
-    asyncio.run(run())
+    try:
+        asyncio.run(run())
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == '__main__':
     main()
