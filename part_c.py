@@ -50,6 +50,7 @@ from contracts_v0 import (
 
 DEFAULT_LLM_MODEL = "deepseek-v4-flash"
 LLM_METHOD_VERSION = "deepseek-requirement-score-v3"
+DETERMINISTIC_METHOD_VERSION = "deterministic-constraint-score-v1"
 FRESHNESS_DAYS = 14
 MAX_EVALUATION_CANDIDATES = 12
 MAX_RECOMMENDATIONS = 10
@@ -963,6 +964,110 @@ def _retrieval_result(
     }
 
 
+def _requirement_weight(requirement: dict[str, Any]) -> float:
+    """Return the same hard/soft and priority weight used by the LLM rubric."""
+    strength_weight = {"hard": 3.0, "soft": 1.0}.get(requirement.get("strength"))
+    priority_weight = {"high": 3.0, "medium": 2.0, "low": 1.0}.get(
+        requirement.get("priority")
+    )
+    if strength_weight is None or priority_weight is None:
+        return 0.0
+    return strength_weight * priority_weight
+
+
+def _deterministic_requirement_rows(
+    query: QueryFeatures, listings: list[Listing]
+) -> list[tuple[Listing, list[str], float]]:
+    """Score structured requirements locally without filtering any candidate.
+
+    Listing constraints can be checked against normalized Listing fields. Derived/open-data
+    requirements remain in the denominator but earn no points because C has no independent
+    evidence for them. Unknown or conflicting listing values likewise earn zero points.
+    """
+    try:
+        parsed = json.loads(query.get("semantic_query", ""))
+    except (TypeError, json.JSONDecodeError):
+        parsed = {}
+    requirements = parsed if isinstance(parsed, dict) else {}
+
+    constraints: list[dict[str, Any]] = []
+    for item in requirements.get("listing_constraints", []):
+        if (
+            isinstance(item, dict)
+            and isinstance(item.get("field_path"), str)
+            and item.get("operator")
+            in {"eq", "neq", "lt", "lte", "gt", "gte", "between", "in", "contains"}
+            and _requirement_weight(item) > 0
+        ):
+            constraints.append(item)
+
+    unverifiable_weight = 0.0
+    for group in ("derived_data_requirements", "open_data_requirements"):
+        values = requirements.get(group, [])
+        if not isinstance(values, list):
+            continue
+        unverifiable_weight += sum(
+            _requirement_weight(item) for item in values if isinstance(item, dict)
+        )
+
+    intent = requirements.get("intent")
+    expected_transaction = {"rent": "rent", "buy": "sale"}.get(intent)
+    intent_weight = 9.0 if expected_transaction is not None else 0.0
+    total_weight = (
+        intent_weight
+        + unverifiable_weight
+        + sum(_requirement_weight(item) for item in constraints)
+    )
+
+    rows: list[tuple[Listing, list[str], float]] = []
+    for listing in listings:
+        earned_weight = 0.0
+        matched_ids: list[str] = []
+        if (
+            expected_transaction is not None
+            and listing.get("transaction_type") == expected_transaction
+        ):
+            earned_weight += intent_weight
+            matched_ids.append("intent")
+        for constraint in constraints:
+            actual = _listing_field_value(listing, constraint["field_path"])
+            if _constraint_matches(actual, constraint) is True:
+                earned_weight += _requirement_weight(constraint)
+                constraint_id = constraint.get("constraint_id")
+                if isinstance(constraint_id, str) and constraint_id:
+                    matched_ids.append(constraint_id)
+        score = round(100.0 * earned_weight / total_weight, 2) if total_weight else 0.0
+        rows.append((listing, matched_ids, score))
+    return rows
+
+
+def _deterministic_retrieval_fallback(
+    query: QueryFeatures,
+    listings: list[Listing],
+    top_k: int,
+    ctx: RunContext,
+    started: float,
+    reason: str,
+    *,
+    retryable: bool,
+) -> Result[RetrievalResult]:
+    result = _retrieval_result(
+        query,
+        _deterministic_requirement_rows(query, listings),
+        top_k,
+        DETERMINISTIC_METHOD_VERSION,
+    )
+    return _partial(
+        result,
+        ctx,
+        started,
+        f"{reason}; used deterministic structured-requirement scoring fallback",
+        retryable=retryable,
+        code="MODEL_UNAVAILABLE",
+        source="deepseek",
+    )
+
+
 # 对 B 返回的候选直接进行 LLM 关键词／语义相关度打分。
 async def retrieve(
     query: QueryFeatures, eligible_listings: list[Listing], *, top_k: int, ctx: RunContext
@@ -970,8 +1075,8 @@ async def retrieve(
     """让 DeepSeek 对 B 返回的最多 12 套候选逐套打分，再由 Python 排序。
 
     C 不在这里判断房源合格与否，也不因字段未知而删除候选。分数降序排列；同分时
-    月租已知且更低的房源优先，价格未知的排在已知价格之后。模型不可用时返回错误，
-    不再用本地关键词分数冒充 LLM 评分。
+    月租已知且更低的房源优先，价格未知的排在已知价格之后。模型不可用或没有返回
+    完整评分时，改用可披露的本地结构化约束评分，并返回 partial 而不是中断流程。
     """
     started = perf_counter()
     if not isinstance(top_k, int) or isinstance(top_k, bool) or top_k <= 0:
@@ -1005,12 +1110,13 @@ async def retrieve(
 
         matcher, unavailable_reason = _resolve_keyword_matcher()
         if matcher is None:
-            return _error(
+            return _deterministic_retrieval_fallback(
+                query,
+                unique_listings,
+                top_k,
                 ctx,
                 started,
-                "MODEL_UNAVAILABLE",
                 f"REQUEST_FAILED: {unavailable_reason or 'DeepSeek keyword matcher is unavailable'}",
-                source="deepseek",
                 retryable=False,
             )
         try:
@@ -1020,21 +1126,23 @@ async def retrieve(
                 for listing in unique_listings
             ]
         except KeywordMatcherError as exc:
-            return _error(
+            return _deterministic_retrieval_fallback(
+                query,
+                unique_listings,
+                top_k,
                 ctx,
                 started,
-                "MODEL_UNAVAILABLE",
                 f"{exc.failure_kind}: {exc}",
-                source="deepseek",
                 retryable=exc.failure_kind == "REQUEST_FAILED",
             )
         except (KeyError, TypeError):
-            return _error(
+            return _deterministic_retrieval_fallback(
+                query,
+                unique_listings,
+                top_k,
                 ctx,
                 started,
-                "MODEL_UNAVAILABLE",
                 "INVALID_SCORE_SCHEMA: DeepSeek score mapping was incomplete",
-                source="deepseek",
                 retryable=False,
             )
         return _success(
@@ -1272,6 +1380,10 @@ async def evaluate(
         limitations = list(dict.fromkeys(item.strip() for item in decision.limitations if item.strip()))
         if ctx["source_mode"] == "mock":
             limitations.append("当前结果来自 mock 数据，仅用于演示。")
+        if retrieval.get("method_version") == DETERMINISTIC_METHOD_VERSION:
+            limitations.append(
+                "C 的 DeepSeek 房源评分不可用，本轮使用本地结构化需求评分完成排序。"
+            )
         limitations.append("C 未独立复核房源是否满足全部硬条件；请核对 B 的字段证据与待核实项。")
         if repair_context and not repair_context["passed"]:
             limitations.append("上一轮审查发现问题；本轮推荐应重新审查。")
@@ -1678,6 +1790,7 @@ def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
 
 __all__ = [
     "DEFAULT_LLM_MODEL",
+    "DETERMINISTIC_METHOD_VERSION",
     "DeepSeekChatClient",
     "DeepSeekChatError",
     "DeepSeekKeywordMatcher",

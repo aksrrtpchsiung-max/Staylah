@@ -118,7 +118,7 @@ docker compose up -d --wait
 
 - A 依赖 DeepSeek；缺少密钥时无法完成真实需求解析。
 - B 的模型计划或监督调用失败时，会在额度和截止时间内使用确定性调度继续执行，并保留 issue。
-- C.retrieve 必须使用 DeepSeek 完成需求满足度打分；模型不可用时返回明确错误，不再使用本地关键词分数。evaluate/review 仍可按各自的确定性边界降级，并在日志或 limitations 中披露。
+- C.retrieve 优先使用 DeepSeek 完成需求满足度打分；模型不可用、输出截断或评分不完整时，使用本地结构化约束评分继续流程，并以 `partial + MODEL_UNAVAILABLE` 披露降级。evaluate/review 也可按各自的确定性边界降级。
 - 房源事实只来自 Provider 及对应 evidence；模型不能创建房源、修改硬条件或放行无证据事实。
 
 ## 测试
@@ -258,8 +258,9 @@ configure_deepseek_evaluation_review_model()
 但若次数用尽、用户取消、超时或系统状态不合法，它会拒绝执行不安全的建议。生产版
 `review()` 会把可修正的数量、文案和证据问题直接改好并返回 `passed=true`，不触发 repair 循环。
 
-没有 API Key、网络失败或模型返回格式不符合约定时，`retrieve()` 返回
-`status="error" + MODEL_UNAVAILABLE`，因为本地关键词分数不能冒充 LLM 需求满足度评分。
+没有 API Key、网络失败、输出截断或模型返回格式不符合约定时，`retrieve()` 使用本地
+结构化约束评分并返回 `status="partial" + MODEL_UNAVAILABLE`。本地评分只检查标准化
+Listing 字段；派生数据、开放数据和未知字段不获得分数，也不会导致房源被删除。
 `evaluate()` 和 `review()` 仍可使用可解释的确定性规则并返回 `status="partial"`。`review()` 的 fallback 仍检查
 证据引用、排名连续性、展示数量和证据时效，并直接删除或修正可确定的问题后返回
 `passed=true`；模型不可用会以 `MODEL_UNAVAILABLE` 明确记录，不能等同于完成语义复核。

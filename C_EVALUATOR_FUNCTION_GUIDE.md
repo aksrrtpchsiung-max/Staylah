@@ -192,12 +192,14 @@ DeepSeek 根据“已得到支持的需求权重 / 总需求权重”形成 `0�
 
 ### LLM 不可用时
 
-没有 API Key、网络失败或模型没有返回完整可用评分时，不再使用本地关键词分数冒充 LLM，
-而是返回：
+没有 API Key、网络失败、输出截断或模型没有返回完整可用评分时，改用本地结构化约束
+评分继续排序。该评分沿用 hard/soft 与 priority 权重，只对 Listing 中可验证的标准字段
+给分；派生需求、开放数据需求和未知字段得 0 分，但不会删除候选。返回：
 
 ```text
-status = "error"
+status = "partial"
 issue  = "MODEL_UNAVAILABLE"
+method = "deterministic-constraint-score-v1"
 ```
 
 ---
