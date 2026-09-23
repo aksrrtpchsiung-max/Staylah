@@ -12,7 +12,7 @@ class MockListingProvider:
         self.pages = pages or {}
         self.details = details or {}
 
-    async def search_page(self, query, *, intent, filters, limit, ctx):
+    async def search_page(self, query, *, intent, filters, limit, ctx, constraints=None):
         key = (query["text"], query["cursor"])
         response = self.pages.get(key)
         if isinstance(response, ProviderError):

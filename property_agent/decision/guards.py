@@ -210,7 +210,7 @@ def prepare_for_display(
             issues.append(
                 make_issue(
                     "INVALID_OUTPUT",
-                    f"推荐引用了不在合格候选内的 {item.get('listing_key')!r}",
+                    f"推荐引用了不在 B 移交候选内的 {item.get('listing_key')!r}",
                     field_path=f"recommendation.ordered_items[{index}].listing_key",
                 )
             )
@@ -229,7 +229,7 @@ def prepare_for_display(
         trimmed["ordered_items"] = items[:display_limit]
         trimmed["limitations"] = [
             *recommendation.get("limitations", []),
-            f"本次仅展示前 {display_limit} 条，合格候选共 {len(items)} 条。",
+            f"本次仅展示前 {display_limit} 条，B 候选共 {len(items)} 条。",
         ]
         return trimmed, []  # type: ignore[return-value]
 

@@ -72,8 +72,8 @@ async with postgres_decision_graph(deps) as graph:
 
 `build_postgres_deps` 默认接入仓库根目录的 `part_c.evaluate` 和 `part_c.review`，
 以及 `BSearchRunner`。需要真实模型评审时，在 `.env` 中设置
-`LLM_GATEWAY_API_KEY`；网关 URL 和模型 ID 以 `runtime.toml` 的 `[llm_gateway]` 为准。
-没有网关 Key 时，C 默认使用确定性 evaluate/review fallback，并以 `partial` 状态保留
+`DEEPSEEK_API_KEY`；API URL 和模型 ID 以 `runtime.toml` 的 `[deepseek]` 为准。
+没有 DeepSeek Key 时，C 默认使用确定性 evaluate/review fallback，并以 `partial` 状态保留
 `MODEL_UNAVAILABLE` 说明；测试仍可通过 `module_c=` 覆盖默认模块。
 
 ## 持久化字段

@@ -6,7 +6,7 @@ Falcon 是一个面向新加坡租房与买房场景的多 Agent 工作流。系
 
 - **A · Requirement Understanding**：从多轮对话提取结构化住房需求，处理冲突、澄清与用户确认。
 - **B · Search and Investigation**：调用 PropertyGuru、OneMap 和 OpenStreetMap，完成搜索、详情读取、地址定位、周边设施与通勤调查。
-- **C · Evaluation and Decision**：执行硬条件筛选、语义检索、推荐评估、独立复核，并决定发布、补搜、追问或结束。
+- **C · Evaluation and Decision**：对 B 返回的候选进行语义检索打分、推荐评估和证据复核，并决定发布、补搜、追问或结束；不再重复筛选硬条件。
 - **Orchestration**：连接 A、B、C；支持 B → A 澄清、C → B 补搜和 Decision interrupt/resume。
 - **Persistence**：使用 PostgreSQL 保存业务数据，并使用 `AsyncPostgresSaver` 保存 A/C 图状态。
 
@@ -67,11 +67,8 @@ cp .env.example .env
 核心变量：
 
 ```dotenv
-# A：需求理解与澄清
+# A、B、C 共用：需求理解、搜索规划、语义排序与复核
 DEEPSEEK_API_KEY=
-
-# B 的 planner/supervisor 与 C 的语义评估/复核
-LLM_GATEWAY_API_KEY=
 
 # OneMap：二选一，也可以同时配置
 ONEMAP_TOKEN=
@@ -121,7 +118,7 @@ docker compose up -d --wait
 
 - A 依赖 DeepSeek；缺少密钥时无法完成真实需求解析。
 - B 的模型计划或监督调用失败时，会在额度和截止时间内使用确定性调度继续执行，并保留 issue。
-- C 的团队 LLM Gateway 不可用时，会使用确定性 retrieve/evaluate/review fallback。结果标记为 `partial` 并在 limitations 中披露降级，不会把“模型不可用”误报成“房源搜索失败”。
+- C.retrieve 必须使用 DeepSeek 完成需求满足度打分；模型不可用时返回明确错误，不再使用本地关键词分数。evaluate/review 仍可按各自的确定性边界降级，并在日志或 limitations 中披露。
 - 房源事实只来自 Provider 及对应 evidence；模型不能创建房源、修改硬条件或放行无证据事实。
 
 ## 测试
@@ -148,7 +145,7 @@ TEST_DATABASE_URL=postgresql+psycopg://property_agent:property_agent_dev@127.0.0
 .venv/bin/python -m unittest tests.test_orchestration
 ```
 
-真实来源检查会访问 LLM Gateway、PropertyGuru、OneMap 或 OpenStreetMap，不能用来替代离线回归测试；具体命令见后续模块说明。
+真实来源检查会访问 DeepSeek、PropertyGuru、OneMap 或 OpenStreetMap，不能用来替代离线回归测试；具体命令见后续模块说明。
 
 ## 进一步阅读
 
@@ -213,43 +210,42 @@ graph = build_requirement_graph(interpreter=DeepSeekRequirementInterpreter())
 .venv/bin/python docs/examples/build_contract_examples.py
 ```
 
-## C 模块：团队 LLM Gateway 评估流程
+## C 模块：DeepSeek 评估流程
 
 `part_c.py` 的流程是：
 
 ```text
-screen（硬条件、代码）
-  → retrieve（Claude：关键词／语义相关度）
-  → evaluate（Claude：选房、判断候选是否足够、建议下一步）
-  → review（Claude 独立复核 + 代码核查）
+B 返回候选（C 不再执行 screen，最多 12 套）
+  → retrieve（DeepSeek 按 hard/soft 需求权重打分；Python 按分数、价格排序）
+  → evaluate（Python 取前 10 套；DeepSeek 生成 summary、limitations 和下一步建议）
+  → review（检查数量、夸大和证据；直接修正草稿，不退回 evaluate）
   → decide_next（执行 evaluate 建议，但保留安全边界）
 ```
 
-三个 LLM 步骤都通过团队 LLM Gateway 使用 Claude Sonnet 4.5；默认模型 ID 为：
+三个 LLM 步骤与 B 的 planner/supervisor 共用 `config.py` 中的 DeepSeek HTTP 客户端；
+B 通过轻量 `ainvoke` 适配层调用，C 直接读取结构化 JSON。默认模型 ID 为：
 
 ```text
-global.anthropic.claude-sonnet-4-5-20250929-v1:0
+deepseek-v4-flash
 ```
 
-把团队网关配置放在 `.env` 中（不要提交到 Git）：
+把 DeepSeek 密钥放在 `.env` 中（不要提交到 Git）；URL 与模型默认值在 `runtime.toml`：
 
 ```dotenv
-LLM_GATEWAY_URL=https://api.softwaresystems.app
-LLM_GATEWAY_API_KEY=你的团队网关密钥
-LLM_MODEL=global.anthropic.claude-sonnet-4-5-20250929-v1:0
+DEEPSEEK_API_KEY=你的 DeepSeek 密钥
 ```
 
-设置好 API Key 后，`retrieve()`、`evaluate()`、`review()` 会自动使用网关。应用也可以在
+设置好 API Key 后，`retrieve()`、`evaluate()`、`review()` 会自动使用 DeepSeek。应用也可以在
 启动时显式注入：
 
 ```python
 from part_c import (
-    configure_gateway_keyword_matcher,
-    configure_gateway_evaluation_review_model,
+    configure_deepseek_keyword_matcher,
+    configure_deepseek_evaluation_review_model,
 )
 
-configure_gateway_keyword_matcher()
-configure_gateway_evaluation_review_model()
+configure_deepseek_keyword_matcher()
+configure_deepseek_evaluation_review_model()
 ```
 
 `evaluate()` 的输出新增了：
@@ -259,40 +255,43 @@ configure_gateway_evaluation_review_model()
 
 编排层调用 `decide_next()` 前，应把这两个值复制到 `DecisionState` 的
 `evaluation_next_action` 与 `evaluation_next_reason_code`。`decide_next()` 会优先采用这一建议；
-但若 review 未通过、次数用尽、用户取消或超时，它会拒绝执行不安全的建议。
+但若次数用尽、用户取消、超时或系统状态不合法，它会拒绝执行不安全的建议。生产版
+`review()` 会把可修正的数量、文案和证据问题直接改好并返回 `passed=true`，不触发 repair 循环。
 
-没有 API Key、网络失败或模型返回格式不符合约定时，`retrieve()`、`evaluate()` 和 `review()`
-都会使用可解释的确定性规则并返回 `status="partial"`。`review()` 的 fallback 仍检查硬条件、
-证据引用、排名连续性、展示数量和证据时效；只有没有 blocking issue 时才会返回 `passed=true`。
+没有 API Key、网络失败或模型返回格式不符合约定时，`retrieve()` 返回
+`status="error" + MODEL_UNAVAILABLE`，因为本地关键词分数不能冒充 LLM 需求满足度评分。
+`evaluate()` 和 `review()` 仍可使用可解释的确定性规则并返回 `status="partial"`。`review()` 的 fallback 仍检查
+证据引用、排名连续性、展示数量和证据时效，并直接删除或修正可确定的问题后返回
+`passed=true`；模型不可用会以 `MODEL_UNAVAILABLE` 明确记录，不能等同于完成语义复核。
 推荐的 `limitations` 会披露本轮使用了确定性评估。该模式用于本地集成测试，不能等同于完成了
-独立 LLM 语义复核。无论何时，`screen` 的硬条件和事实证据检查都不会被 LLM 覆盖。
+独立 LLM 语义复核。C 不再复核候选是否符合硬条件，不能把 B 候选数量当作已确认合格数。
 ## 大模型 API 接入
 
-`config.py` 使用 `langchain_ollama.ChatOllama` 接入主办方的 AWS LLM Gateway，
-可供 LangGraph 节点同步或异步调用。参考
-[Starter Kit 接入示例](https://github.com/kenken64/ShowMeYourAgent-Starter-Kit/blob/bffda0d15c494abef9202cab8feb13e067a40d1d/test_llm_gateway_langgraph.py)。
-网关使用 Ollama `/api/chat` 协议，默认模型为 Claude Sonnet 4.5；本地只运行客户端。
+`config.py` 通过 DeepSeek 的 OpenAI 兼容 `/chat/completions` 接口提供一个共享 HTTP 客户端。
+B 的现有 LangGraph 节点通过 `DeepSeekChatModel.ainvoke()` 适配器使用它，C 的结构化步骤通过
+`DeepSeekChatClient.complete()` 使用同一个底层实现。
 
 Python 3.11+，安装本次验证使用的依赖版本：
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install langgraph==1.2.11 langchain-ollama==1.1.0 python-dotenv==1.2.3
+.venv/bin/python -m pip install -e .
 ```
 
 在项目根目录 `.env` 中填写主办方提供的密钥。已有文件可直接编辑；新环境可复制以下配置：
 
 ```dotenv
-LLM_GATEWAY_URL=https://api.softwaresystems.app
-LLM_GATEWAY_API_KEY=
-LLM_MODEL=global.anthropic.claude-sonnet-4-5-20250929-v1:0
-LLM_TIMEOUT_SECONDS=60
-LLM_TEMPERATURE=0
-LLM_MAX_TOKENS=2000
+DEEPSEEK_API_KEY=
+# 可选覆盖；通常使用 runtime.toml 默认值即可
+DEEPSEEK_API_BASE=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-v4-flash
+DEEPSEEK_TIMEOUT_SECONDS=45
+DEEPSEEK_TEMPERATURE=0
+DEEPSEEK_MAX_TOKENS=2600
 ```
 
 环境变量优先于 `.env`；默认从 `config.py` 所在目录读取，和启动目录无关。
-密钥必填，`.env` 与 `.venv` 已被 Git 忽略。URL 填网关根地址，不追加 `/api/chat` 或 `/v1`。
+密钥必填，`.env` 与 `.venv` 已被 Git 忽略。URL 填 API 根地址，不追加 `/chat/completions`。
 
 运行 `__main__` 内的三组真实模型输入输出检查（需要配置密钥和联网）：
 
@@ -481,7 +480,7 @@ result = await service.search(plan, ctx=ctx)
 .venv/bin/python -m part2.supervisor --live --input /绝对路径/search-input.json
 ```
 
-真实联调需要 LLM Gateway 配置、OneMap 凭据，以及 OpenCLI / Browser Bridge 环境。
+真实联调需要 DeepSeek 配置、OneMap 凭据，以及 OpenCLI / Browser Bridge 环境。
 没有 OneMap Token 或账户密码时，真实服务构造直接报告 `AUTH_REQUIRED`，不会假装定位成功。
 模型不可用或返回非法任务时，生产流程会改用固定调度并在 `issues` 中明确说明；
 真实联调验收仍判失败。`SearchService(model=None)` 可显式使用固定调度。
@@ -610,7 +609,7 @@ SEARCH_FINALIZE_RESERVE_SECONDS=10
 
 以上是默认值，进程环境优先于 `.env`。计划中的显式总额度仍优先；每次搜索页返回
 不超过 6 条且不超过剩余候选额度。页数包含失败尝试，重试也不能突破总额度。
-计划模型与管理模型分别限制为 20 秒和 8 秒，同时受 `LLM_TIMEOUT_SECONDS` 和本轮剩余
+计划模型与管理模型分别限制为 20 秒和 8 秒，同时受 `DEEPSEEK_TIMEOUT_SECONDS` 和本轮剩余
 时间限制。管理模型每轮最多调用 3 次（失败也计入），之后使用固定调度继续执行。
 浏览器调用继续串行。截止前 10 秒停止并取消尚未完成的外部任务，保留已有结果进入
 汇总；不改写 `ctx.deadline_at`，未查完仍返回 `partial` 或 `error`。

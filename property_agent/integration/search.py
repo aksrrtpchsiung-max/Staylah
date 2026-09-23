@@ -16,7 +16,6 @@ from property_agent.contracts import (
     ContractViolation,
     ConversationProfile,
     Issue,
-    Listing,
     QueryFeatures,
     RequirementCoverage,
     RequirementFulfillment,
@@ -29,6 +28,7 @@ from property_agent.contracts import (
     SearchResult,
 )
 from property_agent.decision.boundaries import AttemptOutcome
+from property_agent.evaluation_trace import record_event, stage_span
 from property_agent.results import CallTimer, is_usable, make_issue
 
 
@@ -68,7 +68,6 @@ class BCTransition(TypedDict):
 QueryPreparer = Callable[
     [ConversationProfile], Awaitable[Result]
 ]  # 实际调用通过闭包绑定 ctx；仅供类型说明。
-ScreenFunction = Callable[[list[Listing], ConversationProfile], ScreenResult]
 RetrieveFunction = Callable[..., Awaitable[Result]]
 
 
@@ -151,20 +150,19 @@ def _requirement_request(profile: ConversationProfile) -> RequirementRequest:
 
 
 class BCAttemptAdapter:
-    """运行 C 的 screen/retrieve，并构造 Decision 的内部 AttemptOutcome。"""
+    """把 B 返回的候选直接交给 C.retrieve，并构造 Decision attempt。"""
 
     def __init__(
         self,
         *,
-        screen: ScreenFunction = part_c.screen,
         retrieve: RetrieveFunction = part_c.retrieve,
-        top_k: int = 10,
+        top_k: int = 12,
     ) -> None:
         if top_k <= 0:
             raise ValueError("top_k must be positive")
-        self._screen = screen
         self._retrieve = retrieve
-        self._top_k = top_k
+        # B → C 最多移交 12 套；retrieve 只负责给这批候选打分和排序。
+        self._top_k = min(top_k, part_c.MAX_EVALUATION_CANDIDATES)
 
     async def adapt(
         self,
@@ -177,7 +175,7 @@ class BCAttemptAdapter:
         requirement_coverage: RequirementCoverage | None = None,
         additional_issues: Sequence[Issue] = (),
     ) -> Result:
-        """把一次 B 搜索连同 C 的筛选和检索结果封装为单次 attempt。"""
+        """把一次 B 搜索和 C 的检索结果封装为单次 attempt。"""
 
         timer = CallTimer(ctx)
         if not is_usable(search_result):
@@ -199,17 +197,43 @@ class BCAttemptAdapter:
                     "STATE_CONFLICT", "search_result.plan_id", "搜索结果不属于当前计划"
                 )
 
-            listings = copy.deepcopy(data["items"])
-            screened = self._screen(listings, profile)
-            eligible_keys = {
-                item["listing_key"] for item in screened.get("eligible", [])
+            searched_listings = copy.deepcopy(data["items"])
+            record_event("b_search_result", {
+                "plan_id": data["plan_id"],
+                "coverage": data["coverage"],
+                "count": len(searched_listings),
+                "listings": searched_listings,
+            }, attempt_id=plan["attempt_id"])
+            # 正常配置下 B 已受 candidate_limit=12 约束。这里再做一次边界保护，
+            # 避免测试替身或自定义 SearchService 把 12 套以上送进 retrieve 的 LLM。
+            listings: list[dict[str, Any]] = []
+            seen_listing_keys: set[str] = set()
+            for listing in searched_listings:
+                key = listing["listing_key"]
+                if key in seen_listing_keys:
+                    continue
+                seen_listing_keys.add(key)
+                listings.append(listing)
+                if len(listings) == self._top_k:
+                    break
+            # v0 contract 仍要求 ScreenResult。这里仅保留 B 的候选身份，不运行
+            # C.screen，也不把空 checks 解释为 C 已验证硬条件。
+            candidate_keys = [item["listing_key"] for item in listings]
+            screened: ScreenResult = {
+                "profile_version": profile["version"],
+                "eligible": [{"listing_key": key, "checks": []} for key in candidate_keys],
+                "rejected": [],
+                "needs_verification": [],
             }
-            eligible = [
-                item for item in listings if item["listing_key"] in eligible_keys
-            ]
-            retrieval = await self._retrieve(
-                query, eligible, top_k=self._top_k, ctx=ctx
-            )
+            record_event("b_candidate_handoff", {
+                "candidate_count": len(candidate_keys),
+                "candidate_listings": listings,
+            }, attempt_id=plan["attempt_id"])
+            with stage_span("C", "retrieve", attempt_id=plan["attempt_id"]):
+                retrieval = await self._retrieve(
+                    query, listings, top_k=self._top_k, ctx=ctx
+                )
+            record_event("c_retrieval_result", retrieval, attempt_id=plan["attempt_id"])
             if not is_usable(retrieval):
                 return _copy_error(retrieval, timer)
 
@@ -225,8 +249,11 @@ class BCAttemptAdapter:
                     query_fingerprint(plan, item) for item in plan["queries"]
                 ],
                 "status": status,
-                "eligible_count": len(eligible_keys),
+                "eligible_count": len(candidate_keys),
             }
+            attempt_coverage = copy.deepcopy(data["coverage"])
+            if len(seen_listing_keys) < len({item["listing_key"] for item in searched_listings}):
+                attempt_coverage["truncated"] = True
             outcome: AttemptOutcome = {
                 "attempt_id": plan["attempt_id"],
                 "search_status": status,
@@ -238,7 +265,7 @@ class BCAttemptAdapter:
                 },
                 "screen_result": screened,
                 "retrieval_result": retrieval["data"],
-                "coverage": copy.deepcopy(data["coverage"]),
+                "coverage": attempt_coverage,
                 "requirement_coverage": copy.deepcopy(requirement_coverage),
                 "attempt_summary": summary,
             }
@@ -402,7 +429,8 @@ class BSearchRunner:
             service = (
                 self._fulfillment_factory or self._default_fulfillment
             )()
-            state = await service.run(request, ctx=attempt_ctx)
+            with stage_span("B", "initial_search", attempt_id=attempt_ctx["attempt_id"]):
+                state = await service.run(request, ctx=attempt_ctx)
             result = state.get("result")
             if not isinstance(result, dict):
                 return timer.error(
@@ -452,7 +480,8 @@ class BSearchRunner:
         plan: SearchPlan | None = None
         try:
             prepare = self._query_preparer or self._default_prepare
-            prepared = await prepare(profile, ctx=attempt_ctx)
+            with stage_span("B", "prepare_query", attempt_id=attempt_ctx["attempt_id"]):
+                prepared = await prepare(profile, ctx=attempt_ctx)
             if not is_usable(prepared):
                 return _failed_attempt(
                     timer, attempt_ctx, prepared.get("issues") or []
@@ -462,13 +491,14 @@ class BSearchRunner:
             planner = (
                 self._planner_factory or self._default_planner
             )()
-            planned = await planner.build_search_plan(
-                profile,
-                query,
-                copy.deepcopy(previous_attempts),
-                copy.deepcopy(directive),
-                ctx=attempt_ctx,
-            )
+            with stage_span("B", "build_search_plan", attempt_id=attempt_ctx["attempt_id"]):
+                planned = await planner.build_search_plan(
+                    profile,
+                    query,
+                    copy.deepcopy(previous_attempts),
+                    copy.deepcopy(directive),
+                    ctx=attempt_ctx,
+                )
             if not is_usable(planned):
                 return _failed_attempt(
                     timer, attempt_ctx, planned.get("issues") or []
@@ -477,9 +507,10 @@ class BSearchRunner:
 
             request = _requirement_request(profile)
             service = (self._search_factory or self._default_search)()
-            searched = await service.search_for_request(
-                plan, request, ctx=attempt_ctx
-            )
+            with stage_span("B", "search_for_request", attempt_id=attempt_ctx["attempt_id"]):
+                searched = await service.search_for_request(
+                    plan, request, ctx=attempt_ctx
+                )
             if not is_usable(searched):
                 return _failed_attempt(
                     timer,

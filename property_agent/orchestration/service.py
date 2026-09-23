@@ -13,6 +13,7 @@ from langgraph.types import Command
 from property_agent.contracts import ConversationProfile, RequirementRequest, Result, RunContext
 from property_agent.decision.graph import initial_state
 from property_agent.decision.runtime import thread_config
+from property_agent.evaluation_trace import record_event, stage_span
 from property_agent.results import is_usable
 from requirement_understanding.response_renderer import ResponseRenderer
 from requirement_understanding.workflow import build_requirement_request
@@ -234,7 +235,15 @@ class ConversationOrchestrator:
         }
         if not snapshot.values:
             payload["status"] = "new"
-        a_state = await self.a_graph.ainvoke(payload, config)
+        with stage_span("A", "requirement_turn"):
+            a_state = await self.a_graph.ainvoke(payload, config)
+        record_event("a_state", {
+            "status": a_state.get("status"),
+            "profile": a_state.get("profile"),
+            "clarification_questions": a_state.get("clarification_questions"),
+            "assistant_response": a_state.get("assistant_response"),
+            "requirement_request": a_state.get("requirement_request"),
+        })
         return await self._continue_from_a(
             a_state,
             conversation_id=conversation_id,
@@ -504,15 +513,23 @@ class ConversationOrchestrator:
                     "search_request_id": None,
                 },
             )
-            a_state = await self.a_graph.ainvoke(
-                {
-                    "message_id": source_message_id or f"msg-{uuid4().hex}",
-                    "current_input": source_text,
-                    "user_id": user_id,
-                    "conversation_id": conversation_id,
-                },
-                self._a_config(conversation_id),
-            )
+            with stage_span("A", "return_from_c"):
+                a_state = await self.a_graph.ainvoke(
+                    {
+                        "message_id": source_message_id or f"msg-{uuid4().hex}",
+                        "current_input": source_text,
+                        "user_id": user_id,
+                        "conversation_id": conversation_id,
+                    },
+                    self._a_config(conversation_id),
+                )
+            record_event("a_state", {
+                "status": a_state.get("status"),
+                "profile": a_state.get("profile"),
+                "clarification_questions": a_state.get("clarification_questions"),
+                "assistant_response": a_state.get("assistant_response"),
+                "requirement_request": a_state.get("requirement_request"),
+            })
             result = await self._continue_from_a(
                 a_state,
                 conversation_id=conversation_id,

@@ -1,4 +1,4 @@
-"""Mock 联调用 C 的 screen：硬条件筛选由 part_c 实现，避免两套规则分叉。"""
+"""旧联调入口：C.screen 仅保留 v0 形状，不再检查硬条件。"""
 from __future__ import annotations
 
 from typing import Any

@@ -136,7 +136,7 @@ class ListingsCapability:
         self.budget.check(ctx)
 
     async def search_page(self, plan: SearchPlan, query_id: str, *,
-                          ctx: RunContext, cursor: str | None = None) -> Result[ListingPage]:
+                          ctx: RunContext, cursor: str | None = None, constraints=None) -> Result[ListingPage]:
         """cursor 为管理层从上次 next_cursor 得到的续页指令；不改变计划。"""
         started = monotonic()
         try:
@@ -155,7 +155,8 @@ class ListingsCapability:
                 async with self.budget.lock:
                     limit = self.budget.begin_page(plan, ctx)
                     page = await self.provider.search_page(query, intent=plan["intent"],
-                        filters=deepcopy(plan["required_filters"]), limit=limit, ctx=ctx)
+                        filters=deepcopy(plan["required_filters"]), limit=limit, ctx=ctx,
+                        **({'constraints': deepcopy(constraints)} if constraints else {}))
                     try:
                         validate_type(ListingPage, page, "page")
                         if page["query_id"] != query_id or len(page["items"]) > limit:

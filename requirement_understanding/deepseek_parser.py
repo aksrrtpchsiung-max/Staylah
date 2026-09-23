@@ -51,6 +51,8 @@ For a location, return only the entity named by the user and its in/near relatio
 For a commute destination without a stated time limit, set max_minutes to null. Never use 0 as a missing value. Treat general wording such as "convenient commute" as a soft requirement.
 Create a commute item only when its destination is explicitly present in that item's source_text. Never use "unknown" or another placeholder as a destination.
 Preference topics must use only schema enum values. Normalize a private attached bathroom to ensuite_bathroom and proximity to a bus stop to near_bus_stop.
+Preference values must use the topic's controlled vocabulary: furnishing is exactly one of "fully", "partially", or "unfurnished" and must never be a boolean; the boolean topics (ensuite_bathroom, owner_not_staying, cooking_allowed, utilities_included, wifi_included, visitors_allowed, pets_allowed) use true; every other topic keeps a short string or the user's own wording.
+"Furnished" without a degree means the home must not be unfurnished; only use "fully" when the user says fully furnished, and "partially" when the user asks for partial furnishing.
 When a housing preference cannot map to a known topic, use topic=other instead of dropping it. Preserve the complete preference in source_text.
 unresolved_fields is advisory for the current message only. Do not use it to request optional fields. The workflow determines conversation-level completeness from the accumulated profile.
 The output must strictly follow the JSON Schema included with the user message.
@@ -148,7 +150,15 @@ class LLMPreferenceRequirement(LLMSource):
     """定义 LLM 直接映射到稳定主题枚举的附加需求。"""
 
     topic: PreferenceTopic = Field(description="Normalized preference topic.")
-    value: Any = Field(description="Value associated with the preference topic.")
+    value: Any = Field(
+        description=(
+            "Value for the topic, using that topic's controlled vocabulary. "
+            "furnishing: one of 'fully', 'partially', 'unfurnished' (never a boolean). "
+            "ensuite_bathroom, owner_not_staying, cooking_allowed, utilities_included, "
+            "wifi_included, visitors_allowed, pets_allowed: true. "
+            "Other topics: a short string or the user's own wording."
+        )
+    )
     priority: PreferencePriority = Field(description="Relative priority.")
     strength: ConstraintStrength = Field(description="Whether the preference is negotiable.")
 

@@ -31,7 +31,8 @@ class Dispatcher:
                 capability = self.listings.get(query['source'])
                 if capability is None:
                     raise ProviderError(issue('SOURCE_UNAVAILABLE', '未注册该房源来源', source=query['source']))
-                result = await capability.search_page(plan, task['query_id'], ctx=ctx, cursor=task['cursor'])
+                result = await capability.search_page(plan, task['query_id'], ctx=ctx, cursor=task['cursor'],
+                    constraints=(state.get('requirement_request') or {}).get('listing_constraints'))
                 self.history.save_page(plan, task['query_id'], task['cursor'], result)
                 return result
             listing = state['listings'][task['listing_key']]

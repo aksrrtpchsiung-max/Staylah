@@ -247,7 +247,12 @@ class PreferenceRequirement(StrictModel):
     """表示由 LLM 映射到稳定主题词表的附加需求。"""
 
     topic: PreferenceTopic = Field(description="Normalized preference topic.")
-    value: Any = Field(description="Boolean, string, or numeric value for the topic.")
+    value: Any = Field(
+        description=(
+            "Value for the topic, using that topic's controlled vocabulary. "
+            "furnishing must be fully, partially, or unfurnished; boolean topics use true."
+        )
+    )
     priority: PreferencePriority = Field(description="Relative preference priority.")
     strength: ConstraintStrength = Field(description="Whether the preference is negotiable.")
     source: SourceSpan = Field(description="User-input evidence for the preference.")
