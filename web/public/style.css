@@ -133,47 +133,31 @@ a {
 }
 .current-chat {
   width: 100%;
-  border: 1px solid transparent;
+  border: 0;
   text-align: left;
-  font-size: 11px;
-  padding: 13px 8px;
+  font-size: 13px;
+  padding: 9px 11px;
   background: transparent;
-  border-radius: 10px;
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  border-radius: 8px;
+  line-height: 1.4;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   overflow: hidden;
 }
 .current-chat:hover,
 .current-chat.active {
-  background: #e1edf278;
-  border-color: #d5e3e8;
-}
-.current-chat span {
-  font-size: 19px;
-  margin-right: 6px;
+  background: #ffffff70;
 }
 .conversation-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  flex: 1;
+  min-height: 0;
+  gap: 2px;
   overflow-y: auto;
-  max-height: 42vh;
-}
-.sidebar-bottom {
-  margin-top: auto;
-  padding: 30px 15px;
-  color: #85928e;
-}
-.little-house {
-  font-size: 46px;
-  color: #b9c6bb;
-}
-.sidebar-bottom p {
-  font-size: 17px;
-  line-height: 1.6;
-  font-family: Manrope, sans-serif;
+  padding-right: 3px;
+  scrollbar-width: thin;
 }
 .identity {
   border-top: 1px solid #dfe5e5;
@@ -183,6 +167,7 @@ a {
   padding-top: 18px;
   font-size: 11px;
   color: #839092;
+  margin-top: 16px;
 }
 .avatar {
   border-radius: 50%;
@@ -855,12 +840,15 @@ h1 em {
   color: #344f5e;
 }
 .current-chat {
-  background: #c9e1ebb8;
-  border: 1px solid #98b9c9;
+  background: transparent;
+  border: 0;
   color: #385b6a;
 }
+.current-chat:hover,
+.current-chat.active {
+  background: #ffffff73;
+}
 .side-label,
-.sidebar-bottom,
 .identity {
   color: #667a7f;
 }

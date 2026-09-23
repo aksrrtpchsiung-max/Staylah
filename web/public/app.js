@@ -90,18 +90,14 @@ function renderConversationList() {
   const list = $("#conversation-list");
   list.replaceChildren();
   for (const conversation of state.conversations) {
-    const item = button("", "current-chat", () =>
-      switchConversation(conversation.conversation_id),
-    );
+    const title = conversation.title || "Untitled conversation";
+    const item = button(title, "current-chat", () =>
+      switchConversation(conversation.conversation_id));
     item.classList.toggle(
       "active",
       conversation.conversation_id === state.conversationId,
     );
-    item.title = conversation.title || "Untitled conversation";
-    item.append(
-      el("span", "", "◌"),
-      document.createTextNode(conversation.title || "Untitled conversation"),
-    );
+    item.title = title;
     list.append(item);
   }
 }
