@@ -101,7 +101,7 @@ class DState(TypedDict, total=False):
 
 
 def count_eligible(screen_result: ScreenResult | None) -> int:
-    """数量规则依据 ScreenResult.eligible 的去重数量，不依据网页条数或检索 Top-K。"""
+    """v0 字段名沿用 eligible；主流程中计数的是 B 移交候选的去重数量。"""
     if not screen_result:
         return 0
     return len({item["listing_key"] for item in screen_result.get("eligible", [])})

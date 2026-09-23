@@ -1,6 +1,7 @@
 """外层运行控制：把 A 确认、B 履约和 C 决策串成一次会话循环。"""
 from __future__ import annotations
 
+import asyncio
 import copy
 import hashlib
 from dataclasses import asdict, dataclass, field
@@ -13,6 +14,7 @@ from langgraph.types import Command
 from property_agent.contracts import ConversationProfile, RequirementRequest, Result, RunContext
 from property_agent.decision.graph import initial_state
 from property_agent.decision.runtime import thread_config
+from property_agent.evaluation_trace import record_event, stage_span
 from property_agent.results import is_usable
 from requirement_understanding.response_renderer import ResponseRenderer
 from requirement_understanding.workflow import build_requirement_request
@@ -234,7 +236,15 @@ class ConversationOrchestrator:
         }
         if not snapshot.values:
             payload["status"] = "new"
-        a_state = await self.a_graph.ainvoke(payload, config)
+        with stage_span("A", "requirement_turn"):
+            a_state = await self.a_graph.ainvoke(payload, config)
+        record_event("a_state", {
+            "status": a_state.get("status"),
+            "profile": a_state.get("profile"),
+            "clarification_questions": a_state.get("clarification_questions"),
+            "assistant_response": a_state.get("assistant_response"),
+            "requirement_request": a_state.get("requirement_request"),
+        })
         return await self._continue_from_a(
             a_state,
             conversation_id=conversation_id,
@@ -338,6 +348,9 @@ class ConversationOrchestrator:
                 initial_state(ctx=ctx, profile=profile, outcome=outcome),  # type: ignore[arg-type]
                 thread_config(run_id),
             )
+        except asyncio.CancelledError:
+            self.runs.update(run_id, status="cancelled", completion_reason="cancelled")
+            raise
         except Exception:
             # 业务 run 已经创建但图尚未得到可恢复结果；明确结束该 run，
             # 同一 RequirementRequest 仍可由下一条用户消息重试。
@@ -372,10 +385,14 @@ class ConversationOrchestrator:
         run_id = waiting["run_id"]
         conversation_id = waiting["conversation_id"]
         user_id = waiting["user_id"]
-        decision_state = await self.decision_graph.ainvoke(
-            Command(resume={"client_message_id": client_message_id, "text": text}),
-            thread_config(run_id),
-        )
+        try:
+            decision_state = await self.decision_graph.ainvoke(
+                Command(resume={"client_message_id": client_message_id, "text": text}),
+                thread_config(run_id),
+            )
+        except asyncio.CancelledError:
+            self.runs.update(run_id, status="cancelled", completion_reason="cancelled")
+            raise
         return await self._finish_decision(
             decision_state,
             conversation_id=conversation_id,
@@ -504,15 +521,23 @@ class ConversationOrchestrator:
                     "search_request_id": None,
                 },
             )
-            a_state = await self.a_graph.ainvoke(
-                {
-                    "message_id": source_message_id or f"msg-{uuid4().hex}",
-                    "current_input": source_text,
-                    "user_id": user_id,
-                    "conversation_id": conversation_id,
-                },
-                self._a_config(conversation_id),
-            )
+            with stage_span("A", "return_from_c"):
+                a_state = await self.a_graph.ainvoke(
+                    {
+                        "message_id": source_message_id or f"msg-{uuid4().hex}",
+                        "current_input": source_text,
+                        "user_id": user_id,
+                        "conversation_id": conversation_id,
+                    },
+                    self._a_config(conversation_id),
+                )
+            record_event("a_state", {
+                "status": a_state.get("status"),
+                "profile": a_state.get("profile"),
+                "clarification_questions": a_state.get("clarification_questions"),
+                "assistant_response": a_state.get("assistant_response"),
+                "requirement_request": a_state.get("requirement_request"),
+            })
             result = await self._continue_from_a(
                 a_state,
                 conversation_id=conversation_id,

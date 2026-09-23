@@ -1,25 +1,26 @@
-"""搜索执行参数、Starter Kit 的 AWS LLM Gateway 配置及模型工厂。
+"""搜索执行参数、DeepSeek 配置及 B 模型工厂。
 
 本模块读取配置并构造模型依赖；不修改共享契约，不负责生成搜索计划。
-运行本文件执行三组真实网关输入输出，不注入预设响应。
+运行本文件执行三组真实 DeepSeek 输入输出，不注入预设响应。
 """
 from __future__ import annotations
 
+import json
 import math
 import os
-from collections.abc import Generator, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlsplit
 
 import httpx
 from dotenv import dotenv_values
-from langchain_ollama import ChatOllama
+from langchain_core.messages import AIMessage
 
 from runtime_settings import load_runtime_settings
 
-DEFAULT_GATEWAY_URL = "https://api.softwaresystems.app"
-DEFAULT_MODEL = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
+DEFAULT_DEEPSEEK_URL = "https://api.deepseek.com"
+DEFAULT_MODEL = "deepseek-v4-flash"
 DEFAULT_ENV_FILE = Path(__file__).resolve().with_name(".env")
 
 
@@ -109,36 +110,23 @@ def load_search_execution_settings(env_file=DEFAULT_ENV_FILE) -> SearchExecution
 
 
 @dataclass(frozen=True)
-class _GatewayAuth(httpx.Auth):
-    """仅在发送请求时加入网关鉴权，模型表示和追踪信息不含密钥。"""
-
-    _api_key: str = field(repr=False)
-
-    def auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
-        # Ollama SDK 可能从 OLLAMA_API_KEY 注入 Authorization；此网关只使用 X-API-Key。
-        request.headers.pop("Authorization", None)
-        request.headers["X-API-Key"] = self._api_key
-        yield request
-
-
-@dataclass(frozen=True)
 class ModelSettings:
     api_key: str = field(repr=False)
-    gateway_url: str = DEFAULT_GATEWAY_URL
+    base_url: str = DEFAULT_DEEPSEEK_URL
     model: str = DEFAULT_MODEL
-    timeout_seconds: float = 60.0
+    timeout_seconds: float = 45.0
     temperature: float = 0.0
-    max_tokens: int = 2000
+    max_tokens: int = 2600
 
     def __post_init__(self) -> None:
         if not self.api_key.strip():
             raise ModelConfigurationError(
-                "缺少 LLM_GATEWAY_API_KEY，请在项目 .env 中填写主办方提供的密钥。"
+                "缺少 DEEPSEEK_API_KEY，请在项目 .env 中填写 DeepSeek 密钥。"
             )
         if not self.model.strip():
-            raise ModelConfigurationError("LLM_MODEL 不能为空。")
+            raise ModelConfigurationError("DEEPSEEK_MODEL 不能为空。")
         try:
-            url = urlsplit(self.gateway_url)
+            url = urlsplit(self.base_url)
             valid_url = (
                 url.scheme in {"http", "https"}
                 and bool(url.hostname)
@@ -151,13 +139,13 @@ class ModelSettings:
         except ValueError:
             valid_url = False
         if not valid_url:
-            raise ModelConfigurationError("LLM_GATEWAY_URL 必须是有效的 HTTP(S) 网关地址。")
+            raise ModelConfigurationError("DEEPSEEK_API_BASE 必须是有效的 HTTP(S) 地址。")
         if not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
-            raise ModelConfigurationError("LLM_TIMEOUT_SECONDS 必须是有限正数。")
+            raise ModelConfigurationError("DEEPSEEK_TIMEOUT_SECONDS 必须是有限正数。")
         if not math.isfinite(self.temperature) or not 0 <= self.temperature <= 1:
-            raise ModelConfigurationError("LLM_TEMPERATURE 必须在 0 到 1 之间。")
+            raise ModelConfigurationError("DEEPSEEK_TEMPERATURE 必须在 0 到 1 之间。")
         if type(self.max_tokens) is not int or self.max_tokens <= 0:
-            raise ModelConfigurationError("LLM_MAX_TOKENS 必须是正整数。")
+            raise ModelConfigurationError("DEEPSEEK_MAX_TOKENS 必须是正整数。")
 
 
 def load_model_settings(
@@ -169,7 +157,7 @@ def load_model_settings(
 
     离线测试可传入 env_file=None 和独立 environ，完全隔离真实配置。
     """
-    gateway = load_runtime_settings(env_file=env_file, environ=environ).llm_gateway
+    deepseek = load_runtime_settings(env_file=env_file, environ=environ).deepseek
     values = dict(dotenv_values(env_file, interpolate=False)) if env_file else {}
     values.update(os.environ if environ is None else environ)
 
@@ -183,13 +171,146 @@ def load_model_settings(
             raise ModelConfigurationError(f"{name} 的数值格式不正确。") from None
 
     return ModelSettings(
-        api_key=value(gateway.api_key_env) or gateway.api_key(values),
-        gateway_url=value("LLM_GATEWAY_URL", gateway.url).rstrip("/"),
-        model=value("LLM_MODEL", gateway.model),
-        timeout_seconds=number("LLM_TIMEOUT_SECONDS", str(gateway.timeout_seconds), float),
-        temperature=number("LLM_TEMPERATURE", str(gateway.temperature), float),
-        max_tokens=number("LLM_MAX_TOKENS", str(gateway.max_tokens), int),
+        api_key=value(deepseek.api_key_env) or deepseek.api_key(values),
+        base_url=value("DEEPSEEK_API_BASE", deepseek.base_url).rstrip("/"),
+        model=value("DEEPSEEK_MODEL", deepseek.model),
+        timeout_seconds=number("DEEPSEEK_TIMEOUT_SECONDS", str(deepseek.timeout_seconds), float),
+        temperature=number("DEEPSEEK_TEMPERATURE", "0", float),
+        max_tokens=number("DEEPSEEK_MAX_TOKENS", str(deepseek.max_tokens), int),
     )
+
+
+class DeepSeekChatError(RuntimeError):
+    """DeepSeek 请求或响应错误；只保留安全的 HTTP 状态信息。"""
+
+    def __init__(self, message: str, *, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+
+class DeepSeekChatClient:
+    """B/C 共用的 DeepSeek HTTP 客户端。"""
+
+    def __init__(
+        self,
+        settings: ModelSettings,
+        *,
+        async_transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._settings = settings
+        self._transport = async_transport
+        url = settings.base_url.rstrip("/")
+        if url.endswith("/chat/completions"):
+            self._endpoint = url
+        elif url.endswith("/v1"):
+            self._endpoint = f"{url}/chat/completions"
+        else:
+            self._endpoint = f"{url}/chat/completions"
+
+    @staticmethod
+    def _message_payload(message: object) -> dict[str, str]:
+        if isinstance(message, dict):
+            role = message.get("role")
+            content = message.get("content")
+        else:
+            role = getattr(message, "type", None) or getattr(message, "role", None)
+            content = getattr(message, "content", None)
+        role = {"human": "user", "ai": "assistant"}.get(role, role)
+        if role not in {"system", "user", "assistant"} or not isinstance(content, str):
+            raise DeepSeekChatError("DeepSeek message must contain a supported role and string content")
+        return {"role": role, "content": content}
+
+    async def complete(
+        self,
+        messages: list[object],
+        *,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        stop: object = None,
+        response_format: dict[str, str] | None = None,
+    ) -> tuple[str, dict[str, object]]:
+        payload: dict[str, object] = {
+            "model": self._settings.model,
+            "messages": [self._message_payload(message) for message in messages],
+            "temperature": self._settings.temperature if temperature is None else temperature,
+            "max_tokens": self._settings.max_tokens if max_tokens is None else max_tokens,
+            "stream": False,
+        }
+        if stop:
+            payload["stop"] = stop
+        if response_format is not None:
+            payload["response_format"] = response_format
+        try:
+            async with httpx.AsyncClient(
+                timeout=self._settings.timeout_seconds,
+                follow_redirects=False,
+                transport=self._transport,
+            ) as client:
+                response = await client.post(
+                    self._endpoint,
+                    headers={
+                        "Authorization": f"Bearer {self._settings.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                )
+        except httpx.HTTPError as exc:
+            raise DeepSeekChatError("DeepSeek request failed") from exc
+        if response.status_code >= 400:
+            raise DeepSeekChatError(
+                f"DeepSeek returned HTTP {response.status_code}",
+                status_code=response.status_code,
+            )
+        if len(response.content) > 2_000_000:
+            raise DeepSeekChatError("DeepSeek response is too large")
+        try:
+            data = response.json()
+            choice = data["choices"][0]
+            content = choice["message"]["content"]
+            if not isinstance(content, str) or not content.strip():
+                finish_reason = choice.get("finish_reason")
+                safe_reason = finish_reason if isinstance(finish_reason, str) else "unknown"
+                raise DeepSeekChatError(
+                    f"DeepSeek returned empty message content (finish_reason={safe_reason})"
+                )
+        except DeepSeekChatError:
+            raise
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise DeepSeekChatError("DeepSeek returned an invalid chat-completion response") from exc
+        return (
+            content,
+            {
+                "model": data.get("model", self._settings.model),
+                "request_id": data.get("id"),
+            },
+        )
+
+
+class DeepSeekChatModel:
+    """把共享 DeepSeek 客户端适配成 B 现有的 ``ainvoke`` 接口。"""
+
+    def __init__(self, client: DeepSeekChatClient) -> None:
+        self._client = client
+
+    async def ainvoke(self, messages: list[object], **kwargs: object) -> AIMessage:
+        if kwargs.get("stream") not in {None, False}:
+            raise DeepSeekChatError("Streaming is not supported by the DeepSeek B adapter")
+        content, metadata = await self._client.complete(
+            messages,
+            stop=kwargs.get("stop"),
+        )
+        return AIMessage(content=content, response_metadata=metadata)
+
+
+def create_deepseek_client(
+    settings: ModelSettings | None = None,
+    *,
+    async_transport: httpx.AsyncBaseTransport | None = None,
+) -> DeepSeekChatClient:
+    """构造供 B/C 共用的 DeepSeek HTTP 客户端。"""
+
+    settings = settings if settings is not None else load_model_settings()
+    return DeepSeekChatClient(settings, async_transport=async_transport)
 
 
 def create_chat_model(
@@ -197,29 +318,15 @@ def create_chat_model(
     *,
     transport: httpx.BaseTransport | None = None,
     async_transport: httpx.AsyncBaseTransport | None = None,
-) -> ChatOllama:
-    """构造支持 invoke/ainvoke 的模型，由服务构造时注入 LangGraph 节点。
+) -> DeepSeekChatModel:
+    """构造 B 使用的 DeepSeek ``ainvoke`` 模型。
 
-    构造时不请求网关；transport 参数用于本地模拟 HTTP 响应。
-    不自动重试，避免鉴权失败反复请求；业务层后续按 ctx.deadline_at 控制总时限。
-    公共网关的原生工具调用未验证，本轮只接入消息请求与回复。
+    构造时不请求外部服务；业务层继续按 ``ctx.deadline_at`` 控制总时限。
+    ``transport`` 仅为旧调用签名保留；B 当前只使用异步请求。
     """
-    settings = settings if settings is not None else load_model_settings()
-    return ChatOllama(
-        model=settings.model,
-        base_url=settings.gateway_url,
-        temperature=settings.temperature,
-        num_predict=settings.max_tokens,
-        validate_model_on_init=False,
-        client_kwargs={
-            "auth": _GatewayAuth(settings.api_key),
-            "timeout": settings.timeout_seconds,
-            "follow_redirects": False,
-        },
-        sync_client_kwargs={"transport": transport} if transport is not None else {},
-        async_client_kwargs=(
-            {"transport": async_transport} if async_transport is not None else {}
-        ),
+    del transport
+    return DeepSeekChatModel(
+        create_deepseek_client(settings, async_transport=async_transport)
     )
 
 
@@ -230,9 +337,8 @@ if __name__ == '__main__':
     from dataclasses import replace
     from langchain_core.messages import HumanMessage
     from langgraph.graph import END, START, MessagesState, StateGraph
-    from ollama import ResponseError
 
-    parser=argparse.ArgumentParser(description='真实模型网关输入输出检查；读取本地 .env')
+    parser=argparse.ArgumentParser(description='真实 DeepSeek 输入输出检查；读取本地 .env')
     parser.add_argument('--live', action='store_true', help='兼容旧命令；现在始终使用真实模型')
     args=parser.parse_args()
 
@@ -257,15 +363,15 @@ if __name__ == '__main__':
                 state=await asyncio.wait_for(graph.ainvoke({'messages':[HumanMessage(content=prompt)]}), settings.timeout_seconds)
                 answer=state['messages'][-1].content
                 if not answer:
-                    raise ValueError('网关返回空回复')
+                    raise ValueError('DeepSeek 返回空回复')
                 passed+=1
                 print(json.dumps(dict(input=prompt, actual_output=answer, model=settings.model),ensure_ascii=False),flush=True)
-            except ResponseError as exc:
-                print(json.dumps(dict(input=prompt,error='网关请求失败',http_status=exc.status_code),ensure_ascii=False),flush=True)
+            except DeepSeekChatError as exc:
+                print(json.dumps(dict(input=prompt,error='DeepSeek 请求失败',http_status=exc.status_code),ensure_ascii=False),flush=True)
             except (TimeoutError, httpx.TimeoutException):
                 print(json.dumps(dict(input=prompt,error='真实模型调用超时'),ensure_ascii=False),flush=True)
             except (ConnectionError, httpx.TransportError):
-                print(json.dumps(dict(input=prompt,error='无法连接真实模型网关'),ensure_ascii=False),flush=True)
+                print(json.dumps(dict(input=prompt,error='无法连接 DeepSeek'),ensure_ascii=False),flush=True)
         print(f'真实模型调用通过 {passed}/3')
         return 0 if passed==3 else 1
     try:

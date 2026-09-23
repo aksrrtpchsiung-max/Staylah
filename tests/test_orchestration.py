@@ -200,7 +200,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result.phase, "failed")
         self.assertEqual(result.status, "failed")
-        self.assertIn("C unavailable", result.assistant_response)
+        self.assertIn("recommendation service is unavailable", result.assistant_response)
         checkpoint = await orchestrator.a_graph.aget_state(
             {"configurable": {"thread_id": "conversation-failed"}}
         )
@@ -378,7 +378,6 @@ class RuntimeSettingsTests(unittest.TestCase):
 
         settings = load_runtime_settings(reload=True)
         self.assertEqual(settings.deepseek.api_key_env, "DEEPSEEK_API_KEY")
-        self.assertEqual(settings.llm_gateway.api_key_env, "LLM_GATEWAY_API_KEY")
         self.assertEqual(settings.deepseek.model, "deepseek-v4-flash")
         self.assertEqual(settings.deepseek.clarification_model, "deepseek-flash")
         self.assertEqual(settings.run.source_mode, "live")

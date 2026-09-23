@@ -79,7 +79,21 @@ class ResponseRenderer:
     def search_failed(self, issues: list[dict[str, str]] | None = None) -> str:
         """搜索无法继续时给出不泄露内部细节的说明。"""
 
-        detail = (issues or [{}])[0].get("message") if issues else None
+        # 内部诊断可能来自多语言来源；用户错误说明统一英文，不泄露原始异常。
+        first_issue = (issues or [{}])[0] if issues else {}
+        code = first_issue.get("code")
+        source = first_issue.get("source")
+        detail = {
+            "TIMEOUT": "The search timed out. Please retry or narrow your search.",
+            "SOURCE_UNAVAILABLE": "The listing source is unavailable. Please try again later.",
+            "RATE_LIMITED": "The listing source is busy. Please try again later.",
+        }.get(code)
+        if code == "MODEL_UNAVAILABLE":
+            detail = (
+                "The search planning service is unavailable. Please try again later."
+                if source == "model"
+                else "The recommendation service is unavailable. Please try again later."
+            )
         if self.tone == "concise":
             return detail or "Search could not be completed."
         if detail:
@@ -103,6 +117,12 @@ class ResponseRenderer:
                 "I completed the available search attempts, but did not find a listing "
                 "that satisfies all confirmed requirements. Tell me which requirement "
                 "you would like to adjust, and I can search again."
+            )
+        if reason == "verification_pending":
+            return (
+                "The listings found have missing information needed to verify your requirements, "
+                "so I can't recommend them as confirmed matches. I haven't requested another search. "
+                "You can adjust your requirements or ask me to search again."
             )
         if self.tone == "concise":
             return "This search has ended."

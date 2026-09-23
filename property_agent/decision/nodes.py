@@ -36,6 +36,7 @@ from property_agent.decision.state import (
     count_eligible,
     eligible_keys,
 )
+from property_agent.evaluation_trace import record_event, stage_span
 from property_agent.results import first_issue_code, is_usable, make_issue
 
 ANSWER_ACTIONS = ("answer", "accept_proposal", "decline", "cancel")
@@ -96,16 +97,18 @@ class DecisionNodes:
     # --- 模块 C 的两次调用 ---------------------------------------------------
 
     async def evaluate_candidates(self, state: DState) -> dict:
-        result = await self.deps.module_c.evaluate(
-            state["profile_snapshot"],
-            state["retrieval_result"],
-            state["screen_result"],
-            state["listing_snapshot"],
-            state["coverage"],
-            state.get("repair_context"),
-            policy=state["policy"],
-            ctx=state["ctx"],
-        )
+        with stage_span("C", "evaluate", attempt_id=state.get("attempt_id")):
+            result = await self.deps.module_c.evaluate(
+                state["profile_snapshot"],
+                state["retrieval_result"],
+                state["screen_result"],
+                state["listing_snapshot"],
+                state["coverage"],
+                state.get("repair_context"),
+                policy=state["policy"],
+                ctx=state["ctx"],
+            )
+        record_event("c_evaluation", result, attempt_id=state.get("attempt_id"))
         if not is_usable(result):
             # 评价服务没能完成：不能假装"没有匹配房源"。
             return {
@@ -136,13 +139,15 @@ class DecisionNodes:
         }
 
     async def review_recommendation(self, state: DState) -> dict:
-        result = await self.deps.module_c.review(
-            state["profile_snapshot"],
-            state["evaluation"],
-            state["listing_snapshot"],
-            policy=state["policy"],
-            ctx=state["ctx"],
-        )
+        with stage_span("C", "review", attempt_id=state.get("attempt_id")):
+            result = await self.deps.module_c.review(
+                state["profile_snapshot"],
+                state["evaluation"],
+                state["listing_snapshot"],
+                policy=state["policy"],
+                ctx=state["ctx"],
+            )
+        record_event("c_review", result, attempt_id=state.get("attempt_id"))
         if not is_usable(result):
             # 审查未能完成 ≠ 审查通过。
             return {
@@ -150,12 +155,19 @@ class DecisionNodes:
                 "failure_code": first_issue_code(result),
                 "last_issues": result["issues"],
             }
-        return {"review": result["data"], "failure_code": None, "last_issues": result["issues"]}
+        return {
+            # part_c.review 会在发现超量、夸大或无证据文案时直接修正草稿。
+            # 显式写回 evaluation，确保修正后的内容进入 checkpoint 并交给 A。
+            "evaluation": state["evaluation"],
+            "review": result["data"],
+            "failure_code": None,
+            "last_issues": result["issues"],
+        }
 
     # --- 决策前的程序准备 ----------------------------------------------------
 
     async def prepare_decision(self, state: DState) -> dict:
-        """清洗 C 的下一步建议、按 ScreenResult 计数、预分配问题 ID。"""
+        """清洗 C 的下一步建议、按 B 候选计数、预分配问题 ID。"""
         profile = state["profile_snapshot"]
         next_version = state.get("state_version", 0) + 1
         issues: list[Issue] = list(state.get("last_issues") or [])
@@ -176,9 +188,12 @@ class DecisionNodes:
             )
             issues += directive_issues + proposal_issues
 
+        next_action = assessment.get("next_action")
+        next_reason = assessment.get("next_reason_code")
+
         question = (
             self._build_question(state, proposals, next_version, eligible_count)
-            if proposals and not settled
+            if proposals and not settled and next_action != "finish"
             else None
         )
         if question is not None:
@@ -191,8 +206,8 @@ class DecisionNodes:
             "search_directive": directive,
             "relaxation_proposals": proposals,
             "pending_question": question,
-            "evaluation_next_action": assessment.get("next_action"),
-            "evaluation_next_reason_code": assessment.get("next_reason_code"),
+            "evaluation_next_action": next_action,
+            "evaluation_next_reason_code": next_reason,
             "state_version": next_version,
             "last_issues": issues,
         }
@@ -207,16 +222,16 @@ class DecisionNodes:
         """问题 ID 由编排器预先分配，保证节点重跑不会重复发问。"""
         fingerprint = _short_hash(",".join(p["proposal_id"] for p in proposals))
         lines = [
-            f"- 将 {p['field']} 从 {p['old_value']} 调整为 {p['proposed_value']}：{p['reason']}"
+            f"- Change {p['field']} from {p['old_value']} to {p['proposed_value']}: {p['reason']}"
             for p in proposals
         ]
         if eligible_count <= 0:
-            lead = "本轮没有符合当前硬条件的房源。"
+            lead = "No listings in this search meet all current requirements. "
         else:
-            lead = f"本轮已有 {eligible_count} 套符合硬条件的房源，只是数量还偏少。"
+            lead = f"This search found {eligible_count} listings meeting your requirements, fewer than requested. "
         return {
             "question_id": f"{state['run_id']}:state-{state_version}:relax-{fingerprint}",
-            "text": lead + "是否接受下列调整？不接受也可以就此结束。\n" + "\n".join(lines),
+            "text": lead + "Would you accept any of the following changes? You can also end this search.\n" + "\n".join(lines),
             "reason_code": "insufficient_candidates",
             "proposals": proposals,
             "allowed_actions": list(ANSWER_ACTIONS),
@@ -226,7 +241,9 @@ class DecisionNodes:
 
     def route(self, state: DState) -> dict:
         try:
-            decision = decide_next(build_decision_state(state), state["policy"])
+            with stage_span("C", "decide_next", attempt_id=state.get("attempt_id")):
+                decision = decide_next(build_decision_state(state), state["policy"])
+            record_event("c_route_decision", decision, attempt_id=state.get("attempt_id"))
         except ContractViolation as exc:
             # 纯函数的契约错误是编排层的 bug，转成系统错误并记录，不伪装成业务结果。
             self.deps.runs.update(
@@ -555,6 +572,18 @@ class DecisionNodes:
         final_result_id, _replayed = self.deps.recommendations.save(
             state["run_id"], recommendation, op_key=op_key
         )
+        snapshot = state.get("listing_snapshot") or {}
+        by_key = {item["listing_key"]: item for item in snapshot.get("items") or []}
+        record_event("final_recommendation", {
+            "recommendation": recommendation,
+            "ordered_listings": [
+                {"rank": item["rank"], "listing_key": item["listing_key"],
+                 "listing": by_key.get(item["listing_key"])}
+                for item in recommendation.get("ordered_items") or []
+            ],
+            "snapshot_id": snapshot.get("snapshot_id"),
+            "is_partial": partial,
+        }, attempt_id=state.get("attempt_id"))
         self.deps.runs.update(
             state["run_id"],
             status="completed",

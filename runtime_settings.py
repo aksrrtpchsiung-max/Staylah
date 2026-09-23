@@ -26,14 +26,6 @@ clarification_max_tokens = 700
 clarification_timeout_seconds = 30.0
 clarification_max_calls = 6
 
-[llm_gateway]
-url = "https://api.softwaresystems.app"
-model = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
-api_key_env = "LLM_GATEWAY_API_KEY"
-timeout_seconds = 60.0
-temperature = 0.0
-max_tokens = 2000
-
 [database]
 url_env = "DATABASE_URL"
 checkpoint_url_env = "LANGGRAPH_CHECKPOINT_DB_URI"
@@ -80,20 +72,6 @@ class DeepSeekSettings:
 
 
 @dataclass(frozen=True)
-class LlmGatewaySettings:
-    url: str
-    model: str
-    api_key_env: str
-    timeout_seconds: float
-    temperature: float
-    max_tokens: int
-
-    def api_key(self, environ: Mapping[str, str] | None = None) -> str:
-        values = os.environ if environ is None else environ
-        return (values.get(self.api_key_env) or "").strip()
-
-
-@dataclass(frozen=True)
 class DatabaseSettings:
     url_env: str
     checkpoint_url_env: str
@@ -124,7 +102,6 @@ class RunSettings:
 @dataclass(frozen=True)
 class RuntimeSettings:
     deepseek: DeepSeekSettings
-    llm_gateway: LlmGatewaySettings
     database: DatabaseSettings
     search: SearchSettings
     run: RunSettings
@@ -158,7 +135,6 @@ def load_runtime_settings(
     merged = _merged_environ(env_file=env_file, environ=environ)
     settings = RuntimeSettings(
         deepseek=_deepseek(data.get("deepseek") or {}, merged),
-        llm_gateway=_llm_gateway(data.get("llm_gateway") or {}, merged),
         database=_database(data.get("database") or {}, merged),
         search=_search(data.get("search") or {}, merged),
         run=_run(data.get("run") or {}, merged),
@@ -237,31 +213,6 @@ def _deepseek(raw: dict[str, Any], environ: Mapping[str, str]) -> DeepSeekSettin
                 6,
             )
         ),
-    )
-
-
-def _llm_gateway(raw: dict[str, Any], environ: Mapping[str, str]) -> LlmGatewaySettings:
-    return LlmGatewaySettings(
-        url=_override(
-            raw,
-            environ,
-            "LLM_GATEWAY_URL",
-            "url",
-            "https://api.softwaresystems.app",
-        ).rstrip("/"),
-        model=_override(
-            raw,
-            environ,
-            "LLM_MODEL",
-            "model",
-            "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        ),
-        api_key_env=str(_section(raw, "api_key_env", "LLM_GATEWAY_API_KEY")),
-        timeout_seconds=float(
-            _override(raw, environ, "LLM_TIMEOUT_SECONDS", "timeout_seconds", 60.0)
-        ),
-        temperature=float(_override(raw, environ, "LLM_TEMPERATURE", "temperature", 0.0)),
-        max_tokens=int(_override(raw, environ, "LLM_MAX_TOKENS", "max_tokens", 2000)),
     )
 
 

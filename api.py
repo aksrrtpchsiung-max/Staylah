@@ -60,7 +60,7 @@ async def build_search_plan(profile: ConversationProfile, query: QueryFeatures,
 
 
 def create_live_search_service(*, env_file=None, model=None) -> SearchService:
-    """默认使用现有 LLM Gateway、guru_search 和 OneMap；创建时不联网。"""
+    """默认使用 DeepSeek、guru_search 和 OneMap；创建时不联网。"""
     from config import create_chat_model, load_model_settings, load_search_execution_settings
     from dataclasses import replace
     from providers.guru_search import GuruSearchProvider
