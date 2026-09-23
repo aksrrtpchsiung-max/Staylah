@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f6f4ef" />
+    <title>StayLah — New home, warm stay.</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+    <script src="/shortcuts.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient one"></div>
+    <div class="ambient two"></div>
+    <div class="shell">
+      <aside class="sidebar glass">
+        <a class="brand" href="/" aria-label="StayLah home"
+          ><span class="brandmark">⌂</span>StayLah<span class="branddot"
+            >.</span
+          ></a
+        ><button id="new-chat" class="new-chat">
+          ＋ <span>New conversation</span>
+        </button>
+        <div class="side-label">YOUR SPACE</div>
+        <div class="current-chat">
+          <span>◌</span> Finding a place to call home
+        </div>
+        <div class="sidebar-bottom">
+          <div class="little-house">⌂</div>
+          <p>A little closer<br />to feeling at home.</p>
+          <span class="singapore">SINGAPORE · 01° N</span>
+        </div>
+        <div class="identity">
+          <span class="avatar">Y</span><span>Your personal space</span>
+        </div>
+      </aside>
+      <main>
+        <header>
+          <button id="mobile-new" aria-label="New conversation">
+            StayLah ＋</button
+          ><span class="eyebrow">A PLACE THAT FEELS LIKE YOU</span
+          ><span id="connection" class="connection">Connecting</span>
+        </header>
+        <section id="welcome" class="welcome">
+          <div class="welcome-icon">⌂<span>✦</span></div>
+          <p class="overline">SETTLE INTO SOMETHING GOOD</p>
+          <h1>New home,<br /><em>warm stay.</em></h1>
+          <p class="intro">Your next chapter in Singapore starts here.</p>
+          <div class="starters" id="search-shortcuts">
+            <div class="quick-choice">
+              <button
+                class="quick-trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="commute-panel"
+              >
+                <span>↝</span> By commute <b>＋</b>
+              </button>
+              <form
+                class="quick-panel"
+                id="commute-panel"
+                aria-label="Commute preferences"
+                hidden
+              >
+                <label for="commute-mode">Travel mode</label>
+                <select id="commute-mode">
+                  <option value="transit">Public transport</option>
+                  <option value="drive">Driving</option>
+                  <option value="cycle">Cycling</option>
+                  <option value="walk">Walking</option>
+                </select>
+                <label for="commute-time">Maximum travel time</label
+                ><select id="commute-time"></select>
+                <label for="commute-place">Destination</label
+                ><input
+                  id="commute-place"
+                  type="text"
+                  placeholder="Company, building or address"
+                  maxlength="200"
+                  required
+                />
+                <button class="primary add-condition" type="submit">
+                  Add preference <span>＋</span>
+                </button>
+              </form>
+            </div>
+            <div class="quick-choice">
+              <button
+                class="quick-trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="mrt-panel"
+              >
+                <span>⌁</span> Near MRT <b>＋</b>
+              </button>
+              <form
+                class="quick-panel mrt-panel"
+                id="mrt-panel"
+                aria-label="MRT preferences"
+                hidden
+              >
+                <div class="rail-columns">
+                  <label
+                    >MRT line<select
+                      id="mrt-line"
+                      size="6"
+                      required
+                      aria-label="MRT line"
+                    ></select></label
+                  ><label
+                    >Station<select
+                      id="mrt-station"
+                      size="6"
+                      required
+                      aria-label="Station"
+                    ></select
+                  ></label>
+                </div>
+                <label for="mrt-distance">Distance to station</label
+                ><select id="mrt-distance">
+                  <option value="300">Within 300 m</option>
+                  <option value="500" selected>Within 500 m</option>
+                  <option value="800">Within 800 m</option>
+                  <option value="1000">Within 1 km</option>
+                  <option value="1500">Within 1.5 km</option>
+                  <option value="2000">Within 2 km</option>
+                </select>
+                <button class="primary add-condition" type="submit">
+                  Add preference <span>＋</span>
+                </button>
+                <p class="shortcut-error" role="alert" hidden></p>
+              </form>
+            </div>
+            <div class="quick-choice">
+              <button
+                class="quick-trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="school-panel"
+              >
+                <span>⌂</span> Near school <b>＋</b>
+              </button>
+              <form
+                class="quick-panel"
+                id="school-panel"
+                aria-label="School preferences"
+                hidden
+              >
+                <label for="school-name">School name</label
+                ><input
+                  id="school-name"
+                  type="text"
+                  placeholder="e.g. National University of Singapore"
+                  maxlength="200"
+                  required
+                />
+                <button class="primary add-condition" type="submit">
+                  Add preference <span>＋</span>
+                </button>
+              </form>
+            </div>
+          </div>
+          <span id="condition-status" class="sr-only" role="status"></span>
+          <button id="preview" class="preview-link">
+            Explore a sample conversation ↗
+          </button>
+        </section>
+        <section
+          id="messages"
+          aria-live="polite"
+          aria-label="Conversation"
+        ></section>
+        <div class="composer-wrap">
+          <div id="selection" class="selection" hidden></div>
+          <form id="composer" class="composer glass">
+            <textarea
+              id="input"
+              rows="1"
+              maxlength="6000"
+              placeholder="Tell me what home looks like to you…"
+              aria-label="Message StayLah"
+            ></textarea
+            ><button id="stop" type="button" aria-label="Stop search" hidden>■ Stop</button><button id="send" type="submit" aria-label="Send message">
+              ↑
+            </button>
+          </form>
+          <div class="composer-foot">
+            <span id="footnote">A home search, at your pace.</span
+            ><span>StayLah ✦</span>
+          </div>
+          <p id="error" role="alert" hidden></p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -48,3 +48,7 @@ coverage.xml
 propertyguru-mock-v0.zip
 can-rent-lah/
 evaluation_runs/
+
+# StayLah local services and tools
+.local-tools/
+.local-state/

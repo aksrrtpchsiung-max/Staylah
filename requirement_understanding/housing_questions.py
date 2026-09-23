@@ -220,6 +220,7 @@ class DeepSeekHousingQuestionAnswerer:
                                 "Do not find, recommend, rank, compare, or claim availability of specific listings. "
                                 "Do not modify the user's profile. Clearly state ambiguity, assumptions, and data dates. "
                                 "Do not include URLs; the application appends validated source links. "
+                                "Write answer and assumptions in English, regardless of the input language. "
                                 "Return JSON with keys answer and assumptions."
                             ),
                         },

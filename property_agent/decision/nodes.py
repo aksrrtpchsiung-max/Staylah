@@ -222,16 +222,16 @@ class DecisionNodes:
         """问题 ID 由编排器预先分配，保证节点重跑不会重复发问。"""
         fingerprint = _short_hash(",".join(p["proposal_id"] for p in proposals))
         lines = [
-            f"- 将 {p['field']} 从 {p['old_value']} 调整为 {p['proposed_value']}：{p['reason']}"
+            f"- Change {p['field']} from {p['old_value']} to {p['proposed_value']}: {p['reason']}"
             for p in proposals
         ]
         if eligible_count <= 0:
-            lead = "本轮没有符合当前硬条件的房源。"
+            lead = "No listings in this search meet all current requirements. "
         else:
-            lead = f"本轮已有 {eligible_count} 套符合硬条件的房源，只是数量还偏少。"
+            lead = f"This search found {eligible_count} listings meeting your requirements, fewer than requested. "
         return {
             "question_id": f"{state['run_id']}:state-{state_version}:relax-{fingerprint}",
-            "text": lead + "是否接受下列调整？不接受也可以就此结束。\n" + "\n".join(lines),
+            "text": lead + "Would you accept any of the following changes? You can also end this search.\n" + "\n".join(lines),
             "reason_code": "insufficient_candidates",
             "proposals": proposals,
             "allowed_actions": list(ANSWER_ACTIONS),

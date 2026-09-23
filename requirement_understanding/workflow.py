@@ -583,6 +583,7 @@ def generate_confirmation(
     return {
         "profile": profile,
         "confirmation": confirmation.model_dump(mode="json"),
+        "clarification_questions": [],
         "assistant_response": response_renderer.confirmation(summary),
         "status": "awaiting_confirmation",
         "workflow_route": "end",

@@ -1,6 +1,7 @@
 """外层运行控制：把 A 确认、B 履约和 C 决策串成一次会话循环。"""
 from __future__ import annotations
 
+import asyncio
 import copy
 import hashlib
 from dataclasses import asdict, dataclass, field
@@ -347,6 +348,9 @@ class ConversationOrchestrator:
                 initial_state(ctx=ctx, profile=profile, outcome=outcome),  # type: ignore[arg-type]
                 thread_config(run_id),
             )
+        except asyncio.CancelledError:
+            self.runs.update(run_id, status="cancelled", completion_reason="cancelled")
+            raise
         except Exception:
             # 业务 run 已经创建但图尚未得到可恢复结果；明确结束该 run，
             # 同一 RequirementRequest 仍可由下一条用户消息重试。
@@ -381,10 +385,14 @@ class ConversationOrchestrator:
         run_id = waiting["run_id"]
         conversation_id = waiting["conversation_id"]
         user_id = waiting["user_id"]
-        decision_state = await self.decision_graph.ainvoke(
-            Command(resume={"client_message_id": client_message_id, "text": text}),
-            thread_config(run_id),
-        )
+        try:
+            decision_state = await self.decision_graph.ainvoke(
+                Command(resume={"client_message_id": client_message_id, "text": text}),
+                thread_config(run_id),
+            )
+        except asyncio.CancelledError:
+            self.runs.update(run_id, status="cancelled", completion_reason="cancelled")
+            raise
         return await self._finish_decision(
             decision_state,
             conversation_id=conversation_id,

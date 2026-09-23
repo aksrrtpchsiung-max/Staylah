@@ -207,7 +207,7 @@ def _single_value(constraints, field, questions):
             continue
         candidates = current if candidates is None else candidates & current
     if candidates == set():
-        _clarify(questions, 'listing_constraints.' + field, f'{field} 的硬条件互相冲突，请确认。')
+        _clarify(questions, 'listing_constraints.' + field, f'The requirements for {field} conflict. Please confirm.')
     return next(iter(candidates)) if candidates is not None and len(candidates) == 1 else None
 
 
@@ -237,7 +237,7 @@ def _bounds(constraints, field, questions):
         if hi is not None:
             upper = hi if upper is None else min(upper, hi)
     if upper is not None and lower > upper:
-        _clarify(questions, 'listing_constraints.' + field, f'{field} 的硬条件区间没有交集，请确认。')
+        _clarify(questions, 'listing_constraints.' + field, f'The ranges for {field} do not overlap. Please confirm.')
     return lower, upper
 
 
@@ -287,7 +287,7 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
     transaction = _single_value(hard, 'transaction_type', questions)
     expected = 'sale' if intent == 'buy' else 'rent'
     if transaction is not None and transaction != expected:
-        _clarify(questions, 'intent', '交易意图和房源交易类型互相冲突，请确认租房还是买房。')
+        _clarify(questions, 'intent', 'The transaction types conflict. Are you renting or buying?')
     currency = _single_value(hard, 'price.currency', questions)
     period = _single_value(hard, 'price.period', questions)
     price_conditions = [item for item in hard if item['field_path'] == 'price.amount']
@@ -299,13 +299,13 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
     if currency is not None:
         currency = currency.strip().upper()
     if price_conditions and currency is None:
-        _clarify(questions, 'listing_constraints.price.currency', '预算使用什么货币？请确认币种。')
+        _clarify(questions, 'listing_constraints.price.currency', 'Which currency is your budget in?')
     if price_conditions and period is None:
         if intent == 'buy':
             # 购买金额对应一次总价；租房不能擅自假设月租或周租。
             period = 'total'
         else:
-            _clarify(questions, 'listing_constraints.price.period', '租金预算按月还是按周计算？')
+            _clarify(questions, 'listing_constraints.price.period', 'Is your rental budget per month or per week?')
     _, maximum = _bounds(hard, 'price.amount', questions)
     minimum, _ = _bounds(hard, 'bedrooms', questions)
     scope = _single_value(hard, 'attributes.listing_scope', questions)
@@ -323,10 +323,10 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
         if requirement['value'] is False:
             continue
         if target is None:
-            _clarify(questions, f'derived_data_requirements[{index}].target', '请说明希望居住的区域。')
+            _clarify(questions, f'derived_data_requirements[{index}].target', 'Which area would you like to live in?')
             continue
         if target.strip().casefold() in ('裕廊', 'jurong'):
-            _clarify(questions, f'derived_data_requirements[{index}].target', '裕廊指裕廊东、裕廊西，还是两者都可以？')
+            _clarify(questions, f'derived_data_requirements[{index}].target', 'Do you mean Jurong East, Jurong West, or either?')
             continue
         entity = location_entity(target)
         key = entity['canonical_id'] or entity['raw_text']
@@ -337,11 +337,11 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
     for field in unresolved:
         root = field.split(':', 1)[0]
         if root == 'intent' or root.startswith(('listing_constraints.price.', 'listing_constraints.transaction_type')):
-            _clarify(questions, root, f'请确认尚未确定的核心条件：{field}。')
+            _clarify(questions, root, f'Please clarify this required detail: {field}.')
         elif root.startswith('derived_data_requirements.location') and any(
                 r['strength'] == 'hard' and r['metric'] == 'residential_area'
                 for r in value['derived_data_requirements']):
-            _clarify(questions, root, f'请确认居住区域：{field}。')
+            _clarify(questions, root, f'Please confirm your preferred residential area: {field}.')
     return dict(profile_id=value['profile_id'], version=value.get('profile_version', value.get('version')),
         intent=intent, user_context=deepcopy(value['user_context']),
         listing_constraints=deepcopy(value['listing_constraints']),

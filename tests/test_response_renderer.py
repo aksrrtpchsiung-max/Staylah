@@ -8,6 +8,14 @@ from requirement_understanding import FALCON_SCOPE_MESSAGE, ResponseRenderer
 class ResponseRendererTests(unittest.TestCase):
     """验证语气变化不改写固定范围提示和结构化事实。"""
 
+    def test_planner_failure_is_not_described_as_recommendation_failure(self) -> None:
+        rendered = ResponseRenderer("warm").search_failed(
+            [{"code": "MODEL_UNAVAILABLE", "source": "model", "message": "hidden"}]
+        )
+
+        self.assertIn("search planning service", rendered)
+        self.assertNotIn("recommendation service", rendered)
+
     def test_scope_message_is_identical_for_every_tone(self) -> None:
         """产品指定的英文范围提示不得随 tone 改写。"""
 

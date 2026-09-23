@@ -455,8 +455,8 @@ class DeepSeekEvaluationReviewModel:
                 "required_response": {
                     "next_action": "one value copied from allowed_next_actions",
                     "next_reason_code": "short snake_case reason",
-                    "summary": "brief Chinese summary of selected_listing_keys based only on supplied facts",
-                    "limitations": "list of brief Chinese caveats; include uncertainty or incomplete coverage when relevant",
+                    "summary": "brief English summary of selected_listing_keys based only on supplied facts",
+                    "limitations": "list of brief English caveats; include uncertainty or incomplete coverage when relevant",
                 },
             },
         )
@@ -590,8 +590,8 @@ class DeepSeekEvaluationReviewModel:
                         {
                             "category": "one allowed category",
                             "target_id": "one supplied target_id",
-                            "message": "brief Chinese explanation",
-                            "suggested_fix": "brief concrete Chinese fix",
+                            "message": "brief English explanation",
+                            "suggested_fix": "brief concrete English fix",
                         }
                     ]
                 },
@@ -1064,8 +1064,8 @@ def _soft_preference_score(
                 {
                     "kind": "judgment",
                     "text": (
-                        "符合你的软偏好："
-                        f"{constraint['field_path']} {constraint['operator']} {constraint['value']!r}。"
+                        "Matches your preference: "
+                        f"{constraint['field_path']} {constraint['operator']} {constraint['value']!r}."
                     ),
                     "evidence_ids": _evidence_ids(listing, constraint["field_path"]),
                 }
@@ -1087,26 +1087,26 @@ def _recommendation_item(listing: Listing, rank: int, preference_claims: list[Cl
         claim = _fact_claim(
             listing,
             "price.amount",
-            f"来源显示月租为 {price['currency']} {price['amount']}。",
+            f"The source lists {price['currency']} {price['amount']} ({price.get('period') or 'period unspecified'}).",
         )
         if claim:
             reasons.append(claim)
     listing_scope = listing["attributes"].get("listing_scope")
     if listing_scope in {"room", "bedspace"}:
-        scope_text = "单间出租" if listing_scope == "room" else "床位出租"
+        scope_text = "a private room" if listing_scope == "room" else "a bedspace"
         claim = _fact_claim(
             listing,
             "attributes.listing_scope",
-            f"来源显示该房源为{scope_text}。",
+            f"The source lists this property as {scope_text}.",
         )
         if claim:
             reasons.append(claim)
     elif isinstance(listing.get("bedrooms"), int) and listing["bedrooms"] > 0:
-        claim = _fact_claim(listing, "bedrooms", f"来源显示有 {listing['bedrooms']} 间卧室。")
+        claim = _fact_claim(listing, "bedrooms", f"The source lists {listing['bedrooms']} bedrooms.")
         if claim:
             reasons.append(claim)
     if listing.get("location_id"):
-        claim = _fact_claim(listing, "location_id", f"规范化地点为 {listing['location_id']}。")
+        claim = _fact_claim(listing, "location_id", f"The listed location is {listing['location_id']}.")
         if claim:
             reasons.append(claim)
     reasons.extend(preference_claims)
@@ -1114,15 +1114,15 @@ def _recommendation_item(listing: Listing, rank: int, preference_claims: list[Cl
     tradeoffs: list[Claim] = []
     unknowns: list[str] = []
     if listing["attributes"].get("wifi_included") is None:
-        unknowns.append("是否包含 Wi-Fi")
+        unknowns.append("Whether Wi-Fi is included")
     if listing["attributes"].get("utilities_included") is None:
-        unknowns.append("水电是否包含")
+        unknowns.append("Whether utilities are included")
     if listing["attributes"].get("owner_stays") is None:
-        unknowns.append("房东是否同住")
+        unknowns.append("Whether the owner lives in the property")
     if listing["last_verified_at"] is None:
-        unknowns.append("当前可租状态尚未独立复核")
+        unknowns.append("Current availability has not been independently verified")
     if listing["field_issues"]:
-        unknowns.append("来源字段存在待核实问题")
+        unknowns.append("Some source details need verification")
 
     return {
         "listing_key": listing["listing_key"],
@@ -1255,7 +1255,7 @@ async def evaluate(
                 enough_candidates=enough_candidates,
                 next_action=next_action,
                 next_reason_code=next_reason,
-                summary=f"本轮已排序 {len(selected_keys)} 套 B 提供的候选房源。",
+                summary=f"There are {len(selected_keys)} candidates supplied by the search service.",
                 limitations=[],
             )
 
@@ -1265,24 +1265,28 @@ async def evaluate(
             _, preference_claims = _soft_preference_score(listing, profile["listing_constraints"])
             recommendation_items.append(_recommendation_item(listing, rank, preference_claims))
 
-        findings: list[str] = ["C 未重新筛选 B 返回的房源；硬条件匹配以 B 的结果为准。"]
+        findings: list[str] = [
+            "Module C does not rescreen listings returned by Module B; hard-constraint matching relies on Module B."
+        ]
         if not coverage.get("queries_completed", True):
-            findings.append("本轮搜索覆盖不完整。")
+            findings.append("Search coverage is incomplete.")
 
         limitations = list(dict.fromkeys(item.strip() for item in decision.limitations if item.strip()))
         if ctx["source_mode"] == "mock":
-            limitations.append("当前结果来自 mock 数据，仅用于演示。")
-        limitations.append("C 未独立复核房源是否满足全部硬条件；请核对 B 的字段证据与待核实项。")
+            limitations.append("These results use mock data for demonstration only.")
+        limitations.append(
+            "Module C did not independently verify every hard requirement; check Module B's evidence and unresolved fields."
+        )
         if repair_context and not repair_context["passed"]:
-            limitations.append("上一轮审查发现问题；本轮推荐应重新审查。")
+            limitations.append("An earlier review found issues; these recommendations require a new review.")
         if not enough_candidates:
-            limitations.append("B 移交给 C 的候选数量不足。")
+            limitations.append("Module B supplied too few candidates.")
         if used_fallback:
-            limitations.append("C 的模型评估不可用，本轮使用确定性规则完成排序与路线判断。")
+            limitations.append("Model evaluation was unavailable; rules were used to rank candidates and determine the next step.")
 
         recommendation = {
             "ordered_items": recommendation_items,
-            "summary": decision.summary or f"本轮已排序 {len(recommendation_items)} 套 B 提供的候选房源。",
+            "summary": decision.summary or f"There are {len(recommendation_items)} candidates supplied by the search service.",
             "limitations": list(dict.fromkeys(limitations)),
         }
         assessment: Assessment = {
@@ -1382,9 +1386,9 @@ async def review(
                     "TOO_MANY_ITEMS",
                     None,
                     "recommendation.ordered_items",
-                    "推荐数量超过 10 套或 display_limit，review 已自动截断。",
+                    "The recommendation exceeded 10 listings or the display limit and was truncated during review.",
                     "warning",
-                    f"已只保留前 {recommendation_limit} 套。",
+                    f"Only the first {recommendation_limit} listings were kept.",
                 )
             )
 
@@ -1399,9 +1403,9 @@ async def review(
                         "UNKNOWN_LISTING",
                         item["listing_key"],
                         f"recommendation.ordered_items[{missing_index}].listing_key",
-                        "推荐引用了快照中不存在的房源，review 已自动删除。",
+                        "The recommendation referenced a listing absent from the snapshot and was removed during review.",
                         "warning",
-                        "已删除该推荐。",
+                        "The invalid recommendation was removed.",
                     )
                 )
 
@@ -1416,9 +1420,9 @@ async def review(
                         "INVALID_RANK",
                         key,
                         f"{path}.rank",
-                        "推荐 rank 不连续，review 已自动重新编号。",
+                        "Recommendation ranks were not consecutive and were renumbered during review.",
                         "warning",
-                        "已按当前顺序重新编号。",
+                        "Ranks were reassigned using the current order.",
                     )
                 )
             listing = listings.get(key)
@@ -1438,9 +1442,9 @@ async def review(
                                 "UNSUPPORTED_CLAIM",
                                 key,
                                 f"{path}.{claim_group}[{claim_index}]",
-                                "推荐文案缺少有效证据，review 已自动删除。",
+                                "A recommendation claim lacked valid evidence and was removed during review.",
                                 "warning",
-                                "已删除该条无证据文案。",
+                                "The unsupported claim was removed.",
                             )
                         )
                         continue
@@ -1453,9 +1457,9 @@ async def review(
                         "STALE_EVIDENCE",
                         key,
                         "last_verified_at",
-                        f"房源独立复核时间超过 {FRESHNESS_DAYS} 天。",
+                        f"The listing's independent verification is older than {FRESHNESS_DAYS} days.",
                         "warning",
-                        "重新核实房源状态，或在回复中明确说明时效限制。",
+                        "Verify the listing again or state the freshness limitation in the response.",
                     )
                 )
             if item["unknowns"]:
@@ -1463,16 +1467,16 @@ async def review(
 
         if has_unknown and not recommendation["limitations"]:
             recommendation["limitations"].append(
-                "部分房源信息仍为未知或待核实，签约前请向房源发布方确认。"
+                "Some listing details remain unknown or unverified; confirm them with the publisher before signing."
             )
             issues.append(
                 _review_issue(
                     "MISSING_LIMITATION",
                     None,
                     "recommendation.limitations",
-                    "推荐包含未知或待核实信息，review 已自动补充限制说明。",
+                    "The recommendation contains unknown or unverified details, so review added a limitation.",
                     "warning",
-                    "已补充通用待核实说明。",
+                    "A general verification limitation was added.",
                 )
             )
 
@@ -1507,8 +1511,8 @@ async def review(
                             continue
                         if issue["field_path"] == "recommendation.summary":
                             recommendation["summary"] = (
-                                f"本轮根据相关度评分整理出 {len(items)} 套候选房源；"
-                                "房源事实和待核实项请以对应证据及发布方确认为准。"
+                                f"This search produced {len(items)} candidates based on relevance scores. "
+                                "Confirm listing facts and unresolved details using the cited evidence and publisher."
                             )
                         else:
                             match = re.fullmatch(
@@ -1525,25 +1529,28 @@ async def review(
                             "UNSUPPORTED_CLAIM",
                             issue["listing_key"],
                             issue["field_path"],
-                            issue["message"] + " review 已自动修正。",
+                            issue["message"] + " Review corrected it automatically.",
                             "warning",
-                            "已删除无证据文案或替换夸大的总结。",
+                            "Unsupported claims were removed or an exaggerated summary was replaced.",
                         )
                     elif (
                         issue["code"] == "MISSING_LIMITATION"
                         and issue["listing_key"] is None
                         and issue["field_path"] == "recommendation.limitations"
                     ):
-                        limitation = "部分房源信息仍需向发布方核实，推荐不代表已独立确认全部条件。"
+                        limitation = (
+                            "Some listing details still require confirmation from the publisher; "
+                            "the recommendation does not independently verify every requirement."
+                        )
                         if limitation not in recommendation["limitations"]:
                             recommendation["limitations"].append(limitation)
                         normalized_issue = _review_issue(
                             "MISSING_LIMITATION",
                             None,
                             "recommendation.limitations",
-                            issue["message"] + " review 已自动补充。",
+                            issue["message"] + " Review added the required limitation automatically.",
                             "warning",
-                            "已补充限制说明。",
+                            "A limitation was added.",
                         )
                     else:
                         # Structure and reference codes are owned exclusively by the

@@ -637,6 +637,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
             "listing_constraints.attributes.listing_scope",
         ])
         self.assertEqual(second["status"], "awaiting_confirmation")
+        self.assertEqual(second["clarification_questions"], [])
         self.assertEqual(second["profile"]["unresolved"], [])
         self.assertEqual(second["profile"]["intent"], "rent")
         fields = {item["field_path"]: item for item in second["profile"]["listing_constraints"]}

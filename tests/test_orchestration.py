@@ -200,7 +200,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result.phase, "failed")
         self.assertEqual(result.status, "failed")
-        self.assertIn("C unavailable", result.assistant_response)
+        self.assertIn("recommendation service is unavailable", result.assistant_response)
         checkpoint = await orchestrator.a_graph.aget_state(
             {"configurable": {"thread_id": "conversation-failed"}}
         )
