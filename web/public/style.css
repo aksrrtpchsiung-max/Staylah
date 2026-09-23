@@ -1088,4 +1088,5 @@ h1 em {
 #stop { flex-shrink: 0; width: auto; padding: 0 15px; font-size: 14px; }
 .pending { display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
 .pending-hint { display: block; }
+.pending-node { color: #526f7b; font-weight: 650; text-transform: none; }
 .pending-elapsed { opacity: .7; font-variant-numeric: tabular-nums; }

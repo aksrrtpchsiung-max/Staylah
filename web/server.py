@@ -15,6 +15,20 @@ ROOT = Path(__file__).resolve().parent
 
 class WebBridge:
     """按浏览器会话串行调用既有编排；仅接受服务端已返回的房源标识。"""
+
+    PROGRESS_LABELS = {
+        ('A', 'requirement_turn'): 'Understanding your requirements…',
+        ('B', 'prepare_query'): 'Preparing your search…',
+        ('B', 'build_search_plan'): 'Building your search…',
+        ('B', 'initial_search'): 'Initializing the search…',
+        ('B', 'search_for_request'): 'Searching available homes…',
+        ('C', 'retrieve'): 'Gathering listing details…',
+        ('C', 'evaluate'): 'Evaluating the best matches…',
+        ('C', 'review'): 'Reviewing recommendations…',
+        ('C', 'decide_next'): 'Finalizing recommendations…',
+        ('A', 'return_from_c'): 'Preparing your results…',
+    }
+
     def __init__(self, orchestrator, *, turn_timeout_seconds=330):
         self.orchestrator = orchestrator
         self.turn_timeout_seconds = turn_timeout_seconds
@@ -22,7 +36,7 @@ class WebBridge:
 
     def create_session(self):
         token = uuid4().hex
-        self.sessions[token] = dict(conversation_id=f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None)
+        self.sessions[token] = dict(conversation_id=f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None, progress=None)
         return token
 
     def _session(self, token):
@@ -60,6 +74,26 @@ class WebBridge:
             except (asyncio.CancelledError, Exception):
                 pass
         return {'status': 'cancelled'}
+
+    async def progress(self, token, payload):
+        """返回当前请求的真实 A/B/C stage，不暴露输入、模型输出或内部推理。"""
+        session = self._session(token)
+        message_id = self._message_id(payload)
+        current = session.get('progress')
+        if not current or current['message_id'] != message_id:
+            return {'status': 'idle', 'label': 'Starting your search…'}
+        spans = current['trace']['spans']
+        if not spans:
+            return {'status': 'starting', 'label': 'Starting your search…'}
+        running = [span for span in spans if span['status'] == 'running']
+        span = running[-1] if running else spans[-1]
+        return {
+            'status': span['status'],
+            'label': self.PROGRESS_LABELS.get(
+                (span['stage'], span['operation']),
+                'Working on your search…',
+            ),
+        }
 
     async def turn(self, token, payload):
         session = self._session(token)
@@ -112,7 +146,11 @@ class WebBridge:
             # 既有 handle_message 仅支持 text；用可信快照构造本轮参考上下文。
             context = [session['cards'][k] for k in dict.fromkeys(keys)]
             text += '\n\nSelected homes for this question (reference data, not new requirements):\n' + json.dumps(context, ensure_ascii=False)
-        result = await self.orchestrator.handle_message(text, conversation_id=cid, client_message_id=f'{cid}:{message_id}')
+        from property_agent.evaluation_trace import capture_trace
+
+        with capture_trace(message_id) as trace:
+            session['progress'] = {'message_id': message_id, 'trace': trace}
+            result = await self.orchestrator.handle_message(text, conversation_id=cid, client_message_id=f'{cid}:{message_id}')
         data = asdict(result)
         state = (await self.orchestrator.a_graph.aget_state(config)).values or {}
         data['profile'] = state.get('profile')
@@ -174,6 +212,10 @@ class Handler(SimpleHTTPRequestHandler):
             if self.path == '/api/cancel':
                 future = asyncio.run_coroutine_threadsafe(
                     self.server.bridge.cancel(self.headers.get('X-Session-ID'), payload), self.server.loop)
+                return self.respond(200, future.result(15))
+            if self.path == '/api/progress':
+                future = asyncio.run_coroutine_threadsafe(
+                    self.server.bridge.progress(self.headers.get('X-Session-ID'), payload), self.server.loop)
                 return self.respond(200, future.result(15))
             if self.path != '/api/turn':
                 return self.respond(404, {'error': 'Not found.'})
