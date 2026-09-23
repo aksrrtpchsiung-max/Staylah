@@ -68,10 +68,66 @@ class WebBridge:
         self.sessions[token] = dict(conversation_id=conversation_id or f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None, progress=None)
         return token
 
-    def session_info(self, token):
+    async def _recommendation_cards(self, session, *, run_id, recommendation):
+        if not recommendation or not run_id or self.orchestrator is None:
+            return []
+        snapshot = await self.orchestrator.decision_graph.aget_state(
+            {'configurable': {'thread_id': run_id}}
+        )
+        listings = {
+            item['listing_key']: item
+            for item in (snapshot.values.get('listing_snapshot') or {}).get('items', [])
+        }
+        cards = []
+        for item in recommendation.get('ordered_items', []):
+            listing = listings.get(item['listing_key'], {})
+            card = {
+                **item,
+                **{
+                    key: listing.get(key)
+                    for key in (
+                        'title',
+                        'price',
+                        'bedrooms',
+                        'attributes',
+                        'source_url',
+                        'source_mode',
+                    )
+                },
+            }
+            card['listing_key'] = item['listing_key']
+            cards.append(card)
+            session['cards'][item['listing_key']] = card
+        return cards
+
+    async def session_info(self, token):
         session = self._session(token)
         chat = getattr(self.orchestrator, 'chat', None)
         history = chat.list_messages(session['conversation_id'], limit=100) if chat is not None else []
+        if self.orchestrator is not None and history:
+            config = {'configurable': {'thread_id': session['conversation_id']}}
+            try:
+                snapshot = await self.orchestrator.a_graph.aget_state(config)
+                processed = (snapshot.values or {}).get('processed_turns') or {}
+            except Exception:
+                processed = {}
+            for message in history:
+                prefix = 'assistant:'
+                if message['role'] != 'assistant' or not message['message_id'].startswith(prefix):
+                    continue
+                turn = processed.get(message['message_id'][len(prefix):])
+                if not isinstance(turn, dict) or not turn.get('recommendation'):
+                    continue
+                render_data = {
+                    'assistant_response': turn.get('assistant_response', ''),
+                    'recommendation': turn['recommendation'],
+                    'cards': await self._recommendation_cards(
+                        session,
+                        run_id=turn.get('run_id'),
+                        recommendation=turn['recommendation'],
+                    ),
+                }
+                message['render_data'] = render_data
         return {
             'session_id': token,
             'conversation_id': session['conversation_id'],
@@ -186,10 +242,12 @@ class WebBridge:
             chat.set_conversation_title(cid, user_id=DEFAULT_USER_ID, title=text)
         config = {'configurable': {'thread_id': cid}}
         before = (await self.orchestrator.a_graph.aget_state(config)).values or {}
+        confirmed_title = None
         if payload.get('confirmation_id'):
             confirmation = before.get('confirmation') or {}
             if confirmation.get('confirmation_id') != payload['confirmation_id'] or confirmation.get('status') != 'pending' or confirmation.get('profile_version') != (before.get('profile') or {}).get('version'):
                 raise ValueError('Your requirements have changed. Confirm the latest version.')
+            confirmed_title = ' '.join(str(confirmation.get('summary') or '').split())
             text = 'confirm'
         if keys:
             # 既有 handle_message 仅支持 text；用可信快照构造本轮参考上下文。
@@ -208,14 +266,20 @@ class WebBridge:
             data['clarification_questions'] = []
         data['cards'] = []
         if result.recommendation and result.run_id:
-            snapshot = await self.orchestrator.decision_graph.aget_state({'configurable': {'thread_id': result.run_id}})
-            listings = {x['listing_key']: x for x in (snapshot.values.get('listing_snapshot') or {}).get('items', [])}
-            for item in result.recommendation.get('ordered_items', []):
-                listing = listings.get(item['listing_key'], {})
-                card = {**item, **{k: listing.get(k) for k in ('title', 'price', 'bedrooms', 'attributes', 'source_url', 'source_mode')}}
-                card['listing_key'] = item['listing_key']
-                data['cards'].append(card)
-                session['cards'][item['listing_key']] = card
+            data['cards'] = await self._recommendation_cards(
+                session,
+                run_id=result.run_id,
+                recommendation=result.recommendation,
+            )
+        if confirmed_title and chat is not None and hasattr(chat, 'set_conversation_title'):
+            if not confirmed_title.endswith(('.', '!', '?')):
+                confirmed_title += '.'
+            chat.set_conversation_title(
+                cid,
+                user_id=DEFAULT_USER_ID,
+                title=confirmed_title,
+                overwrite=True,
+            )
         session['replies'][message_id] = data
         return data
 
@@ -256,7 +320,7 @@ class Handler(SimpleHTTPRequestHandler):
             if self.path == '/api/session':
                 async def create():
                     token = self.server.bridge.create_session(payload.get('conversation_id'))
-                    return self.server.bridge.session_info(token)
+                    return await self.server.bridge.session_info(token)
                 info = asyncio.run_coroutine_threadsafe(create(), self.server.loop).result(10)
                 return self.respond(200, {**info, 'mode': self.server.mode})
             if self.path == '/api/conversations':

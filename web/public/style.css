@@ -139,6 +139,11 @@ a {
   padding: 13px 8px;
   background: transparent;
   border-radius: 10px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .current-chat:hover,
 .current-chat.active {

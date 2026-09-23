@@ -97,6 +97,7 @@ function renderConversationList() {
       "active",
       conversation.conversation_id === state.conversationId,
     );
+    item.title = conversation.title || "Untitled conversation";
     item.append(
       el("span", "", "◌"),
       document.createTextNode(conversation.title || "Untitled conversation"),
@@ -113,7 +114,9 @@ async function refreshConversations() {
 function restoreHistory(history) {
   resetConversationView();
   for (const item of history || []) {
-    if (["user", "assistant"].includes(item.role) && item.text)
+    if (item.role === "assistant" && item.render_data?.recommendation)
+      render(item.render_data);
+    else if (["user", "assistant"].includes(item.role) && item.text)
       message(item.role, item.text);
   }
 }

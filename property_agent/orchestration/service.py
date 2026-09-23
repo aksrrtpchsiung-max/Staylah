@@ -53,7 +53,12 @@ class ChatStore(Protocol):
     def ensure_conversation(self, conversation_id: str, *, user_id: str) -> None: ...
 
     def set_conversation_title(
-        self, conversation_id: str, *, user_id: str, title: str
+        self,
+        conversation_id: str,
+        *,
+        user_id: str,
+        title: str,
+        overwrite: bool = False,
     ) -> None: ...
 
     def list_conversations(

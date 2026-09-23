@@ -499,19 +499,26 @@ class SqlChatRepository:
                 raise PermissionError("conversation 不属于当前用户")
 
     def set_conversation_title(
-        self, conversation_id: str, *, user_id: str, title: str
+        self,
+        conversation_id: str,
+        *,
+        user_id: str,
+        title: str,
+        overwrite: bool = False,
     ) -> None:
-        clean = " ".join(title.split())[:80]
+        clean = " ".join(title.split())[:500]
         if not clean:
             return
+        conditions = [
+            ConversationRow.conversation_id == conversation_id,
+            ConversationRow.user_id == user_id,
+        ]
+        if not overwrite:
+            conditions.append(ConversationRow.title.is_(None))
         with self.sessions.begin() as session:
             session.execute(
                 update(ConversationRow)
-                .where(
-                    ConversationRow.conversation_id == conversation_id,
-                    ConversationRow.user_id == user_id,
-                    ConversationRow.title.is_(None),
-                )
+                .where(*conditions)
                 .values(title=clean)
             )
 

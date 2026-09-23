@@ -74,7 +74,7 @@ class WebTests(unittest.IsolatedAsyncioTestCase):
         )
         token = self.bridge.create_session(conversation_id)
         self.assertEqual(
-            self.bridge.session_info(token)['history'][0]['text'],
+            (await self.bridge.session_info(token))['history'][0]['text'],
             'Home near NUS',
         )
         self.assertEqual(
@@ -82,6 +82,60 @@ class WebTests(unittest.IsolatedAsyncioTestCase):
             conversation_id,
         )
         self.assertEqual(self.bridge.conversations()[0]['title'], 'Home near NUS')
+
+    async def test_confirmed_requirement_summary_replaces_provisional_title(self):
+        from property_agent.orchestration.memory import InMemoryChatRepository
+
+        self.runtime.chat = InMemoryChatRepository()
+        self.runtime.a_graph.values['confirmation']['summary'] = (
+            'Rent; Monthly budget up to SGD 2500; Whole unit'
+        )
+        await self.bridge.turn(
+            self.token,
+            {'text': 'Confirm my requirements', 'message_id': 'confirmed', 'confirmation_id': 'c2'},
+        )
+        self.assertEqual(
+            self.bridge.conversations()[0]['title'],
+            'Rent; Monthly budget up to SGD 2500; Whole unit.',
+        )
+
+    async def test_history_restores_recommendation_as_structured_cards(self):
+        from property_agent.orchestration.memory import InMemoryChatRepository
+
+        chat = InMemoryChatRepository()
+        self.runtime.chat = chat
+        conversation_id = 'web-' + 'b' * 32
+        user_message_id = f'{conversation_id}:turn-1'
+        chat.ensure_conversation(conversation_id, user_id='local-development-user')
+        chat.append_message(
+            conversation_id,
+            role='user',
+            content='Find a home',
+            message_id=user_message_id,
+        )
+        chat.append_message(
+            conversation_id,
+            role='assistant',
+            content='1. A real returned home',
+            message_id=f'assistant:{user_message_id}',
+        )
+        self.runtime.a_graph.values['processed_turns'] = {
+            user_message_id: {
+                'assistant_response': 'One home found',
+                'run_id': 'run-1',
+                'recommendation': {
+                    'summary': 'One home found',
+                    'ordered_items': [
+                        {'listing_key': 'home-1', 'rank': 1, 'reasons': []}
+                    ],
+                },
+            }
+        }
+        token = self.bridge.create_session(conversation_id)
+        history = (await self.bridge.session_info(token))['history']
+        restored = history[1]['render_data']
+        self.assertEqual(restored['recommendation']['summary'], 'One home found')
+        self.assertEqual(restored['cards'][0]['title'], 'A real returned home')
 
     async def test_real_graph_confirmation_and_cards(self):
         from tests.test_orchestration import OrchestrationTests, FakeBSearchRunner, _decision_handoff, REQUIREMENT

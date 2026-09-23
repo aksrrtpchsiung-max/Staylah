@@ -47,12 +47,20 @@ class InMemoryChatRepository:
         return message
 
     def set_conversation_title(
-        self, conversation_id: str, *, user_id: str, title: str
+        self,
+        conversation_id: str,
+        *,
+        user_id: str,
+        title: str,
+        overwrite: bool = False,
     ) -> None:
         self.ensure_conversation(conversation_id, user_id=user_id)
-        clean = " ".join(title.split())[:80]
+        clean = " ".join(title.split())[:500]
         if clean:
-            self.titles.setdefault(conversation_id, clean)
+            if overwrite:
+                self.titles[conversation_id] = clean
+            else:
+                self.titles.setdefault(conversation_id, clean)
 
     def list_conversations(
         self, *, user_id: str, limit: int = 50
