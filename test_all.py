@@ -1,4 +1,4 @@
-"""四组固定的 A→B 请求：调用公开入口并打印原始返回。"""
+"""五组固定的 A→B 请求：调用公开入口并打印原始返回。"""
 
 import asyncio
 from datetime import datetime, timedelta, timezone
@@ -610,8 +610,113 @@ request_4: RequirementRequest = {
 }
 
 
-#INPUTS = (request_1, request_2, request_3, request_4)
-INPUTS = (request_1,)
+request_5: RequirementRequest = {
+    'request_id': 'request-nus_bedroom_rent',
+    'schema_version': '0.3-draft',
+    'conversation_id': 'thread-nus_bedroom_rent',
+    'profile_id': 'profile-nus_bedroom_rent',
+    'profile_version': 1,
+    'intent': 'rent',
+    'user_context': [],
+    'listing_constraints': [
+        {
+            'constraint_id': 'nus_bedroom_rent-c1',
+            'field_path': 'transaction_type',
+            'operator': 'eq',
+            'value': 'rent',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-nus_bedroom_rent',
+                'text': '我要在 NUS（新加坡国立大学）附近租一间 bedroom，月租不超过 SGD 3500。',
+                'start': 0,
+                'end': 45,
+            },
+        },
+        {
+            'constraint_id': 'nus_bedroom_rent-c2',
+            'field_path': 'price.amount',
+            'operator': 'lte',
+            'value': 3500,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-nus_bedroom_rent',
+                'text': '我要在 NUS（新加坡国立大学）附近租一间 bedroom，月租不超过 SGD 3500。',
+                'start': 0,
+                'end': 45,
+            },
+        },
+        {
+            'constraint_id': 'nus_bedroom_rent-c3',
+            'field_path': 'price.currency',
+            'operator': 'eq',
+            'value': 'SGD',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-nus_bedroom_rent',
+                'text': '我要在 NUS（新加坡国立大学）附近租一间 bedroom，月租不超过 SGD 3500。',
+                'start': 0,
+                'end': 45,
+            },
+        },
+        {
+            'constraint_id': 'nus_bedroom_rent-c4',
+            'field_path': 'price.period',
+            'operator': 'eq',
+            'value': 'month',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-nus_bedroom_rent',
+                'text': '我要在 NUS（新加坡国立大学）附近租一间 bedroom，月租不超过 SGD 3500。',
+                'start': 0,
+                'end': 45,
+            },
+        },
+        {
+            'constraint_id': 'nus_bedroom_rent-c5',
+            'field_path': 'attributes.listing_scope',
+            'operator': 'eq',
+            'value': 'room',
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-nus_bedroom_rent',
+                'text': '我要在 NUS（新加坡国立大学）附近租一间 bedroom，月租不超过 SGD 3500。',
+                'start': 0,
+                'end': 45,
+            },
+        },
+    ],
+    'derived_data_requirements': [
+        {
+            'requirement_id': 'nus_bedroom_rent-area',
+            'category': 'accessibility',
+            'target': 'NUS 附近',
+            'metric': 'residential_area',
+            'operator': 'eq',
+            'value': True,
+            'unit': None,
+            'strength': 'hard',
+            'priority': 'high',
+            'source': {
+                'message_id': 'msg-nus_bedroom_rent',
+                'text': '我要在 NUS（新加坡国立大学）附近租一间 bedroom，月租不超过 SGD 3500。',
+                'start': 0,
+                'end': 45,
+            },
+        },
+    ],
+    'open_data_requirements': [],
+    'unresolved_fields': [],
+    'confirmed_at': '2026-09-22T00:00:00+00:00',
+}
+
+
+#INPUTS = (request_1, request_2, request_3, request_4, request_5)
+INPUTS = (request_5,)
 
 async def run_all():
     for request in INPUTS:
