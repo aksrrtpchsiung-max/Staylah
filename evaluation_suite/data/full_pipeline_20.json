@@ -1,6 +1,6 @@
 [
   {"id":"F01","band":"3-5","prompt":"我想在淡滨尼租整套，两房就行，每月别超过 3500。","filters":["intent=rent","listing_scope=whole_unit","location=Tampines","bedrooms>=2","monthly_price<=3500"]},
-  {"id":"F02","band":"3-5","prompt":"帮我找找碧山的单间吧，一个月 1800 以内，最好有家具。","filters":["intent=rent","listing_scope=room","location=Bishan","monthly_price<=1800","furnishing=fully (soft)"]},
+  {"id":"F02","band":"3-5","prompt":"我想租房，帮我找找碧山的单间吧，一个月 1800 以内，最好有家具。","filters":["intent=rent","listing_scope=room","location=Bishan","monthly_price<=1800","furnishing=fully (soft)"]},
   {"id":"F03","band":"3-5","prompt":"在裕廊东租整套，预算 4200 每月，公寓优先。","filters":["intent=rent","listing_scope=whole_unit","location=Jurong East","monthly_price<=4200","property_type=condo (soft)"]},
   {"id":"F04","band":"3-5","prompt":"我想租宏茂桥的 master room，月租两千以内。","filters":["intent=rent","listing_scope=room","location=Ang Mo Kio","room_type=master","monthly_price<=2000"]},
   {"id":"F05","band":"3-5","prompt":"帮我看看榜鹅能租的整套 HDB 吧，月租不超过 3800。","filters":["intent=rent","listing_scope=whole_unit","property_type=hdb","location=Punggol","monthly_price<=3800"]},
