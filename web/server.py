@@ -8,7 +8,10 @@ import json
 import os
 from pathlib import Path
 import threading
+import re
 from uuid import uuid4
+
+from requirement_understanding.workflow_constants import DEFAULT_USER_ID
 
 ROOT = Path(__file__).resolve().parent
 
@@ -34,10 +37,52 @@ class WebBridge:
         self.turn_timeout_seconds = turn_timeout_seconds
         self.sessions = {}
 
-    def create_session(self):
+    def create_session(self, conversation_id=None):
+        if conversation_id is not None:
+            if not isinstance(conversation_id, str) or not re.fullmatch(
+                r"web-[0-9a-f]{32}", conversation_id
+            ):
+                raise ValueError('Invalid conversation ID.')
+            chat = getattr(self.orchestrator, 'chat', None)
+            if chat is not None:
+                try:
+                    chat.ensure_conversation(conversation_id, user_id=DEFAULT_USER_ID)
+                    if hasattr(chat, 'set_conversation_title'):
+                        first_user_message = next(
+                            (
+                                item['text']
+                                for item in chat.list_messages(conversation_id, limit=100)
+                                if item['role'] == 'user'
+                            ),
+                            None,
+                        )
+                        if first_user_message:
+                            chat.set_conversation_title(
+                                conversation_id,
+                                user_id=DEFAULT_USER_ID,
+                                title=first_user_message,
+                            )
+                except PermissionError as exc:
+                    raise ValueError('Conversation unavailable.') from exc
         token = uuid4().hex
-        self.sessions[token] = dict(conversation_id=f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None, progress=None)
+        self.sessions[token] = dict(conversation_id=conversation_id or f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None, progress=None)
         return token
+
+    def session_info(self, token):
+        session = self._session(token)
+        chat = getattr(self.orchestrator, 'chat', None)
+        history = chat.list_messages(session['conversation_id'], limit=100) if chat is not None else []
+        return {
+            'session_id': token,
+            'conversation_id': session['conversation_id'],
+            'history': history,
+        }
+
+    def conversations(self):
+        chat = getattr(self.orchestrator, 'chat', None)
+        if chat is None or not hasattr(chat, 'list_conversations'):
+            return []
+        return chat.list_conversations(user_id=DEFAULT_USER_ID, limit=50)
 
     def _session(self, token):
         session = self.sessions.get(token)
@@ -135,6 +180,10 @@ class WebBridge:
         if self.orchestrator is None:
             raise ValueError('Preview mode. Start the server with --live to connect your configured A → B → C runtime.')
         cid = session['conversation_id']
+        chat = getattr(self.orchestrator, 'chat', None)
+        if chat is not None and hasattr(chat, 'set_conversation_title'):
+            chat.ensure_conversation(cid, user_id=DEFAULT_USER_ID)
+            chat.set_conversation_title(cid, user_id=DEFAULT_USER_ID, title=text)
         config = {'configurable': {'thread_id': cid}}
         before = (await self.orchestrator.a_graph.aget_state(config)).values or {}
         if payload.get('confirmation_id'):
@@ -206,9 +255,15 @@ class Handler(SimpleHTTPRequestHandler):
                 raise ValueError('Invalid request.')
             if self.path == '/api/session':
                 async def create():
-                    return self.server.bridge.create_session()
-                token = asyncio.run_coroutine_threadsafe(create(), self.server.loop).result(10)
-                return self.respond(200, {'session_id': token, 'mode': self.server.mode})
+                    token = self.server.bridge.create_session(payload.get('conversation_id'))
+                    return self.server.bridge.session_info(token)
+                info = asyncio.run_coroutine_threadsafe(create(), self.server.loop).result(10)
+                return self.respond(200, {**info, 'mode': self.server.mode})
+            if self.path == '/api/conversations':
+                async def conversations():
+                    return self.server.bridge.conversations()
+                items = asyncio.run_coroutine_threadsafe(conversations(), self.server.loop).result(10)
+                return self.respond(200, {'conversations': items})
             if self.path == '/api/cancel':
                 future = asyncio.run_coroutine_threadsafe(
                     self.server.bridge.cancel(self.headers.get('X-Session-ID'), payload), self.server.loop)

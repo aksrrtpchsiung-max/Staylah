@@ -52,6 +52,18 @@ class SearchCoordinator(Protocol):
 class ChatStore(Protocol):
     def ensure_conversation(self, conversation_id: str, *, user_id: str) -> None: ...
 
+    def set_conversation_title(
+        self, conversation_id: str, *, user_id: str, title: str
+    ) -> None: ...
+
+    def list_conversations(
+        self, *, user_id: str, limit: int = 50
+    ) -> list[dict[str, Any]]: ...
+
+    def list_messages(
+        self, conversation_id: str, *, after: str | None = None, limit: int = 50
+    ) -> list[Any]: ...
+
     def append_message(
         self,
         conversation_id: str,

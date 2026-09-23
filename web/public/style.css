@@ -132,14 +132,29 @@ a {
   margin: 33px 11px 14px;
 }
 .current-chat {
+  width: 100%;
+  border: 1px solid transparent;
+  text-align: left;
   font-size: 11px;
   padding: 13px 8px;
-  background: #e1edf278;
+  background: transparent;
   border-radius: 10px;
+}
+.current-chat:hover,
+.current-chat.active {
+  background: #e1edf278;
+  border-color: #d5e3e8;
 }
 .current-chat span {
   font-size: 19px;
   margin-right: 6px;
+}
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  max-height: 42vh;
 }
 .sidebar-bottom {
   margin-top: auto;
@@ -154,11 +169,6 @@ a {
   font-size: 17px;
   line-height: 1.6;
   font-family: Manrope, sans-serif;
-}
-.singapore {
-  font-size: 8px;
-  letter-spacing: 2px;
-  color: #a1aaa3;
 }
 .identity {
   border-top: 1px solid #dfe5e5;
@@ -666,6 +676,9 @@ h1 em {
   color: #7e8d92;
   margin: 10px 0;
 }
+.details summary {
+  color: #34434c;
+}
 .source-link {
   font-size: 10px;
   text-decoration: none;
@@ -843,7 +856,6 @@ h1 em {
 }
 .side-label,
 .sidebar-bottom,
-.singapore,
 .identity {
   color: #667a7f;
 }

@@ -59,6 +59,30 @@ class WebTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             await self.bridge.turn(self.bridge.create_session(),{'text':'Compare','message_id':'1','selected_listing_keys':['home-1']})
 
+    async def test_existing_conversation_restores_real_message_history(self):
+        from property_agent.orchestration.memory import InMemoryChatRepository
+
+        chat = InMemoryChatRepository()
+        self.runtime.chat = chat
+        conversation_id = 'web-' + 'a' * 32
+        chat.ensure_conversation(conversation_id, user_id='local-development-user')
+        chat.append_message(
+            conversation_id,
+            role='user',
+            content='Home near NUS',
+            message_id='message-1',
+        )
+        token = self.bridge.create_session(conversation_id)
+        self.assertEqual(
+            self.bridge.session_info(token)['history'][0]['text'],
+            'Home near NUS',
+        )
+        self.assertEqual(
+            self.bridge.conversations()[0]['conversation_id'],
+            conversation_id,
+        )
+        self.assertEqual(self.bridge.conversations()[0]['title'], 'Home near NUS')
+
     async def test_real_graph_confirmation_and_cards(self):
         from tests.test_orchestration import OrchestrationTests, FakeBSearchRunner, _decision_handoff, REQUIREMENT
         from tests.test_requirement_understanding import mock_deepseek_client, complete_sentence_output

@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
@@ -497,6 +497,88 @@ class SqlChatRepository:
             stored = session.get(ConversationRow, conversation_id)
             if stored is None or stored.user_id != user_id:
                 raise PermissionError("conversation 不属于当前用户")
+
+    def set_conversation_title(
+        self, conversation_id: str, *, user_id: str, title: str
+    ) -> None:
+        clean = " ".join(title.split())[:80]
+        if not clean:
+            return
+        with self.sessions.begin() as session:
+            session.execute(
+                update(ConversationRow)
+                .where(
+                    ConversationRow.conversation_id == conversation_id,
+                    ConversationRow.user_id == user_id,
+                    ConversationRow.title.is_(None),
+                )
+                .values(title=clean)
+            )
+
+    def list_conversations(
+        self, *, user_id: str, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        last_message = (
+            select(
+                MessageRow.conversation_id,
+                func.max(MessageRow.created_at).label("last_message_at"),
+            )
+            .group_by(MessageRow.conversation_id)
+            .subquery()
+        )
+        first_user_message = (
+            select(
+                MessageRow.conversation_id,
+                MessageRow.text.label("first_text"),
+                func.row_number()
+                .over(
+                    partition_by=MessageRow.conversation_id,
+                    order_by=(MessageRow.created_at, MessageRow.message_id),
+                )
+                .label("position"),
+            )
+            .where(MessageRow.role == "user")
+            .subquery()
+        )
+        with self.sessions() as session:
+            rows = session.execute(
+                select(
+                    ConversationRow,
+                    last_message.c.last_message_at,
+                    first_user_message.c.first_text,
+                )
+                .outerjoin(
+                    last_message,
+                    last_message.c.conversation_id == ConversationRow.conversation_id,
+                )
+                .outerjoin(
+                    first_user_message,
+                    (first_user_message.c.conversation_id == ConversationRow.conversation_id)
+                    & (first_user_message.c.position == 1),
+                )
+                .where(
+                    ConversationRow.user_id == user_id,
+                    or_(
+                        ConversationRow.title.is_not(None),
+                        first_user_message.c.first_text.is_not(None),
+                    ),
+                )
+                .order_by(
+                    func.coalesce(
+                        last_message.c.last_message_at, ConversationRow.created_at
+                    ).desc()
+                )
+                .limit(limit)
+            ).all()
+            return [
+                {
+                    "conversation_id": conversation.conversation_id,
+                    "title": conversation.title
+                    or " ".join(first_text.split())[:80],
+                    "updated_at": (last_at or conversation.created_at).isoformat(),
+                }
+                for conversation, last_at, first_text in rows
+            ]
 
     def append_message(
         self,

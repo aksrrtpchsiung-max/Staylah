@@ -7,6 +7,8 @@ const state = {
   selected: new Map(),
   retry: null,
   active: null,
+  conversationId: null,
+  conversations: [],
 };
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
@@ -74,11 +76,70 @@ async function api(path, payload, signal = AbortSignal.timeout(15000)) {
   if (!response.ok) throw Error(body.error || "Please try again.");
   return body;
 }
-async function init() {
+function resetConversationView() {
+  state.selected.clear();
+  state.retry = null;
+  state.sample = false;
+  $("#messages").replaceChildren();
+  $("#welcome").hidden = false;
+  $("#error").hidden = true;
+  $("#input").value = "";
+  renderSelection();
+}
+function renderConversationList() {
+  const list = $("#conversation-list");
+  list.replaceChildren();
+  for (const conversation of state.conversations) {
+    const item = button("", "current-chat", () =>
+      switchConversation(conversation.conversation_id),
+    );
+    item.classList.toggle(
+      "active",
+      conversation.conversation_id === state.conversationId,
+    );
+    item.append(
+      el("span", "", "◌"),
+      document.createTextNode(conversation.title || "Untitled conversation"),
+    );
+    list.append(item);
+  }
+}
+async function refreshConversations() {
+  const data = await api("/api/conversations", {});
+  state.conversations = data.conversations || [];
+  renderConversationList();
+  return state.conversations;
+}
+function restoreHistory(history) {
+  resetConversationView();
+  for (const item of history || []) {
+    if (["user", "assistant"].includes(item.role) && item.text)
+      message(item.role, item.text);
+  }
+}
+async function init(conversationId = null) {
   try {
-    const r = await api("/api/session", {});
+    const r = await api("/api/session", {
+      conversation_id: conversationId,
+    });
     state.session = r.session_id;
+    state.conversationId = r.conversation_id;
     state.mode = r.mode;
+    restoreHistory(r.history);
+    await refreshConversations();
+  } catch (e) {
+    showError(e.message);
+  }
+}
+async function switchConversation(conversationId) {
+  if (state.busy || conversationId === state.conversationId) return;
+  state.session = null;
+  await init(conversationId);
+}
+async function bootstrap() {
+  try {
+    const conversations = await refreshConversations();
+    await init(conversations[0]?.conversation_id || null);
   } catch (e) {
     showError(e.message);
   }
@@ -603,6 +664,7 @@ async function send(text, extra = {}) {
       .querySelectorAll(".clarification-controls")
       .forEach((n) => n.remove());
     render(data);
+    refreshConversations().catch(() => {});
   } catch (e) {
     if (active.stopped) {
       state.retry = null;
@@ -704,16 +766,10 @@ $("#preview").onclick = () => {
 };
 $("#new-chat").onclick = async () => {
   if (state.busy) return;
-  state.selected.clear();
-  state.retry = null;
-  state.sample = false;
   state.session = null;
-  $("#messages").replaceChildren();
-  $("#welcome").hidden = false;
-  $("#error").hidden = true;
-  $("#input").value = "";
-  renderSelection();
-  await init();
+  state.conversationId = null;
+  resetConversationView();
+  await init(null);
 };
 $("#composer").onsubmit = (e) => {
   e.preventDefault();
@@ -725,6 +781,6 @@ $("#input").addEventListener("keydown", (e) => {
     send($("#input").value);
   }
 });
-init();
+bootstrap();
 
 $("#mobile-new").onclick = () => $("#new-chat").click();
