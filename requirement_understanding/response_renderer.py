@@ -104,6 +104,12 @@ class ResponseRenderer:
                 "that satisfies all confirmed requirements. Tell me which requirement "
                 "you would like to adjust, and I can search again."
             )
+        if reason == "verification_pending":
+            return (
+                "The listings found have missing information needed to verify your requirements, "
+                "so I can't recommend them as confirmed matches. I haven't requested another search. "
+                "You can adjust your requirements or ask me to search again."
+            )
         if self.tone == "concise":
             return "This search has ended."
         return "This search has ended. Tell me if you would like to change your requirements and search again."

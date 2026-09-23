@@ -12,14 +12,6 @@ clarification_max_tokens = 700
 clarification_timeout_seconds = 30.0
 clarification_max_calls = 6
 
-[llm_gateway]
-url = "https://api.softwaresystems.app"
-model = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
-api_key_env = "LLM_GATEWAY_API_KEY"
-timeout_seconds = 60.0
-temperature = 0.0
-max_tokens = 2000
-
 [database]
 url_env = "DATABASE_URL"
 checkpoint_url_env = "LANGGRAPH_CHECKPOINT_DB_URI"

@@ -1,6 +1,8 @@
 """通过 OpenCLI 调用仓库内的 guru_search 适配器（JSON page/structured 模式）。"""
 import asyncio
+from copy import deepcopy
 import json
+import logging
 from pathlib import Path
 import re
 import shutil
@@ -11,16 +13,52 @@ from collections.abc import Sequence
 if __name__ == "__main__" and __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from contracts_v0 import ContractViolation, HardConstraints, Listing, RunContext, SearchQuery
+from contracts_v0 import ContractViolation, HardConstraints, Listing, ListingConstraint, RunContext, SearchQuery
 from execution.budget import remaining_seconds
 from execution.tasks import ListingDetail, ListingPage
 from part1.validation import timestamp, validate_listing, validate_type
+from part1.requirements import _bounds, _single_value
 from providers.base import ProviderError, issue
+
+
+def _matches_number(number, condition):
+    value, operator = condition['value'], condition['operator']
+    if operator == 'between':
+        return value[0] <= number <= value[1]
+    if operator == 'in':
+        return number in value
+    return {'eq': lambda: number == value, 'neq': lambda: number != value,
+        'gte': lambda: number >= value, 'gt': lambda: number > value,
+        'lte': lambda: number <= value, 'lt': lambda: number < value}[operator]()
+
+
+def bedroom_buckets(conditions):
+    """将原始数值条件映射为 0、1、2、3、4、5+；5+ 不能伪装成精确五间。"""
+    lower, upper = _bounds(conditions, 'bedrooms', [])
+    matches = lambda n: all(_matches_number(n, c) for c in conditions)
+    buckets = [n for n in range(5) if matches(n)]
+    finite = next((c['value'] for c in conditions if c['operator'] == 'in'), None)
+    # 无 in 时，区间边界后最多跳过条件数个 neq 点即可找到可能的 5+ 房源。
+    probes = finite if finite is not None else range(max(5, lower), max(5, lower) + len(conditions) + 1)
+    if any(n >= 5 and int(n) == n and (upper is None or n <= upper) and matches(n) for n in probes):
+        buckets.append(5)
+    exact = 5 not in buckets or (upper is None and lower <= 5 and all(
+        c['operator'] in ('gt', 'gte') or c['operator'] == 'neq' and (
+            c['value'] < 5 or int(c['value']) != c['value']) for c in conditions))
+    return buckets, exact
 
 
 class GuruSearchProvider:
     source = "propertyguru"
     source_mode = "live"
+    # 与 contract-listing.js 的详情解析能力对应；不把任意缺失字段都变成读详情任务。
+    detail_fields = frozenset({'price.amount', 'price.currency', 'price.period', 'bedrooms',
+        'listing_status', 'listed_date', 'attributes.property_type', 'attributes.listing_scope',
+        'attributes.area_sqft', 'attributes.bathrooms', 'attributes.room_type',
+        'attributes.furnishing', 'attributes.tenure_type', 'attributes.lease_years',
+        'attributes.ensuite_bathroom', 'attributes.owner_stays', 'attributes.utilities_included',
+        'attributes.wifi_included', 'attributes.visitors_allowed', 'attributes.pets_allowed',
+        'attributes.cooking_policy'})
 
     def __init__(self, command: Sequence[str] | None = None, *, timeout_seconds: float = 30):
         if command is None:
@@ -31,9 +69,12 @@ class GuruSearchProvider:
             raise ValueError("command 必须是参数数组，timeout_seconds 必须大于零")
         self.command = tuple(command)
         self.timeout_seconds = timeout_seconds
+        self._native_pages = {}
 
     async def _call(self, args: list[str], ctx: RunContext):
         timeout = min(self.timeout_seconds, remaining_seconds(ctx))
+        logging.getLogger('search.audit').info('调用真实 OpenCLI',
+            extra={'audit': dict(event='cli_call', args=args)})
         try:
             process = await asyncio.create_subprocess_exec(
                 *self.command, "propertyguru", *args, "-f", "json",
@@ -103,7 +144,7 @@ class GuruSearchProvider:
 
     async def search_page(self, query: SearchQuery, *, intent: str,
                           filters: HardConstraints, limit: int,
-                          ctx: RunContext) -> ListingPage:
+                          ctx: RunContext, constraints: list[ListingConstraint] | None = None) -> ListingPage:
         page, offset = 1, 0
         if query["cursor"] is not None:
             match = re.fullmatch(r"pg:v1:([1-9][0-9]*):([0-9]+)", query["cursor"])
@@ -113,10 +154,10 @@ class GuruSearchProvider:
             if max(page, offset) > 2**53 - 1:
                 raise ProviderError(issue("INVALID_INPUT", "分页游标超出来源支持范围", field_path="query.cursor"))
         args = ["search", query["text"], "--listing", "sale" if intent == "buy" else "rent",
-                "--page", str(page), "--offset", str(offset), "--limit", str(limit),
-                "--output-mode", "page"]
+                "--page", str(page), "--offset", "0", "--output-mode", "full-page"]
         applied = ["transaction_type"]
         unsupported = ["price.currency"]
+        hard = [c for c in constraints or [] if c['strength'] == 'hard']
         if filters["price_period"] is not None:
             unsupported.append("price.period")
         expected_period = "total" if intent == "buy" else "month"
@@ -127,29 +168,93 @@ class GuruSearchProvider:
                 applied.append("price.amount")
             else:
                 unsupported.append("price.amount")
-        for key, field in (("min_bedrooms", "bedrooms"), ("rental_scope", "attributes.listing_scope")):
-            if filters[key] is not None:
-                unsupported.append(field)
+        amounts = [c for c in hard if c['field_path'] == 'price.amount']
+        if amounts and filters['currency'] == 'SGD' and filters['price_period'] == expected_period:
+            lower_price, _ = _bounds(amounts, 'price.amount', [])
+            if lower_price > 0:
+                args += ['--min', str(lower_price)]
+                if 'price.amount' not in applied:
+                    applied.append('price.amount')
+            # 区间不能精确表达离散白名单或排除值，保留本地核实标记。
+            if any(c['operator'] in ('in', 'neq') for c in amounts):
+                unsupported.append('price.amount')
+        minimum = filters['min_bedrooms']
+        bedroom_conditions = [c for c in hard if c['field_path'] == 'bedrooms']
+        if bedroom_conditions:
+            buckets, exact = bedroom_buckets(bedroom_conditions)
+            if not buckets:
+                raise ProviderError(issue('INVALID_INPUT', '卧室硬条件没有可检索的整数取值'))
+            args += ['--bedroom-buckets', ','.join(map(str, buckets))]
+            (applied if exact else unsupported).append('bedrooms')
+        elif minimum is not None and minimum > 0:
+            args += ['--min-bedrooms', str(minimum)]
+            # 网站最大的桶为 5+；至少六间等条件还需本地核实。
+            (applied if minimum <= 5 else unsupported).append('bedrooms')
+        scope = filters['rental_scope']
+        if scope is not None:
+            if intent == 'rent':
+                args += ['--rental-scope', scope]
+                # Room only 也可能含合租床位，不能宣称精确排除了 bedspace。
+                (applied if scope == 'whole_unit' else unsupported).append('attributes.listing_scope')
+            else:
+                unsupported.append('attributes.listing_scope')
+        def exact_value(field):
+            return _single_value(hard, field, [])
+        property_type = exact_value('attributes.property_type')
+        group = {'hdb': 'H', 'condo': 'N', 'apartment': 'N', 'landed': 'L'}.get(
+            property_type if isinstance(property_type, str) else None)
+        if group:
+            args += ['--property-group', group]
+            if property_type == 'condo':
+                # 契约 condo 也包含 Executive Condominium；使用网站真实子类别编码。
+                args += ['--property-codes', 'CONDO,EXCON']
+                applied.append('attributes.property_type')
+            elif group != 'N':
+                applied.append('attributes.property_type')
+        room_type = exact_value('attributes.room_type')
+        if intent == 'rent' and scope == 'room' and room_type in ('common', 'master', 'shared'):
+            args += ['--room-type', room_type]
+            applied.append('attributes.room_type')
+        unsupported.extend(c['field_path'] for c in hard if c['field_path'] not in applied)
+        applied = [field for field in applied if field not in unsupported]
         if filters["locations"]:
             unsupported.append("location_id")  # 自由文本检索不等于规范地点 ID 筛选。
-        payload = await self._call(args, ctx)
+        # 页内游标不能导致重复打开同一网页。缓存原始整页，再按本次候选额度切片；
+        # 身份、请求、条件和物理页都参与键，禁止跨用户/轮次复用。
+        cache_key = json.dumps([ctx['user_id'], ctx['run_id'], ctx['conversation_id'],
+            ctx['attempt_id'], ctx['source_mode'], args, filters, constraints], sort_keys=True)
+        cached = self._native_pages.get(cache_key)
+        payload = deepcopy(cached) if cached is not None else await self._call(args, ctx)
         try:
             if set(payload) != {"items", "next_cursor", "pagination_known", "truncated"}:
                 raise ValueError("搜索输出字段不符")
             if type(payload["items"]) is not list:
                 raise ValueError("items 不是数组")
+            if offset > len(payload['items']):
+                raise ValueError('页内偏移已失效，不能跳过未读取的房源')
             items, problems = [], []
-            for raw in payload["items"]:
+            for index, raw in enumerate(payload["items"]):
                 try:
                     validate_listing(raw)
                     if raw["source"] != self.source or raw["source_mode"] != self.source_mode:
                         raise ValueError("房源来源与 Provider 不一致")
-                    items.append(raw)
+                    if offset <= index < offset + limit:
+                        items.append(raw)
                 except (ContractViolation, ValueError) as exc:
                     problems.append(issue("INVALID_OUTPUT", f"已跳过无法校验的房源：{exc}"))
-            result = dict(query_id=query["query_id"], items=items, next_cursor=payload["next_cursor"],
-                          pagination_known=payload["pagination_known"], truncated=payload["truncated"],
-                          applied_filters=applied, unsupported_filters=unsupported, issues=problems)
+            # 先验证原生分页元数据，避免将错误的来源终点缓存成成功。
+            validate_type(ListingPage, dict(query_id=query['query_id'], items=[],
+                next_cursor=payload['next_cursor'], pagination_known=payload['pagination_known'],
+                truncated=payload['truncated'], applied_filters=[], unsupported_filters=[], issues=[]))
+            if payload['next_cursor'] is not None and not re.fullmatch(r'pg:v1:[1-9][0-9]*:[0-9]+', payload['next_cursor']):
+                raise ValueError('返回了无效分页游标')
+            remainder = offset + limit < len(payload['items'])
+            result = dict(query_id=query["query_id"], items=items,
+                          next_cursor=f'pg:v1:{page}:{offset + limit}' if remainder else payload['next_cursor'],
+                          pagination_known=remainder or payload["pagination_known"],
+                          truncated=remainder or payload["truncated"],
+                          applied_filters=list(dict.fromkeys(applied)),
+                          unsupported_filters=list(dict.fromkeys(unsupported)), issues=problems)
             validate_type(ListingPage, result)
             if result["next_cursor"] is not None and not re.fullmatch(r"pg:v1:[1-9][0-9]*:[0-9]+", result["next_cursor"]):
                 raise ValueError("返回了无效分页游标")
@@ -157,8 +262,16 @@ class GuruSearchProvider:
                 raise ValueError("来源未遵守候选额度")
             if not result["pagination_known"]:
                 problems.append(issue("RETRIEVAL_DEGRADED", "页面未提供可靠的分页终点；不能认定搜索已完成"))
-            if payload["items"] and not items:
+            if payload["items"][offset:offset + limit] and not items:
                 raise ValueError("全部房源均未通过契约校验")
+            if not problems and cached is None:
+                # 有界、短期缓存；不改变房源的真实 fetched_at。
+                if len(self._native_pages) >= 16:
+                    self._native_pages.pop(next(iter(self._native_pages)))
+                self._native_pages[cache_key] = deepcopy(payload)
+            logging.getLogger('search.audit').info('PropertyGuru 搜索页', extra={'audit': dict(
+                event='native_page', cache_hit=cached is not None, page=page, offset=offset,
+                args=args, returned=len(items), native_count=len(payload['items']))})
             return result
         except (ContractViolation, ValueError, TypeError, KeyError) as exc:
             raise ProviderError(issue("PARSE_ERROR", f"搜索结果无法解析：{exc}")) from exc
