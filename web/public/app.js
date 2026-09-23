@@ -91,13 +91,14 @@ function renderConversationList() {
   list.replaceChildren();
   for (const conversation of state.conversations) {
     const title = conversation.title || "Untitled conversation";
-    const item = button(title, "current-chat", () =>
+    const item = button("", "current-chat", () =>
       switchConversation(conversation.conversation_id));
     item.classList.toggle(
       "active",
       conversation.conversation_id === state.conversationId,
     );
     item.title = title;
+    item.append(el("span", "history-title", title));
     list.append(item);
   }
 }

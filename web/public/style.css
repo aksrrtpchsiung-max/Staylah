@@ -133,16 +133,21 @@ a {
 }
 .current-chat {
   width: 100%;
+  min-height: 52px;
   border: 0;
   text-align: left;
   font-size: 13px;
-  padding: 9px 11px;
+  padding: 7px 11px;
   background: transparent;
   border-radius: 8px;
-  line-height: 1.4;
-  display: block;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+}
+.history-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
 }
 .current-chat:hover,
@@ -154,7 +159,7 @@ a {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  gap: 2px;
+  gap: 7px;
   overflow-y: auto;
   padding-right: 3px;
   scrollbar-width: thin;
