@@ -79,11 +79,8 @@ async function init() {
     const r = await api("/api/session", {});
     state.session = r.session_id;
     state.mode = r.mode;
-    $("#connection").textContent =
-      r.mode === "live" ? "Ready when you are" : "Design preview";
   } catch (e) {
     showError(e.message);
-    $("#connection").textContent = "Offline";
   }
 }
 function showError(text) {
@@ -121,9 +118,6 @@ function busy(on) {
       ".confirmation-actions button, .clarification-controls button, .clarification-controls input",
     )
     .forEach((x) => (x.disabled = on));
-  $("#footnote").textContent = on
-    ? "Finding the details that matter…"
-    : "A home search, at your pace.";
 }
 function renderSelection() {
   const wrap = $("#selection");
@@ -275,7 +269,14 @@ function card(c) {
     content.append(el("p", "reason", c.reasons.map(claim).join(" · ")));
   if (c.tradeoffs?.length || c.unknowns?.length) {
     const detail = el("details", "details");
-    detail.append(el("summary", "", "A closer look"));
+    const detailCount = (c.tradeoffs?.length || 0) + (c.unknowns?.length || 0);
+    detail.append(
+      el(
+        "summary",
+        "details-toggle",
+        `View ${detailCount} ${detailCount === 1 ? "detail" : "details"}`,
+      ),
+    );
     for (const x of [...(c.tradeoffs || []), ...(c.unknowns || [])])
       detail.append(el("p", "", claim(x)));
     content.append(detail);
@@ -540,8 +541,9 @@ async function send(text, extra = {}) {
   state.active = active;
   const pending = el("div", "pending");
   const hint = el("span", "pending-hint");
+  const node = el("small", "pending-node", "Current node: starting workflow…");
   const elapsed = el("small", "pending-elapsed");
-  pending.append(hint, elapsed);
+  pending.append(hint, node, elapsed);
   const hints = extra.confirmation_id ? [
     "Looking for a place that feels like home in Singapore…",
     "Searching from the heartlands to the city fringe…",
@@ -572,6 +574,24 @@ async function send(text, extra = {}) {
   };
   tick();
   const progressTimer = setInterval(tick, 1000);
+  let progressRequestActive = false;
+  const updateNode = async () => {
+    if (progressRequestActive || state.active !== active) return;
+    progressRequestActive = true;
+    try {
+      const progress = await api("/api/progress", { message_id: id });
+      if (state.active !== active) return;
+      if (progress.stage && progress.operation) {
+        const operation = progress.operation.replaceAll("_", " ");
+        node.textContent = `Current node: ${progress.stage} · ${operation}`;
+      }
+    } catch {}
+    finally {
+      progressRequestActive = false;
+    }
+  };
+  updateNode();
+  const nodeTimer = setInterval(updateNode, 1000);
   const deadlineTimer = setTimeout(() => {
     active.timedOut = true;
     controller.abort();
@@ -603,6 +623,7 @@ async function send(text, extra = {}) {
     } else showError(e.message);
   } finally {
     clearInterval(progressTimer);
+    clearInterval(nodeTimer);
     clearTimeout(deadlineTimer);
     state.active = null;
     pending.remove();
@@ -666,7 +687,6 @@ function sampleResults() {
 }
 $("#preview").onclick = () => {
   state.sample = true;
-  $("#connection").textContent = "Sample conversation";
   $("#welcome").hidden = true;
   $("#messages").append(
     el(

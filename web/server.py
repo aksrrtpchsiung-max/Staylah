@@ -22,7 +22,7 @@ class WebBridge:
 
     def create_session(self):
         token = uuid4().hex
-        self.sessions[token] = dict(conversation_id=f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None)
+        self.sessions[token] = dict(conversation_id=f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None, progress=None)
         return token
 
     def _session(self, token):
@@ -60,6 +60,24 @@ class WebBridge:
             except (asyncio.CancelledError, Exception):
                 pass
         return {'status': 'cancelled'}
+
+    async def progress(self, token, payload):
+        """返回当前请求的真实 A/B/C stage，不暴露输入、模型输出或内部推理。"""
+        session = self._session(token)
+        message_id = self._message_id(payload)
+        current = session.get('progress')
+        if not current or current['message_id'] != message_id:
+            return {'status': 'idle', 'stage': None, 'operation': None}
+        spans = current['trace']['spans']
+        if not spans:
+            return {'status': 'starting', 'stage': None, 'operation': None}
+        running = [span for span in spans if span['status'] == 'running']
+        span = running[-1] if running else spans[-1]
+        return {
+            'status': span['status'],
+            'stage': span['stage'],
+            'operation': span['operation'],
+        }
 
     async def turn(self, token, payload):
         session = self._session(token)
@@ -112,7 +130,11 @@ class WebBridge:
             # 既有 handle_message 仅支持 text；用可信快照构造本轮参考上下文。
             context = [session['cards'][k] for k in dict.fromkeys(keys)]
             text += '\n\nSelected homes for this question (reference data, not new requirements):\n' + json.dumps(context, ensure_ascii=False)
-        result = await self.orchestrator.handle_message(text, conversation_id=cid, client_message_id=f'{cid}:{message_id}')
+        from property_agent.evaluation_trace import capture_trace
+
+        with capture_trace(message_id) as trace:
+            session['progress'] = {'message_id': message_id, 'trace': trace}
+            result = await self.orchestrator.handle_message(text, conversation_id=cid, client_message_id=f'{cid}:{message_id}')
         data = asdict(result)
         state = (await self.orchestrator.a_graph.aget_state(config)).values or {}
         data['profile'] = state.get('profile')
@@ -174,6 +196,10 @@ class Handler(SimpleHTTPRequestHandler):
             if self.path == '/api/cancel':
                 future = asyncio.run_coroutine_threadsafe(
                     self.server.bridge.cancel(self.headers.get('X-Session-ID'), payload), self.server.loop)
+                return self.respond(200, future.result(15))
+            if self.path == '/api/progress':
+                future = asyncio.run_coroutine_threadsafe(
+                    self.server.bridge.progress(self.headers.get('X-Session-ID'), payload), self.server.loop)
                 return self.respond(200, future.result(15))
             if self.path != '/api/turn':
                 return self.respond(404, {'error': 'Not found.'})

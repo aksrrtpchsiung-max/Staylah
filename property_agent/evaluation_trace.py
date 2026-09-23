@@ -30,21 +30,24 @@ def stage_span(stage: str, operation: str, *, attempt_id: str | None = None) -> 
         return
     start = perf_counter()
     started_at = datetime.now(timezone.utc).isoformat()
-    status = "ok"
+    span = {
+        "stage": stage,
+        "operation": operation,
+        "attempt_id": attempt_id,
+        "started_at": started_at,
+        "duration_ms": 0.0,
+        "status": "running",
+    }
+    trace["spans"].append(span)
     try:
         yield
     except BaseException:
-        status = "error"
+        span["status"] = "error"
         raise
+    else:
+        span["status"] = "ok"
     finally:
-        trace["spans"].append({
-            "stage": stage,
-            "operation": operation,
-            "attempt_id": attempt_id,
-            "started_at": started_at,
-            "duration_ms": round((perf_counter() - start) * 1000, 2),
-            "status": status,
-        })
+        span["duration_ms"] = round((perf_counter() - start) * 1000, 2)
 
 
 def record_event(kind: str, data: Any, *, attempt_id: str | None = None) -> None:

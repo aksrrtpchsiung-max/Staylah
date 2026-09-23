@@ -83,11 +83,14 @@ class CancellationTests(unittest.IsolatedAsyncioTestCase):
         self.stopped = asyncio.Event()
         self.runtime = FakeOrchestrator()
         async def blocking(*args, **kwargs):
-            self.entered.set()
-            try:
-                await asyncio.Event().wait()
-            finally:
-                self.stopped.set()
+            from property_agent.evaluation_trace import stage_span
+
+            with stage_span('B', 'search_for_request'):
+                self.entered.set()
+                try:
+                    await asyncio.Event().wait()
+                finally:
+                    self.stopped.set()
         self.runtime.handle_message = blocking
         self.bridge = WebBridge(self.runtime)
         self.token = self.bridge.create_session()
@@ -104,6 +107,21 @@ class CancellationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.bridge.turn(self.token, payload))['phase'], 'cancelled')
         self.runtime.handle_message = FakeOrchestrator().handle_message
         self.assertEqual((await self.bridge.turn(self.token, {'text':'Next', 'message_id':'next'}))['phase'], 'published')
+
+    async def test_progress_reports_the_actual_running_node(self):
+        import asyncio
+
+        payload = {'text': 'Search', 'message_id': 'progress'}
+        task = asyncio.create_task(self.bridge.turn(self.token, payload))
+        await self.entered.wait()
+        progress = await self.bridge.progress(self.token, payload)
+        self.assertEqual(progress, {
+            'status': 'running',
+            'stage': 'B',
+            'operation': 'search_for_request',
+        })
+        await self.bridge.cancel(self.token, payload)
+        await task
 
     async def test_cancel_before_turn_never_starts_search(self):
         payload = {'text':'Search','message_id':'early'}
