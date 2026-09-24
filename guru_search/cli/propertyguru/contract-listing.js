@@ -156,6 +156,78 @@ function sourceExcerpt(label, rawValue) {
   return `PropertyGuru search result: ${label}=${value}`;
 }
 
+/** Search-card media only: no gallery requests, guessed URLs or image downloads. */
+export function extractSearchCardPhotos(raw, baseUrl) {
+  const preview = raw?.mediaCarousel?.previewMedia;
+  const images = [];
+  const byIdentity = new Map();
+  const seenUrls = new Set();
+  const issues = [];
+  const sourceId = text(raw?.id);
+  const add = (value, kind, caption = null) => {
+    if (typeof value !== 'string' || !value.trim()) return;
+    let url;
+    try {
+      url = new URL(value.trim(), baseUrl);
+      if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw new Error();
+    } catch {
+      issues.push('invalid_image_url');
+      return;
+    }
+    // CDN photo identity groups V800/V550 without modifying either actual URL.
+    const pgCdn = /(^|\.)pgimgs\.com$/i.test(url.hostname);
+    const listing = pgCdn && url.pathname.match(/^\/listing\/(\d+)\//);
+    if (listing && listing[1] !== sourceId) {
+      issues.push('image_listing_id_mismatch');
+      return;
+    }
+    const asset = pgCdn && url.pathname.match(/\/([A-Z]+\.\d+)(?:\.|\/|$)/);
+    if (kind === 'thumbnail' && asset && asset[1].startsWith('UMOV.')) {
+      kind = 'video_thumbnail'; // Retain the link, never count it as a property photo.
+    }
+    const identity = asset ? `pg:${asset[1]}` : url.href;
+    if (seenUrls.has(url.href)) return;
+    seenUrls.add(url.href);
+    let item = byIdentity.get(identity);
+    if (!item) {
+      item = { image_id: identity, kind, urls: [], caption: text(caption) };
+      images.push(item);
+      byIdentity.set(identity, item);
+    }
+    item.urls.push(url.href);
+  };
+  for (const [group, kind] of [['images', 'photo'], ['floorPlans', 'floor_plan'], ['sitePlans', 'site_plan']]) {
+    const entries = preview?.[group]?.items;
+    if (entries != null && !Array.isArray(entries)) issues.push(`invalid_${group}_items`);
+    for (const entry of Array.isArray(entries) ? entries : []) {
+      if (typeof entry?.src !== 'string' || !entry.src.trim()) {
+        issues.push('missing_image_src');
+        continue;
+      }
+      add(entry.src, kind, entry.caption);
+    }
+  }
+  // Keep the card cover even when it is an extra size of the first gallery photo.
+  add(raw?.thumbnail, 'thumbnail');
+  const counts = (Array.isArray(raw?.mediaItems) ? raw.mediaItems : [])
+    .filter(item => item?.mediaType === 'images').map(item => integer(item.text));
+  const reportedCount = counts.length && counts.every(n => n !== null && n === counts[0]) ? counts[0] : null;
+  if (counts.length && reportedCount === null) issues.push('invalid_reported_count');
+  // A standalone thumbnail is retained but cannot establish another unique photo.
+  const extractedCount = images.filter(item => item.kind === 'photo').length;
+  const hasPhotoArray = Array.isArray(preview?.images?.items);
+  let status = 'unknown';
+  if (!images.length && reportedCount !== 0) status = 'unavailable';
+  else if (reportedCount !== null && extractedCount < reportedCount) status = 'partial';
+  else if (reportedCount !== null && extractedCount > reportedCount) issues.push('photo_count_mismatch');
+  else if (reportedCount !== null && hasPhotoArray && !issues.length) status = 'complete';
+  if (!hasPhotoArray) issues.push('photo_array_unavailable');
+  return {
+    version: 1, images, reported_count: reportedCount, extracted_count: extractedCount,
+    status, issues: [...new Set(issues)],
+  };
+}
+
 /**
  * Convert one PropertyGuru search-card record into Falcon's complete Listing
  * contract. Every contract key is returned. Unknown facts stay null/unknown;
@@ -256,6 +328,11 @@ export function buildSearchListing(raw, { baseUrl, requestedListingType, fetched
     if (value !== null) addEvidence(`attributes.${key}`, value, paths.join('/'), original);
     return [key, value];
   }));
+
+  const photos = extractSearchCardPhotos(raw, baseUrl);
+  addEvidence('media.search_card_photos', photos,
+    'mediaCarousel.previewMedia + thumbnail + mediaItems',
+    { reported_count: photos.reported_count, extracted_count: photos.extracted_count, status: photos.status });
 
   return {
     listing_key: listingKey,

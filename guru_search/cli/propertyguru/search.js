@@ -54,6 +54,7 @@ cli({
     { name: 'page', type: 'int', default: 1, help: 'Search result page' },
     { name: 'offset', type: 'int', default: 0, help: 'Resume within a page after a candidate limit' },
     { name: 'output-mode', type: 'string', default: 'listings', choices: ['listings', 'page', 'full-page'], help: 'full-page returns the native page for request-scoped slicing/cache' },
+    { name: 'include-media-source', type: 'bool', default: false, help: 'Diagnostic page output: include original card media for live verification' },
   ],
   columns: ['listing_key', 'title', 'transaction_type', 'price', 'attributes', 'bedrooms', 'listing_status', 'source_url'],
   func: async (page, kwargs) => {
@@ -229,8 +230,8 @@ cli({
       throw new CommandExecutionError('PARSE_ERROR: page changed; continuation offset is no longer valid');
     }
     const fullPage = kwargs['output-mode'] === 'full-page';
-    const listings = data.results
-      .slice(fullPage ? 0 : offset, fullPage ? undefined : offset + limit)
+    const selected = data.results.slice(fullPage ? 0 : offset, fullPage ? undefined : offset + limit);
+    const listings = selected
       .map((raw) => buildSearchListing(raw, {
         baseUrl: BASE_URL,
         requestedListingType: listingType,
@@ -254,7 +255,13 @@ cli({
     const nextCursor = truncated ? `pg:v1:${pageNumber}:${offset + limit}`
       : following !== null ? `pg:v1:${following}:0` : null;
     if (['page', 'full-page'].includes(kwargs['output-mode'])) {
-      return [{ items: listings, next_cursor: nextCursor, pagination_known: paginationKnown, truncated }];
+      const result = { items: listings, next_cursor: nextCursor, pagination_known: paginationKnown, truncated };
+      // Opt-in diagnostics only; normal 3a calls do not duplicate URLs in their payload.
+      if (kwargs['include-media-source']) result.media_source = selected.map(raw => ({
+        id: String(raw.id), thumbnail: raw.thumbnail ?? null, mediaItems: raw.mediaItems ?? [],
+        preview: raw.mediaCarousel?.previewMedia ?? {},
+      }));
+      return [result];
     }
 
     return listings;
