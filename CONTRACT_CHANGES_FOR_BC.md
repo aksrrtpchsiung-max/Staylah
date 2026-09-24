@@ -1,5 +1,22 @@
 # Contract v0 修改说明（2026/09/14）
 
+## 2026/09/24：搜索卡片图片的 Evidence 约定
+
+不增加 `Listing` 顶层字段，不改变公开函数签名。B 在搜索阶段通过 guru_search
+保留卡片提供的全部图片链接，写入 `Listing.evidence` 的
+`field="media.search_card_photos"`，`value.version=1`。
+`value.images` 按来源顺序保存 `{image_id, kind, urls, caption}`；同一图片的已观察尺寸
+链接全部保留在 `urls`，相同 URL 去重。`kind` 区分 `photo`、`floor_plan`、`site_plan`、
+`thumbnail`、`video_thumbnail`。
+`reported_count` 为卡片标示的照片数或 null，`extracted_count` 为唯一 photo 数量；
+`status` 为 complete/partial/unknown/unavailable，`issues` 保存图片解析问题。
+照片数不计入附加图和独立缩略图；complete 只表示本次卡片照片数量对齐，不代表链接永久可用。
+图片缺失不阻断搜索、不单独降级核心搜索状态。展示端选取最新 `observed_at` 的记录，
+逐张优先加载 `images[].urls[0]`，失败时尝试剩余链接或显示占位图。
+详细字段语义、消费示例与真实测试入口见 README 的“搜索卡片图片”。
+
+---
+
 本次修改统一了数据库房源字段与跨模块接口。数据库仍可使用规范化的
 `listing + hdb_detail/condo_detail/landed_detail`，B 在返回 `SearchResult` 前将查询结果
 转换为 `contracts_v0.Listing`；C 只依赖 contract，不直接依赖数据库子表。

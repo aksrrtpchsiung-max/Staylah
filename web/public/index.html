@@ -23,14 +23,32 @@
         </button>
         <div class="side-label">YOUR SPACE</div>
         <div id="conversation-list" class="conversation-list" aria-label="Conversation history"></div>
+        <div class="side-label saved-label">SAVED HOMES</div>
+        <div id="favorite-list" class="favorite-list" aria-label="Saved homes"></div>
         <div class="identity">
           <span class="avatar">Y</span><span>Your personal space</span>
         </div>
+        <div
+          id="sidebar-resize-handle"
+          class="sidebar-resize-handle"
+          role="separator"
+          aria-label="Resize conversation sidebar"
+          aria-orientation="vertical"
+          aria-valuemin="260"
+          aria-valuemax="520"
+          aria-valuenow="260"
+          title="Drag to resize · Double-click to reset"
+          tabindex="0"
+        ></div>
       </aside>
       <main>
         <header>
           <button id="mobile-new" aria-label="New conversation">
-            StayLah ＋</button>
+            StayLah ＋</button
+          ><details id="mobile-favorites" class="mobile-favorites">
+            <summary>Saved homes <span id="mobile-favorite-count">0</span></summary>
+            <div id="mobile-favorite-list" class="favorite-list" aria-label="Saved homes"></div>
+          </details>
         </header>
         <section id="welcome" class="welcome">
           <div class="welcome-icon">⌂<span>✦</span></div>

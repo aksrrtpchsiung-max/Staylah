@@ -15,6 +15,7 @@ from property_agent.contracts import ConversationProfile, RequirementRequest, Re
 from property_agent.decision.graph import initial_state
 from property_agent.decision.runtime import thread_config
 from property_agent.evaluation_trace import record_event, stage_span
+from property_agent.persistence.boundaries import ConversationFavoriteRepository
 from property_agent.results import is_usable
 from requirement_understanding.response_renderer import ResponseRenderer
 from requirement_understanding.workflow import build_requirement_request
@@ -130,6 +131,7 @@ class ConversationOrchestrator:
         chat: ChatStore,
         runs: RunStore,
         profiles: ProfileStore,
+        favorites: ConversationFavoriteRepository | None = None,
         renderer: ResponseRenderer | None = None,
         source_mode: str = "live",
         deadline_seconds: int = 300,
@@ -142,6 +144,7 @@ class ConversationOrchestrator:
         self.chat = chat
         self.runs = runs
         self.profiles = profiles
+        self.favorites = favorites
         self.renderer = renderer or ResponseRenderer()
         self.source_mode = source_mode
         self.deadline_seconds = deadline_seconds

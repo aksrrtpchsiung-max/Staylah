@@ -73,6 +73,10 @@ opencli doctor
 - 条件提示框通过点击展开和关闭，不依赖鼠标悬浮。
 - 搜索进行中可由用户主动停止。
 - 思考状态轮换显示与新加坡居住、家庭和社区相关的提示。
+- 房源卡片使用 B 返回的 `media.search_card_photos` Evidence 显示封面；加载失败时保留原占位图。
+- 卡片心形按钮按 conversation 收藏/取消收藏；侧边栏 `SAVED HOMES` 展示当前会话收藏，重新打开历史会话时恢复收藏状态。
+- 历史会话条目右侧的实心爱心表示该会话包含收藏房源。
+- 桌面端可拖动侧边栏右边缘调整宽度；范围为 260–520px，双击恢复默认宽度。
 - 前端和后端用户可见文案统一为英文。
 
 ## API 与安全边界
@@ -80,12 +84,15 @@ opencli doctor
 - `POST /api/session` 创建进程内网页会话。
 - `POST /api/turn` 使用 `X-Session-ID` 提交消息。
 - `POST /api/cancel` 停止当前网页会话中的活动搜索。
+- `POST /api/favorites/add` 收藏当前会话已返回的房源。
+- `POST /api/favorites/remove` 取消收藏。
+- `POST /api/favorites/list` 查询当前会话收藏。
 - 前端和 API 同源；服务端接受同一 Host 的 HTTP 或 HTTPS Origin。
 - UI 使用 `textContent` 渲染模型和房源文本，来源链接仅允许 HTTP(S)。
 - 浏览器只提交当前会话已返回的房源标识，服务端从可信缓存恢复卡片数据。
 
-当前网页会话保存在服务进程内，刷新页面会创建新会话。历史会话恢复、生产认证和多实例共享
-需要在正式部署前实现。
+浏览器 session token 仍保存在服务进程内；conversation、消息、收藏和 LangGraph 状态保存在
+PostgreSQL。生产认证和多实例共享的网页 session 仍需在正式部署前实现。
 
 ## 文件结构
 

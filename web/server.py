@@ -90,6 +90,7 @@ class WebBridge:
                         'price',
                         'bedrooms',
                         'attributes',
+                        'evidence',
                         'source_url',
                         'source_mode',
                     )
@@ -132,19 +133,86 @@ class WebBridge:
             'session_id': token,
             'conversation_id': session['conversation_id'],
             'history': history,
+            'favorites': self.list_favorites(token),
         }
 
     def conversations(self):
         chat = getattr(self.orchestrator, 'chat', None)
         if chat is None or not hasattr(chat, 'list_conversations'):
             return []
-        return chat.list_conversations(user_id=DEFAULT_USER_ID, limit=50)
+        conversations = chat.list_conversations(user_id=DEFAULT_USER_ID, limit=50)
+        favorites = getattr(self.orchestrator, 'favorites', None)
+        counts = {}
+        if favorites is not None and hasattr(favorites, 'counts_by_conversation'):
+            counts = favorites.counts_by_conversation(
+                [item['conversation_id'] for item in conversations],
+                user_id=DEFAULT_USER_ID,
+            )
+        elif favorites is not None:
+            counts = {
+                item['conversation_id']: len(
+                    favorites.list(
+                        item['conversation_id'], user_id=DEFAULT_USER_ID
+                    )
+                )
+                for item in conversations
+            }
+        return [
+            {
+                **item,
+                'favorite_count': counts.get(item['conversation_id'], 0),
+            }
+            for item in conversations
+        ]
 
     def _session(self, token):
         session = self.sessions.get(token)
         if session is None:
             raise ValueError('Session expired. Start a new conversation.')
         return session
+
+    @staticmethod
+    def _listing_key(payload):
+        listing_key = payload.get('listing_key')
+        if not isinstance(listing_key, str) or not 1 <= len(listing_key) <= 500:
+            raise ValueError('Invalid listing key.')
+        return listing_key
+
+    def _favorites(self):
+        favorites = getattr(self.orchestrator, 'favorites', None)
+        if favorites is None:
+            raise ValueError('Favorites are unavailable.')
+        return favorites
+
+    def list_favorites(self, token):
+        session = self._session(token)
+        favorites = getattr(self.orchestrator, 'favorites', None)
+        if favorites is None:
+            return []
+        return favorites.list(
+            session['conversation_id'], user_id=DEFAULT_USER_ID
+        )
+
+    def add_favorite(self, token, payload):
+        session = self._session(token)
+        listing_key = self._listing_key(payload)
+        if listing_key not in session['cards']:
+            raise ValueError('This home is not available in the current conversation.')
+        return self._favorites().add(
+            session['conversation_id'],
+            user_id=DEFAULT_USER_ID,
+            listing_key=listing_key,
+        )
+
+    def remove_favorite(self, token, payload):
+        session = self._session(token)
+        listing_key = self._listing_key(payload)
+        removed = self._favorites().remove(
+            session['conversation_id'],
+            user_id=DEFAULT_USER_ID,
+            listing_key=listing_key,
+        )
+        return {'listing_key': listing_key, 'removed': removed}
 
     @staticmethod
     def _message_id(payload):
@@ -328,6 +396,22 @@ class Handler(SimpleHTTPRequestHandler):
                     return self.server.bridge.conversations()
                 items = asyncio.run_coroutine_threadsafe(conversations(), self.server.loop).result(10)
                 return self.respond(200, {'conversations': items})
+            if self.path == '/api/favorites/list':
+                return self.respond(200, {
+                    'favorites': self.server.bridge.list_favorites(
+                        self.headers.get('X-Session-ID')
+                    )
+                })
+            if self.path == '/api/favorites/add':
+                return self.respond(200, {
+                    'favorite': self.server.bridge.add_favorite(
+                        self.headers.get('X-Session-ID'), payload
+                    )
+                })
+            if self.path == '/api/favorites/remove':
+                return self.respond(200, self.server.bridge.remove_favorite(
+                    self.headers.get('X-Session-ID'), payload
+                ))
             if self.path == '/api/cancel':
                 future = asyncio.run_coroutine_threadsafe(
                     self.server.bridge.cancel(self.headers.get('X-Session-ID'), payload), self.server.loop)

@@ -4,7 +4,9 @@ const state = {
   mode: "preview",
   busy: false,
   sample: false,
+  cards: new Map(),
   selected: new Map(),
+  favoritePending: new Set(),
   retry: null,
   active: null,
   conversationId: null,
@@ -22,6 +24,81 @@ const button = (text, cls, action) => {
   n.onclick = action;
   return n;
 };
+const SIDEBAR_DEFAULT_WIDTH = 260;
+const SIDEBAR_MAX_WIDTH = SIDEBAR_DEFAULT_WIDTH * 2;
+const SIDEBAR_STORAGE_KEY = "staylah-sidebar-width";
+function applySidebarWidth(width, persist = false) {
+  const next = Math.round(
+    Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_DEFAULT_WIDTH, width)),
+  );
+  const contentStart = next + 40;
+  document.documentElement.style.setProperty("--sidebar-width", `${next}px`);
+  document.documentElement.style.setProperty(
+    "--content-start",
+    `${contentStart}px`,
+  );
+  document.documentElement.style.setProperty(
+    "--content-half",
+    `${contentStart / 2}px`,
+  );
+  const handle = $("#sidebar-resize-handle");
+  handle.setAttribute("aria-valuenow", String(next));
+  handle.setAttribute("aria-valuetext", `${next} pixels`);
+  if (persist) {
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
+    } catch {}
+  }
+  return next;
+}
+function setupSidebarResize() {
+  const handle = $("#sidebar-resize-handle");
+  let width = SIDEBAR_DEFAULT_WIDTH;
+  try {
+    width = Number(localStorage.getItem(SIDEBAR_STORAGE_KEY)) || width;
+  } catch {}
+  width = applySidebarWidth(width);
+  let startX = 0;
+  let startWidth = width;
+  let dragging = false;
+  handle.addEventListener("pointerdown", (event) => {
+    if (matchMedia("(max-width: 1050px)").matches) return;
+    dragging = true;
+    startX = event.clientX;
+    startWidth = width;
+    handle.setPointerCapture(event.pointerId);
+    document.body.classList.add("sidebar-resizing");
+    event.preventDefault();
+  });
+  handle.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    width = applySidebarWidth(startWidth + event.clientX - startX);
+  });
+  const stopDragging = (event) => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove("sidebar-resizing");
+    if (handle.hasPointerCapture(event.pointerId))
+      handle.releasePointerCapture(event.pointerId);
+    width = applySidebarWidth(width, true);
+  };
+  handle.addEventListener("pointerup", stopDragging);
+  handle.addEventListener("pointercancel", stopDragging);
+  handle.addEventListener("dblclick", () => {
+    width = applySidebarWidth(SIDEBAR_DEFAULT_WIDTH, true);
+  });
+  handle.addEventListener("keydown", (event) => {
+    const changes = {
+      ArrowLeft: width - 16,
+      ArrowRight: width + 16,
+      Home: SIDEBAR_DEFAULT_WIDTH,
+      End: SIDEBAR_MAX_WIDTH,
+    };
+    if (!(event.key in changes)) return;
+    event.preventDefault();
+    width = applySidebarWidth(changes[event.key], true);
+  });
+}
 const value = (v) =>
   Array.isArray(v)
     ? v.join(" – ")
@@ -77,7 +154,9 @@ async function api(path, payload, signal = AbortSignal.timeout(15000)) {
   return body;
 }
 function resetConversationView() {
+  state.cards.clear();
   state.selected.clear();
+  state.favoritePending.clear();
   state.retry = null;
   state.sample = false;
   $("#messages").replaceChildren();
@@ -97,8 +176,20 @@ function renderConversationList() {
       "active",
       conversation.conversation_id === state.conversationId,
     );
-    item.title = title;
+    const favoriteCount = Number(conversation.favorite_count) || 0;
+    item.title = favoriteCount
+      ? `${title} · ${favoriteCount} saved`
+      : title;
+    item.setAttribute(
+      "aria-label",
+      favoriteCount ? `${title}, ${favoriteCount} saved` : title,
+    );
     item.append(el("span", "history-title", title));
+    if (favoriteCount) {
+      const favorite = el("span", "history-favorite", "♥");
+      favorite.setAttribute("aria-hidden", "true");
+      item.append(favorite);
+    }
     list.append(item);
   }
 }
@@ -117,6 +208,14 @@ function restoreHistory(history) {
       message(item.role, item.text);
   }
 }
+function restoreFavorites(favorites) {
+  state.selected.clear();
+  for (const favorite of favorites || []) {
+    const card = state.cards.get(favorite.listing_key);
+    if (card) state.selected.set(favorite.listing_key, card);
+  }
+  syncSelection();
+}
 async function init(conversationId = null) {
   try {
     const r = await api("/api/session", {
@@ -126,6 +225,7 @@ async function init(conversationId = null) {
     state.conversationId = r.conversation_id;
     state.mode = r.mode;
     restoreHistory(r.history);
+    restoreFavorites(r.favorites);
     await refreshConversations();
   } catch (e) {
     showError(e.message);
@@ -176,47 +276,110 @@ function busy(on) {
   $("#new-chat").disabled = on;
   document
     .querySelectorAll(
-      ".confirmation-actions button, .clarification-controls button, .clarification-controls input",
+      ".confirmation-actions button, .clarification-controls button, .clarification-controls input, .favorite-list button",
     )
     .forEach((x) => (x.disabled = on));
+}
+function renderFavoriteList() {
+  const populate = (list) => {
+    list.replaceChildren();
+    if (!state.selected.size) {
+      list.append(el("p", "favorite-empty", "Save a home with ♡"));
+      return;
+    }
+    state.selected.forEach((card, key) => {
+      const item = el("div", "favorite-item");
+      const jump = button(card.title || key, "favorite-jump", () => {
+        const target = [...document.querySelectorAll("[data-key]")].find(
+          (node) => node.dataset.key === key,
+        );
+        if (target)
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+        $("#mobile-favorites").open = false;
+      });
+      jump.title = card.title || key;
+      const remove = button("♥", "favorite-remove", () => toggle(card));
+      remove.setAttribute("aria-label", `Remove ${card.title || "home"}`);
+      remove.disabled = state.favoritePending.has(key) || state.busy;
+      item.append(jump, remove);
+      list.append(item);
+    });
+  };
+  populate($("#favorite-list"));
+  populate($("#mobile-favorite-list"));
+  $("#mobile-favorite-count").textContent = state.selected.size;
 }
 function renderSelection() {
   const wrap = $("#selection");
   wrap.replaceChildren();
   wrap.hidden = !state.selected.size;
+  renderFavoriteList();
   if (!state.selected.size) return;
   wrap.append(
-    el("span", "selection-caption", `${state.selected.size} selected`),
+    el("span", "selection-caption", `${state.selected.size} saved`),
   );
   state.selected.forEach((c, key) =>
     wrap.append(
-      button(`${c.title || key} ×`, "", () => {
-        state.selected.delete(key);
-        syncSelection();
-      }),
+      button(`${c.title || key} ×`, "", () => toggle(c)),
     ),
   );
 }
 function syncSelection() {
   document.querySelectorAll("[data-key]").forEach((n) => {
     const on = state.selected.has(n.dataset.key);
+    const pending = state.favoritePending.has(n.dataset.key);
     n.classList.toggle("selected", on);
-    n.querySelector(".select-home").setAttribute("aria-pressed", String(on));
-    n.querySelector(".select-home").textContent = on ? "✓" : "＋";
+    const control = n.querySelector(".select-home");
+    if (!control) return;
+    control.disabled = pending;
+    control.setAttribute("aria-pressed", String(on));
+    control.setAttribute(
+      "aria-label",
+      `${on ? "Remove" : "Save"} ${state.cards.get(n.dataset.key)?.title || "home"}`,
+    );
+    control.textContent = on ? "♥" : "♡";
   });
   renderSelection();
 }
-function toggle(c) {
+async function toggle(c) {
   if (state.busy) return;
-  if (state.selected.has(c.listing_key)) state.selected.delete(c.listing_key);
-  else {
+  const listingKey = c.listing_key;
+  if (state.favoritePending.has(listingKey)) return;
+  const saved = state.selected.has(listingKey);
+  if (!saved) {
     if (state.selected.size === 6) {
-      showError("Select up to six homes at a time.");
+      showError("Save up to six homes in a conversation.");
       return;
     }
-    state.selected.set(c.listing_key, c);
   }
+  if (state.sample) {
+    if (saved) state.selected.delete(listingKey);
+    else state.selected.set(listingKey, c);
+    syncSelection();
+    return;
+  }
+  state.favoritePending.add(listingKey);
   syncSelection();
+  try {
+    await api(`/api/favorites/${saved ? "remove" : "add"}`, {
+      listing_key: listingKey,
+    });
+    if (saved) state.selected.delete(listingKey);
+    else state.selected.set(listingKey, c);
+    const conversation = state.conversations.find(
+      (item) => item.conversation_id === state.conversationId,
+    );
+    if (conversation) {
+      conversation.favorite_count = state.selected.size;
+      renderConversationList();
+    }
+    $("#error").hidden = true;
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    state.favoritePending.delete(listingKey);
+    syncSelection();
+  }
 }
 function requirement(parent, data) {
   const p = data.profile || {};
@@ -277,7 +440,35 @@ function requirement(parent, data) {
   box.append(actions);
   parent.append(box);
 }
+function listingPhotoSources(c) {
+  const observations = (c.evidence || [])
+    .filter(
+      (entry) =>
+        entry?.field === "media.search_card_photos" &&
+        entry.value?.version === 1,
+    )
+    .sort(
+      (a, b) =>
+        (Date.parse(b.observed_at) || 0) - (Date.parse(a.observed_at) || 0),
+    );
+  const images = observations[0]?.value?.images;
+  if (!Array.isArray(images)) return [];
+  const photos = images.filter((image) => image?.kind === "photo");
+  const fallback = images.filter((image) => image?.kind === "thumbnail");
+  const urls = [];
+  for (const image of photos.length ? [...photos, ...fallback] : fallback) {
+    for (const candidate of Array.isArray(image.urls) ? image.urls : []) {
+      try {
+        const url = new URL(candidate);
+        if (["https:", "http:"].includes(url.protocol) && !urls.includes(url.href))
+          urls.push(url.href);
+      } catch {}
+    }
+  }
+  return urls;
+}
 function card(c) {
+  state.cards.set(c.listing_key, c);
   const n = el("article", "card");
   n.dataset.key = c.listing_key;
   const art = el("div", "card-art");
@@ -286,8 +477,25 @@ function card(c) {
     el("span", "rank", `#${c.rank || "–"} recommended`),
     el("span", "art-label", "ARCHITECTURAL ILLUSTRATION"),
   );
-  const select = button("＋", "select-home", () => toggle(c));
-  select.setAttribute("aria-label", `Select ${c.title || "home"}`);
+  const photoSources = listingPhotoSources(c);
+  if (photoSources.length) {
+    const image = document.createElement("img");
+    image.className = "card-photo";
+    image.alt = `${c.title || "Home"} listing photo`;
+    image.loading = "lazy";
+    image.decoding = "async";
+    let sourceIndex = 0;
+    image.onload = () => art.classList.add("has-photo");
+    image.onerror = () => {
+      sourceIndex += 1;
+      if (sourceIndex < photoSources.length) image.src = photoSources[sourceIndex];
+      else image.remove();
+    };
+    image.src = photoSources[sourceIndex];
+    art.append(image);
+  }
+  const select = button("♡", "select-home", () => toggle(c));
+  select.setAttribute("aria-label", `Save ${c.title || "home"}`);
   select.setAttribute("aria-pressed", "false");
   art.append(select);
   n.append(art);
@@ -781,6 +989,7 @@ $("#input").addEventListener("keydown", (e) => {
     send($("#input").value);
   }
 });
+setupSidebarResize();
 bootstrap();
 
 $("#mobile-new").onclick = () => $("#new-chat").click();
