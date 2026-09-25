@@ -3,6 +3,7 @@ import asyncio
 from copy import deepcopy
 import json
 import logging
+import os
 from pathlib import Path
 import re
 import shutil
@@ -62,9 +63,15 @@ class GuruSearchProvider:
 
     def __init__(self, command: Sequence[str] | None = None, *, timeout_seconds: float = 30):
         if command is None:
-            executable = shutil.which('opencli')
-            user_install = Path.home() / '.npm-global/bin/opencli'
-            command = (executable or (str(user_install) if user_install.is_file() else 'opencli'),)
+            configured = os.getenv('OPENCLI_BIN')
+            if configured:
+                configured_path = Path(configured).expanduser()
+                command = ((shutil.which('node') or 'node'), str(configured_path)) \
+                    if configured_path.suffix == '.js' else (str(configured_path),)
+            else:
+                executable = shutil.which('opencli')
+                user_install = Path.home() / '.npm-global/bin/opencli'
+                command = (executable or (str(user_install) if user_install.is_file() else 'opencli'),)
         if not command or isinstance(command, str) or timeout_seconds <= 0:
             raise ValueError("command 必须是参数数组，timeout_seconds 必须大于零")
         self.command = tuple(command)

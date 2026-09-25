@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from property_agent.contracts import ChatMessage, RunContext, ConversationProfile
+from property_agent.favorites import ConversationFavorite
 
 
 class ChatRepository(Protocol):
@@ -41,4 +42,30 @@ class ChatRepository(Protocol):
 class RunBootstrap(Protocol):
     def prepare_run(self, *, ctx: RunContext, profile: ConversationProfile) -> None:
         """幂等创建 conversation、profile 与 agent_run；graph_thread_id 固定为 run_id。"""
+        ...
+
+
+class ConversationFavoriteRepository(Protocol):
+    def counts_by_conversation(
+        self, conversation_ids: list[str], *, user_id: str
+    ) -> dict[str, int]:
+        """批量返回当前用户各会话的收藏数量。"""
+        ...
+
+    def add(
+        self, conversation_id: str, *, user_id: str, listing_key: str
+    ) -> ConversationFavorite:
+        """幂等收藏当前用户会话中的房源。"""
+        ...
+
+    def remove(
+        self, conversation_id: str, *, user_id: str, listing_key: str
+    ) -> bool:
+        """取消收藏；不存在时返回 False。"""
+        ...
+
+    def list(
+        self, conversation_id: str, *, user_id: str
+    ) -> list[ConversationFavorite]:
+        """按收藏时间返回当前会话的收藏。"""
         ...

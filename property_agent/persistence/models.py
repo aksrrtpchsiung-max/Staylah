@@ -119,6 +119,19 @@ class MessageRow(Base):
     )
 
 
+class ConversationFavoriteRow(Base):
+    __tablename__ = "conversation_favorites"
+
+    conversation_id: Mapped[str] = mapped_column(
+        ForeignKey("conversations.conversation_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    listing_key: Mapped[str] = mapped_column(String(500), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
 class AgentRunRow(Base):
     __tablename__ = "agent_runs"
     __table_args__ = (

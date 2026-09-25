@@ -12,6 +12,7 @@ class InMemoryChatRepository:
     """按 conversation 隔离的内存聊天记录，形状与 SqlChatRepository 一致。"""
 
     conversations: dict[str, str] = field(default_factory=dict)
+    titles: dict[str, str] = field(default_factory=dict)
     messages: dict[str, list[ChatMessage]] = field(default_factory=dict)
     by_id: dict[str, ChatMessage] = field(default_factory=dict)
 
@@ -44,6 +45,36 @@ class InMemoryChatRepository:
         self.by_id[message_id] = message
         self.messages.setdefault(conversation_id, []).append(message)
         return message
+
+    def set_conversation_title(
+        self,
+        conversation_id: str,
+        *,
+        user_id: str,
+        title: str,
+        overwrite: bool = False,
+    ) -> None:
+        self.ensure_conversation(conversation_id, user_id=user_id)
+        clean = " ".join(title.split())[:500]
+        if clean:
+            if overwrite:
+                self.titles[conversation_id] = clean
+            else:
+                self.titles.setdefault(conversation_id, clean)
+
+    def list_conversations(
+        self, *, user_id: str, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        return [
+            {
+                "conversation_id": conversation_id,
+                "title": self.titles[conversation_id],
+                "updated_at": "",
+            }
+            for conversation_id in reversed(list(self.conversations))
+            if self.conversations[conversation_id] == user_id
+            and conversation_id in self.titles
+        ][:limit]
 
     def list_messages(
         self,

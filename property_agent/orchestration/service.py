@@ -15,6 +15,7 @@ from property_agent.contracts import ConversationProfile, RequirementRequest, Re
 from property_agent.decision.graph import initial_state
 from property_agent.decision.runtime import thread_config
 from property_agent.evaluation_trace import record_event, stage_span
+from property_agent.persistence.boundaries import ConversationFavoriteRepository
 from property_agent.results import is_usable
 from requirement_understanding.response_renderer import ResponseRenderer
 from requirement_understanding.workflow import build_requirement_request
@@ -51,6 +52,23 @@ class SearchCoordinator(Protocol):
 
 class ChatStore(Protocol):
     def ensure_conversation(self, conversation_id: str, *, user_id: str) -> None: ...
+
+    def set_conversation_title(
+        self,
+        conversation_id: str,
+        *,
+        user_id: str,
+        title: str,
+        overwrite: bool = False,
+    ) -> None: ...
+
+    def list_conversations(
+        self, *, user_id: str, limit: int = 50
+    ) -> list[dict[str, Any]]: ...
+
+    def list_messages(
+        self, conversation_id: str, *, after: str | None = None, limit: int = 50
+    ) -> list[Any]: ...
 
     def append_message(
         self,
@@ -113,6 +131,7 @@ class ConversationOrchestrator:
         chat: ChatStore,
         runs: RunStore,
         profiles: ProfileStore,
+        favorites: ConversationFavoriteRepository | None = None,
         renderer: ResponseRenderer | None = None,
         source_mode: str = "live",
         deadline_seconds: int = 300,
@@ -125,6 +144,7 @@ class ConversationOrchestrator:
         self.chat = chat
         self.runs = runs
         self.profiles = profiles
+        self.favorites = favorites
         self.renderer = renderer or ResponseRenderer()
         self.source_mode = source_mode
         self.deadline_seconds = deadline_seconds

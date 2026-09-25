@@ -659,6 +659,64 @@ partial；Tampines 和 Punggol 各另有一套出租范围待核实。Punggol �
 另有三组缺币种/周期的实际需求通过澄清分支检查；解析、查询转换各四组通过，
 需求汇总使用历史真实上游结果回放四组通过，并核验了本次四组最终真实产物。
 
+## 搜索卡片图片（交给展示端）
+
+3a 在已有 guru_search 搜索页读取过程中解析
+`listingData.mediaCarousel.previewMedia` 和 `thumbnail`，保留卡片提供的全部照片、
+户型图、总平面图及封面尺寸链接，不限制每套房源的图片数、不逐套打开详情页、
+不调用大模型、不下载图片。当前真实页面在初始结构化数据中已提供完整轮播数组，
+因此无需模拟逐张翻图。未来页面不再提供完整数组时保留已取得的链接并报告缺口。
+
+共享 `Listing` 字段保持不变。每套房源的 `evidence` 增加一条
+`field="media.search_card_photos"` 的记录，`source_url` 是房源页，`observed_at` 是采集时间。
+该证据的 `value` 格式约定如下（`version=1`）：
+
+| 字段 | 含义 |
+| --- | --- |
+| `images` | 按来源顺序保存的图片数组，无图时为空 |
+| `images[].image_id` | 页面 CDN 图片标识；无法识别标识时使用原链接，不猜测图片身份 |
+| `images[].kind` | `photo`、`floor_plan`、`site_plan`、`thumbnail` 或 `video_thumbnail` |
+| `images[].urls` | 同一张图片的全部已观察链接；主图链接在前，封面尺寸随后；不改写尺寸或移除查询参数 |
+| `images[].caption` | 页面图片说明，没有则为 `null` |
+| `reported_count` | 卡片 Photos 标示数量；未知为 `null`，不包含户型图/总平面图/视频 |
+| `extracted_count` | 已取得的唯一 `photo` 数量，同一图片多个尺寸只计一次 |
+| `status` | `complete` 数量对齐且无解析问题；`partial` 少于标示数量；`unknown` 无法确认；`unavailable` 未取得图片且未明确标示零张 |
+| `issues` | 图片解析、数量或房源归属问题；不因此阻断搜索或降级整个搜索结果 |
+
+相同 URL 只保留一次。无法和相册图片对应的独立封面仍保留为 `thumbnail`，
+不拿它凑照片数量。`complete` 只表示本次卡片标示的照片数量已对齐，
+不保证链接永久有效，也不承诺详情页没有其他照片。
+详情补充、物理页缓存及最终汇总会保留该证据；多次观察可能保留多条记录，展示端使用最新一条。
+
+展示端可这样取得照片轮播数据，每项 `urls` 保留作加载失败时的尺寸备用：
+
+```javascript
+const observations = listing.evidence
+  .filter(e => e.field === 'media.search_card_photos' && e.value?.version === 1)
+  .sort((a, b) => Date.parse(b.observed_at) - Date.parse(a.observed_at));
+const media = observations[0]?.value;
+const photos = (media?.images ?? []).filter(image => image.kind === 'photo');
+const slides = photos.length ? photos : (media?.images ?? []).filter(image => image.kind === 'thumbnail');
+// 每个 slide 首选 slide.urls[0]，加载失败尝试其余链接，全部失败显示占位图。
+// 户型图和总平面图可按 kind 单独展示；不要把多尺寸链接渲染成重复照片。
+```
+
+真实验收入口在 3a 文件自身的 `__main__` 中，默认执行 Tampines / Clementi / Punggol 三组
+2→3a 的 live 输入，逐条对照同次搜索的原始媒体链接、数量和顺序，并核验缓存、去重合并、最终汇总：
+
+```bash
+.venv/bin/python -B -m part3.capabilities.listings --photos-only --output /tmp/propertyguru-photo-live-results.json
+```
+
+可用 `--input` 指定至少三组真实 `{plan, ctx}`。测试使用 guru_search 的
+`--include-media-source` 诊断开关取得原始媒体；正常运行不开启，不重复传输原始图片数据。
+修改适配器后需同步 `search.js` 和 `contract-listing.js` 到 `~/.opencli/clis/propertyguru/`。
+
+2026/09/24 真实验收：三组搜索各 20 套，共 60 套、878 张照片、961 个图片链接
+（含其他尺寸和附加图片），与同次页面原始数据逐条一致；缓存、重复合并及最终汇总通过。
+另三套真实详情补充后图片证据保持不变。截图中的 `propertyguru:24214804`
+取得 9 张照片、10 个链接，10 个链接均已在浏览器跨站加载成功。
+
 ## 3c 周边设施与 3d 出行
 
 3c 从住宅坐标查询地铁/轻轨站、公交站、超市、学校、公园。默认半径为 **1500 米直线距离**；

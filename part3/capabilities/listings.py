@@ -264,7 +264,66 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='3a 的真实搜索/详情检查；输入 SearchPlan，输出实际 Result')
     parser.add_argument('--input', type=Path, help='包含至少三组真实 {plan, ctx} 的 JSON 文件')
     parser.add_argument('--output', type=Path, help='保存真实输入输出记录')
+    parser.add_argument('--photos-only', action='store_true', help='真实搜索卡片图片及汇总验收，不逐套读取详情')
     args = parser.parse_args()
+
+    class PhotoVerificationProvider(GuruSearchProvider):
+        """真实 OpenCLI 调用，仅开启原始媒体诊断，不伪造服务响应。"""
+        async def _call(self, arguments, ctx):
+            if arguments[0] == 'search':
+                payload = await super()._call([*arguments, '--include-media-source'], ctx)
+                self.media_source = payload.pop('media_source')
+                return payload
+            return await super()._call(arguments, ctx)
+
+    async def verify_photos(cap, plan, ctx, page):
+        """独立读取同一真实搜索页，检查所有来源图片都穿过 3a 和最终汇总。"""
+        from part45.aggregation import aggregate, merge_listing
+        from state import initial_state
+        source = {r['id']: r for r in cap.provider.media_source}
+        photo_field = 'media.search_card_photos'
+        for item in page['items']:
+            records = [e for e in item['evidence'] if e['field'] == photo_field]
+            assert len(records) == 1, '每套房源必须有一条搜索图片记录（无图也需记录）'
+            evidence = records[0]
+            media = evidence['value']
+            raw = source[item['source_listing_id']]
+            expected = [entry['src'] for group in ('images', 'floorPlans', 'sitePlans')
+                        for entry in raw['preview'][group]['items']]
+            if raw.get('thumbnail'):
+                expected.append(raw['thumbnail'])
+            actual = [url for image in media['images'] for url in image['urls']]
+            assert set(actual) == set(expected), '遗漏或混入来源之外的图片链接'
+            assert len(actual) == len(set(actual)), '重复 URL 未去重'
+            assert evidence['source_url'] == item['source_url'], '图片来源串房源'
+            photo_urls = [image['urls'][0] for image in media['images'] if image['kind'] == 'photo']
+            source_photos = list(dict.fromkeys(e['src'] for e in raw['preview']['images']['items']))
+            assert photo_urls == source_photos, '照片顺序或照片数量发生变化'
+            reported = next((int(m['text']) for m in raw['mediaItems'] if m['mediaType'] == 'images'), None)
+            assert media['reported_count'] == reported
+            assert media['extracted_count'] == len(photo_urls)
+            if reported == len(photo_urls):
+                assert media['status'] == 'complete', '真实完整照片应标记为 complete'
+            assert [e['value'] for e in merge_listing(item, item)['evidence'] if e['field'] == photo_field] == [
+                media], '重复合并丢失图片证据'
+        # 验证同一真实物理页缓存后链接仍完整，不额外请求网页。
+        query = next(q for q in plan['queries'] if q['query_id'] == page['query_id'])
+        cached = await cap.provider.search_page(query, intent=plan['intent'],
+            filters=plan['required_filters'], limit=len(page['items']), ctx=ctx)
+        assert cached['items'] == page['items'], '页缓存改变了图片记录'
+        state = initial_state(plan, ctx)
+        state['pages'] = [page]
+        state['listings'] = {item['listing_key']: item for item in page['items']}
+        state['queries'][page['query_id']].update(cursor=page['next_cursor'],
+            done=page['pagination_known'] and page['next_cursor'] is None)
+        result = aggregate(state, monotonic())
+        assert result['data'] is not None
+        for item in result['data']['items']:
+            original = state['listings'][item['listing_key']]
+            # 汇总会规范 observed_at 的时区格式；图片内容必须原样保留。
+            assert [e['value'] for e in item['evidence'] if e['field'] == photo_field] == [
+                e['value'] for e in original['evidence'] if e['field'] == photo_field]
+        return dict(source_cards=source, aggregation_output=result)
 
     async def main():
         if args.input:
@@ -274,13 +333,14 @@ if __name__ == '__main__':
                 parser.error('需要至少三组真实业务输入')
         else:
             cases=[]
-            for area, maximum in [('Tampines', 4000), ('Clementi', 4500), ('Punggol', 4000)]:
+            for area, maximum in [('Tampines', 4000), ('Clementi', 5000 if args.photos_only else 4500), ('Punggol', 4000)]:
                 identity=str(uuid4())
                 plan=dict(plan_id=identity, profile_version=1, attempt_id=identity, intent='rent',
                     required_filters=dict(currency='SGD', max_price=maximum, price_period='month',
                         rental_scope='whole_unit', locations=[area.upper()], min_bedrooms=2),
                     queries=[dict(query_id='q-'+area.lower(), source='propertyguru', text=area, cursor=None)],
-                    page_limit=1, candidate_limit=1, source_mode='live', reason='真实 3a 输入输出检查')
+                    page_limit=1, candidate_limit=20 if args.photos_only else 1,
+                    source_mode='live', reason='真实 3a 输入输出检查')
                 ctx=dict(user_id='live-check', run_id=identity, conversation_id=identity, attempt_id=identity,
                     trace_id=identity, call_id=identity, source_mode='live',
                     deadline_at=(datetime.now(timezone.utc)+timedelta(minutes=5)).isoformat())
@@ -291,13 +351,20 @@ if __name__ == '__main__':
             plan, ctx=case['plan'], case['ctx']
             if ctx['source_mode'] != 'live':
                 parser.error('验收只接受 live 输入，不使用虚拟响应')
-            cap=ListingsCapability(GuruSearchProvider(), SearchBudget(plan, ctx))
+            cap=ListingsCapability(PhotoVerificationProvider() if args.photos_only else GuruSearchProvider(), SearchBudget(plan, ctx,
+                page_result_limit=20 if args.photos_only else 6))
             output=await cap.search_page(plan, plan['queries'][0]['query_id'], ctx=ctx)
             details=[]
-            if output['data']:
+            if output['data'] and not args.photos_only:
                 for item in output['data']['items']:
                     details.append(await cap.read_detail(item, ctx=ctx))
             failures, checked_facts = [], 0
+            photo_verification = None
+            if args.photos_only and output['data'] and output['data']['items']:
+                try:
+                    photo_verification = await verify_photos(cap, plan, ctx, output['data'])
+                except (AssertionError, KeyError, TypeError, ValueError, TimeoutError) as exc:
+                    failures.append('图片验收失败：' + str(exc))
             if output['data']:
                 page = output['data']
                 filters = plan['required_filters']
@@ -318,16 +385,18 @@ if __name__ == '__main__':
                     checked, problems = verify_observed_details(detail['data'])
                     checked_facts += checked
                     failures.extend(detail['data']['listing_key'] + ': ' + problem for problem in problems)
-            accepted=bool(output['data'] and output['data']['items'] and details
-                          and all(x['status']=='success' for x in details) and not failures)
+            accepted=bool(output['data'] and output['data']['items'] and not failures and (
+                photo_verification if args.photos_only else details and all(x['status']=='success' for x in details)))
             passed+=accepted
             record=dict(input=case, search_output=output, detail_outputs=details,
-                        checked_detail_facts=checked_facts, failures=failures, live_verified=accepted)
+                        checked_detail_facts=checked_facts, photo_verification=photo_verification,
+                        failures=failures, live_verified=accepted)
             records.append(record)
             print(json.dumps(record, ensure_ascii=False), flush=True)
         if args.output:
             args.output.write_text(json.dumps(records, ensure_ascii=False, indent=2))
-        print(f'真实 3a 搜索及详情通过 {passed}/{len(cases)}；没有真实返回就不会通过。')
+        label = '搜索图片及汇总' if args.photos_only else '搜索及详情'
+        print(f'真实 3a {label}通过 {passed}/{len(cases)}；没有真实返回就不会通过。')
         return 0 if passed==len(cases) else 1
 
     raise SystemExit(asyncio.run(main()))

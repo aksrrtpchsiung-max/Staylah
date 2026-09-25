@@ -8,7 +8,10 @@ import json
 import os
 from pathlib import Path
 import threading
+import re
 from uuid import uuid4
+
+from requirement_understanding.workflow_constants import DEFAULT_USER_ID
 
 ROOT = Path(__file__).resolve().parent
 
@@ -34,16 +37,182 @@ class WebBridge:
         self.turn_timeout_seconds = turn_timeout_seconds
         self.sessions = {}
 
-    def create_session(self):
+    def create_session(self, conversation_id=None):
+        if conversation_id is not None:
+            if not isinstance(conversation_id, str) or not re.fullmatch(
+                r"web-[0-9a-f]{32}", conversation_id
+            ):
+                raise ValueError('Invalid conversation ID.')
+            chat = getattr(self.orchestrator, 'chat', None)
+            if chat is not None:
+                try:
+                    chat.ensure_conversation(conversation_id, user_id=DEFAULT_USER_ID)
+                    if hasattr(chat, 'set_conversation_title'):
+                        first_user_message = next(
+                            (
+                                item['text']
+                                for item in chat.list_messages(conversation_id, limit=100)
+                                if item['role'] == 'user'
+                            ),
+                            None,
+                        )
+                        if first_user_message:
+                            chat.set_conversation_title(
+                                conversation_id,
+                                user_id=DEFAULT_USER_ID,
+                                title=first_user_message,
+                            )
+                except PermissionError as exc:
+                    raise ValueError('Conversation unavailable.') from exc
         token = uuid4().hex
-        self.sessions[token] = dict(conversation_id=f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None, progress=None)
+        self.sessions[token] = dict(conversation_id=conversation_id or f'web-{uuid4().hex}', cards={}, lock=asyncio.Lock(), replies={}, cancelled=set(), active=None, progress=None)
         return token
+
+    async def _recommendation_cards(self, session, *, run_id, recommendation):
+        if not recommendation or not run_id or self.orchestrator is None:
+            return []
+        snapshot = await self.orchestrator.decision_graph.aget_state(
+            {'configurable': {'thread_id': run_id}}
+        )
+        listings = {
+            item['listing_key']: item
+            for item in (snapshot.values.get('listing_snapshot') or {}).get('items', [])
+        }
+        cards = []
+        for item in recommendation.get('ordered_items', []):
+            listing = listings.get(item['listing_key'], {})
+            card = {
+                **item,
+                **{
+                    key: listing.get(key)
+                    for key in (
+                        'title',
+                        'price',
+                        'bedrooms',
+                        'attributes',
+                        'evidence',
+                        'source_url',
+                        'source_mode',
+                    )
+                },
+            }
+            card['listing_key'] = item['listing_key']
+            cards.append(card)
+            session['cards'][item['listing_key']] = card
+        return cards
+
+    async def session_info(self, token):
+        session = self._session(token)
+        chat = getattr(self.orchestrator, 'chat', None)
+        history = chat.list_messages(session['conversation_id'], limit=100) if chat is not None else []
+        if self.orchestrator is not None and history:
+            config = {'configurable': {'thread_id': session['conversation_id']}}
+            try:
+                snapshot = await self.orchestrator.a_graph.aget_state(config)
+                processed = (snapshot.values or {}).get('processed_turns') or {}
+            except Exception:
+                processed = {}
+            for message in history:
+                prefix = 'assistant:'
+                if message['role'] != 'assistant' or not message['message_id'].startswith(prefix):
+                    continue
+                turn = processed.get(message['message_id'][len(prefix):])
+                if not isinstance(turn, dict) or not turn.get('recommendation'):
+                    continue
+                render_data = {
+                    'assistant_response': turn.get('assistant_response', ''),
+                    'recommendation': turn['recommendation'],
+                    'cards': await self._recommendation_cards(
+                        session,
+                        run_id=turn.get('run_id'),
+                        recommendation=turn['recommendation'],
+                    ),
+                }
+                message['render_data'] = render_data
+        return {
+            'session_id': token,
+            'conversation_id': session['conversation_id'],
+            'history': history,
+            'favorites': self.list_favorites(token),
+        }
+
+    def conversations(self):
+        chat = getattr(self.orchestrator, 'chat', None)
+        if chat is None or not hasattr(chat, 'list_conversations'):
+            return []
+        conversations = chat.list_conversations(user_id=DEFAULT_USER_ID, limit=50)
+        favorites = getattr(self.orchestrator, 'favorites', None)
+        counts = {}
+        if favorites is not None and hasattr(favorites, 'counts_by_conversation'):
+            counts = favorites.counts_by_conversation(
+                [item['conversation_id'] for item in conversations],
+                user_id=DEFAULT_USER_ID,
+            )
+        elif favorites is not None:
+            counts = {
+                item['conversation_id']: len(
+                    favorites.list(
+                        item['conversation_id'], user_id=DEFAULT_USER_ID
+                    )
+                )
+                for item in conversations
+            }
+        return [
+            {
+                **item,
+                'favorite_count': counts.get(item['conversation_id'], 0),
+            }
+            for item in conversations
+        ]
 
     def _session(self, token):
         session = self.sessions.get(token)
         if session is None:
             raise ValueError('Session expired. Start a new conversation.')
         return session
+
+    @staticmethod
+    def _listing_key(payload):
+        listing_key = payload.get('listing_key')
+        if not isinstance(listing_key, str) or not 1 <= len(listing_key) <= 500:
+            raise ValueError('Invalid listing key.')
+        return listing_key
+
+    def _favorites(self):
+        favorites = getattr(self.orchestrator, 'favorites', None)
+        if favorites is None:
+            raise ValueError('Favorites are unavailable.')
+        return favorites
+
+    def list_favorites(self, token):
+        session = self._session(token)
+        favorites = getattr(self.orchestrator, 'favorites', None)
+        if favorites is None:
+            return []
+        return favorites.list(
+            session['conversation_id'], user_id=DEFAULT_USER_ID
+        )
+
+    def add_favorite(self, token, payload):
+        session = self._session(token)
+        listing_key = self._listing_key(payload)
+        if listing_key not in session['cards']:
+            raise ValueError('This home is not available in the current conversation.')
+        return self._favorites().add(
+            session['conversation_id'],
+            user_id=DEFAULT_USER_ID,
+            listing_key=listing_key,
+        )
+
+    def remove_favorite(self, token, payload):
+        session = self._session(token)
+        listing_key = self._listing_key(payload)
+        removed = self._favorites().remove(
+            session['conversation_id'],
+            user_id=DEFAULT_USER_ID,
+            listing_key=listing_key,
+        )
+        return {'listing_key': listing_key, 'removed': removed}
 
     @staticmethod
     def _message_id(payload):
@@ -135,12 +304,18 @@ class WebBridge:
         if self.orchestrator is None:
             raise ValueError('Preview mode. Start the server with --live to connect your configured A → B → C runtime.')
         cid = session['conversation_id']
+        chat = getattr(self.orchestrator, 'chat', None)
+        if chat is not None and hasattr(chat, 'set_conversation_title'):
+            chat.ensure_conversation(cid, user_id=DEFAULT_USER_ID)
+            chat.set_conversation_title(cid, user_id=DEFAULT_USER_ID, title=text)
         config = {'configurable': {'thread_id': cid}}
         before = (await self.orchestrator.a_graph.aget_state(config)).values or {}
+        confirmed_title = None
         if payload.get('confirmation_id'):
             confirmation = before.get('confirmation') or {}
             if confirmation.get('confirmation_id') != payload['confirmation_id'] or confirmation.get('status') != 'pending' or confirmation.get('profile_version') != (before.get('profile') or {}).get('version'):
                 raise ValueError('Your requirements have changed. Confirm the latest version.')
+            confirmed_title = ' '.join(str(confirmation.get('summary') or '').split())
             text = 'confirm'
         if keys:
             # 既有 handle_message 仅支持 text；用可信快照构造本轮参考上下文。
@@ -159,14 +334,20 @@ class WebBridge:
             data['clarification_questions'] = []
         data['cards'] = []
         if result.recommendation and result.run_id:
-            snapshot = await self.orchestrator.decision_graph.aget_state({'configurable': {'thread_id': result.run_id}})
-            listings = {x['listing_key']: x for x in (snapshot.values.get('listing_snapshot') or {}).get('items', [])}
-            for item in result.recommendation.get('ordered_items', []):
-                listing = listings.get(item['listing_key'], {})
-                card = {**item, **{k: listing.get(k) for k in ('title', 'price', 'bedrooms', 'attributes', 'source_url', 'source_mode')}}
-                card['listing_key'] = item['listing_key']
-                data['cards'].append(card)
-                session['cards'][item['listing_key']] = card
+            data['cards'] = await self._recommendation_cards(
+                session,
+                run_id=result.run_id,
+                recommendation=result.recommendation,
+            )
+        if confirmed_title and chat is not None and hasattr(chat, 'set_conversation_title'):
+            if not confirmed_title.endswith(('.', '!', '?')):
+                confirmed_title += '.'
+            chat.set_conversation_title(
+                cid,
+                user_id=DEFAULT_USER_ID,
+                title=confirmed_title,
+                overwrite=True,
+            )
         session['replies'][message_id] = data
         return data
 
@@ -206,9 +387,31 @@ class Handler(SimpleHTTPRequestHandler):
                 raise ValueError('Invalid request.')
             if self.path == '/api/session':
                 async def create():
-                    return self.server.bridge.create_session()
-                token = asyncio.run_coroutine_threadsafe(create(), self.server.loop).result(10)
-                return self.respond(200, {'session_id': token, 'mode': self.server.mode})
+                    token = self.server.bridge.create_session(payload.get('conversation_id'))
+                    return await self.server.bridge.session_info(token)
+                info = asyncio.run_coroutine_threadsafe(create(), self.server.loop).result(10)
+                return self.respond(200, {**info, 'mode': self.server.mode})
+            if self.path == '/api/conversations':
+                async def conversations():
+                    return self.server.bridge.conversations()
+                items = asyncio.run_coroutine_threadsafe(conversations(), self.server.loop).result(10)
+                return self.respond(200, {'conversations': items})
+            if self.path == '/api/favorites/list':
+                return self.respond(200, {
+                    'favorites': self.server.bridge.list_favorites(
+                        self.headers.get('X-Session-ID')
+                    )
+                })
+            if self.path == '/api/favorites/add':
+                return self.respond(200, {
+                    'favorite': self.server.bridge.add_favorite(
+                        self.headers.get('X-Session-ID'), payload
+                    )
+                })
+            if self.path == '/api/favorites/remove':
+                return self.respond(200, self.server.bridge.remove_favorite(
+                    self.headers.get('X-Session-ID'), payload
+                ))
             if self.path == '/api/cancel':
                 future = asyncio.run_coroutine_threadsafe(
                     self.server.bridge.cancel(self.headers.get('X-Session-ID'), payload), self.server.loop)

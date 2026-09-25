@@ -19,6 +19,7 @@ from property_agent.persistence.database import (
 )
 from property_agent.persistence.repositories import (
     SqlChatRepository,
+    SqlConversationFavoriteRepository,
     SqlProfileRepository,
     SqlRequirementProfileRepository,
     SqlRunRepository,
@@ -100,6 +101,7 @@ async def postgres_conversation_runtime(
             chat=SqlChatRepository(sessions),
             runs=SqlRunRepository(sessions),
             profiles=SqlProfileRepository(sessions),
+            favorites=SqlConversationFavoriteRepository(sessions),
             source_mode=settings.run.source_mode,
             deadline_seconds=settings.run.deadline_seconds,
         )

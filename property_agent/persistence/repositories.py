@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
@@ -19,9 +19,11 @@ from property_agent.contracts import (
     RunContext,
 )
 from property_agent.decision.boundaries import ProfileVersionConflict
+from property_agent.favorites import ConversationFavorite
 from property_agent.profiles import apply_relaxation
 from property_agent.persistence.models import (
     AgentRunRow,
+    ConversationFavoriteRow,
     ConversationProfileRow,
     ConversationRow,
     MessageRow,
@@ -498,6 +500,95 @@ class SqlChatRepository:
             if stored is None or stored.user_id != user_id:
                 raise PermissionError("conversation 不属于当前用户")
 
+    def set_conversation_title(
+        self,
+        conversation_id: str,
+        *,
+        user_id: str,
+        title: str,
+        overwrite: bool = False,
+    ) -> None:
+        clean = " ".join(title.split())[:500]
+        if not clean:
+            return
+        conditions = [
+            ConversationRow.conversation_id == conversation_id,
+            ConversationRow.user_id == user_id,
+        ]
+        if not overwrite:
+            conditions.append(ConversationRow.title.is_(None))
+        with self.sessions.begin() as session:
+            session.execute(
+                update(ConversationRow)
+                .where(*conditions)
+                .values(title=clean)
+            )
+
+    def list_conversations(
+        self, *, user_id: str, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        last_message = (
+            select(
+                MessageRow.conversation_id,
+                func.max(MessageRow.created_at).label("last_message_at"),
+            )
+            .group_by(MessageRow.conversation_id)
+            .subquery()
+        )
+        first_user_message = (
+            select(
+                MessageRow.conversation_id,
+                MessageRow.text.label("first_text"),
+                func.row_number()
+                .over(
+                    partition_by=MessageRow.conversation_id,
+                    order_by=(MessageRow.created_at, MessageRow.message_id),
+                )
+                .label("position"),
+            )
+            .where(MessageRow.role == "user")
+            .subquery()
+        )
+        with self.sessions() as session:
+            rows = session.execute(
+                select(
+                    ConversationRow,
+                    last_message.c.last_message_at,
+                    first_user_message.c.first_text,
+                )
+                .outerjoin(
+                    last_message,
+                    last_message.c.conversation_id == ConversationRow.conversation_id,
+                )
+                .outerjoin(
+                    first_user_message,
+                    (first_user_message.c.conversation_id == ConversationRow.conversation_id)
+                    & (first_user_message.c.position == 1),
+                )
+                .where(
+                    ConversationRow.user_id == user_id,
+                    or_(
+                        ConversationRow.title.is_not(None),
+                        first_user_message.c.first_text.is_not(None),
+                    ),
+                )
+                .order_by(
+                    func.coalesce(
+                        last_message.c.last_message_at, ConversationRow.created_at
+                    ).desc()
+                )
+                .limit(limit)
+            ).all()
+            return [
+                {
+                    "conversation_id": conversation.conversation_id,
+                    "title": conversation.title
+                    or " ".join(first_text.split())[:80],
+                    "updated_at": (last_at or conversation.created_at).isoformat(),
+                }
+                for conversation, last_at, first_text in rows
+            ]
+
     def append_message(
         self,
         conversation_id: str,
@@ -565,6 +656,110 @@ class SqlChatRepository:
                 {"message_id": row.message_id, "role": row.role, "text": row.text}  # type: ignore[typeddict-item]
                 for row in rows
             ]
+
+
+class SqlConversationFavoriteRepository:
+    """Conversation-scoped favorites; ownership is inherited from conversations."""
+
+    def __init__(self, sessions: SessionFactory) -> None:
+        self.sessions = sessions
+
+    @staticmethod
+    def _favorite_from_row(row: ConversationFavoriteRow) -> ConversationFavorite:
+        return {
+            "conversation_id": row.conversation_id,
+            "listing_key": row.listing_key,
+            "created_at": row.created_at.isoformat(),
+        }
+
+    @staticmethod
+    def _owned_conversation(
+        session: Session, conversation_id: str, user_id: str
+    ) -> ConversationRow | None:
+        conversation = session.get(ConversationRow, conversation_id)
+        if conversation is not None and conversation.user_id != user_id:
+            raise PermissionError("conversation 不属于当前用户")
+        return conversation
+
+    def counts_by_conversation(
+        self, conversation_ids: list[str], *, user_id: str
+    ) -> dict[str, int]:
+        unique_ids = list(dict.fromkeys(conversation_ids))
+        if not unique_ids:
+            return {}
+        with self.sessions() as session:
+            rows = session.execute(
+                select(
+                    ConversationFavoriteRow.conversation_id,
+                    func.count(ConversationFavoriteRow.listing_key),
+                )
+                .join(
+                    ConversationRow,
+                    ConversationRow.conversation_id
+                    == ConversationFavoriteRow.conversation_id,
+                )
+                .where(
+                    ConversationRow.user_id == user_id,
+                    ConversationFavoriteRow.conversation_id.in_(unique_ids),
+                )
+                .group_by(ConversationFavoriteRow.conversation_id)
+            ).all()
+            return {
+                conversation_id: int(favorite_count)
+                for conversation_id, favorite_count in rows
+            }
+
+    def add(
+        self, conversation_id: str, *, user_id: str, listing_key: str
+    ) -> ConversationFavorite:
+        with self.sessions.begin() as session:
+            if self._owned_conversation(session, conversation_id, user_id) is None:
+                raise KeyError(conversation_id)
+            statement = pg_insert(ConversationFavoriteRow).values(
+                conversation_id=conversation_id,
+                listing_key=listing_key,
+            )
+            session.execute(
+                statement.on_conflict_do_nothing(
+                    index_elements=["conversation_id", "listing_key"]
+                )
+            )
+            stored = session.get(
+                ConversationFavoriteRow, (conversation_id, listing_key)
+            )
+            if stored is None:
+                raise RuntimeError("favorite insert did not persist")
+            return self._favorite_from_row(stored)
+
+    def remove(
+        self, conversation_id: str, *, user_id: str, listing_key: str
+    ) -> bool:
+        with self.sessions.begin() as session:
+            if self._owned_conversation(session, conversation_id, user_id) is None:
+                return False
+            removed = session.execute(
+                delete(ConversationFavoriteRow).where(
+                    ConversationFavoriteRow.conversation_id == conversation_id,
+                    ConversationFavoriteRow.listing_key == listing_key,
+                ).returning(ConversationFavoriteRow.listing_key)
+            ).scalar_one_or_none()
+            return removed is not None
+
+    def list(
+        self, conversation_id: str, *, user_id: str
+    ) -> list[ConversationFavorite]:
+        with self.sessions() as session:
+            if self._owned_conversation(session, conversation_id, user_id) is None:
+                return []
+            rows = session.execute(
+                select(ConversationFavoriteRow)
+                .where(ConversationFavoriteRow.conversation_id == conversation_id)
+                .order_by(
+                    ConversationFavoriteRow.created_at,
+                    ConversationFavoriteRow.listing_key,
+                )
+            ).scalars().all()
+            return [self._favorite_from_row(row) for row in rows]
 
 
 class SqlRecommendationRepository:
