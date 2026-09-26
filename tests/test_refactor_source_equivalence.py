@@ -13,7 +13,7 @@ import textwrap
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_MAP = json.loads((ROOT / "docs/refactoring/module-map.json").read_text())
+MODULE_MAP = json.loads((ROOT / "tests/fixtures/refactor/module-map.json").read_text())
 MODULE_MAP["contracts_v0"] = "property_agent.contracts"
 
 

@@ -1,0 +1,52 @@
+[
+  {
+    "view": "desktop-confirmation",
+    "size": [
+      1440,
+      1000
+    ],
+    "changed_pixels": 0,
+    "before_sha256": "40a80976f573b72e19aa6497676eb35676b9a873db732c3ef2fc97ec35ffd060",
+    "after_sha256": "40a80976f573b72e19aa6497676eb35676b9a873db732c3ef2fc97ec35ffd060"
+  },
+  {
+    "view": "desktop-home",
+    "size": [
+      1440,
+      1000
+    ],
+    "changed_pixels": 0,
+    "before_sha256": "083821ecba6766036d6313d26a30166a5439a9ce1e4843e996b3449d9022baf7",
+    "after_sha256": "083821ecba6766036d6313d26a30166a5439a9ce1e4843e996b3449d9022baf7"
+  },
+  {
+    "view": "desktop-results",
+    "size": [
+      1440,
+      1000
+    ],
+    "changed_pixels": 0,
+    "before_sha256": "e40d8fc74ab8586d1deab57bd8f1f5499e9bb855eaf3180130225ccd314ff5a0",
+    "after_sha256": "e40d8fc74ab8586d1deab57bd8f1f5499e9bb855eaf3180130225ccd314ff5a0"
+  },
+  {
+    "view": "mobile-home",
+    "size": [
+      390,
+      844
+    ],
+    "changed_pixels": 0,
+    "before_sha256": "3175e629d88ad94122f5427eb0e9fa850d9a4385d3033cc9eff92a22e093c5fa",
+    "after_sha256": "3175e629d88ad94122f5427eb0e9fa850d9a4385d3033cc9eff92a22e093c5fa"
+  },
+  {
+    "view": "mobile-results",
+    "size": [
+      390,
+      844
+    ],
+    "changed_pixels": 0,
+    "before_sha256": "232fc5ba10bafac7b8b0dd7d15da883e38fe8c2007a6c86da49fc5da8d384935",
+    "after_sha256": "232fc5ba10bafac7b8b0dd7d15da883e38fe8c2007a6c86da49fc5da8d384935"
+  }
+]

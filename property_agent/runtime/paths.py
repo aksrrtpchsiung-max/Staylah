@@ -1,8 +1,8 @@
 """Resource locations independent of the module importing them.
 
 Source and editable installs retain the original repository-relative behavior.
-An installed wheel carries runtime.toml as package data; the existing settings
-loader still supports explicit paths and its original built-in fallback.
+Installed wheels use the settings loader's original built-in defaults when no
+runtime.toml is present. Explicit configuration paths remain supported.
 """
 from pathlib import Path
 

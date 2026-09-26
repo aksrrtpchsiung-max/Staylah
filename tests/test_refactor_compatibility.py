@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class CompatibilityTests(unittest.TestCase):
     def test_legacy_modules_are_aliases_not_copies(self):
-        mapping = json.loads((ROOT / "docs/refactoring/module-map.json").read_text())
+        mapping = json.loads((ROOT / "tests/fixtures/refactor/module-map.json").read_text())
         for old, new in mapping.items():
             with self.subTest(module=old):
                 self.assertIs(importlib.import_module(old), importlib.import_module(new))

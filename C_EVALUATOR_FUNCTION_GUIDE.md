@@ -1,6 +1,6 @@
 # C 模块五个函数讲解
 
-`part_c.py` 是 Falcon 项目的 C 模块。C 不直接访问 PropertyGuru、不保存用户聊天记录，也不替用户修改条件。它接收 A 整理好的用户条件、B 返回的房源数据，完成排序、评估、复核和流程决策。
+当前 C 实现位于 `property_agent/evaluation/`，`part_c.py` 仅保留兼容转发。具体文件位置只维护在 [模块对应表](模块对应表.md)。C 不直接访问 PropertyGuru、不保存用户聊天记录，也不替用户修改条件。它接收 A 整理好的用户条件、B 返回的房源数据，完成排序、评估、复核和流程决策。
 
 整体顺序如下：
 
@@ -12,7 +12,7 @@ retrieve ──► evaluate ──► review ──► decide_next
 LLM 打分       取前十并总结    核查并就地修正  执行路线
 ```
 
-生产流程不再调用 `screen`，B 的候选直接进入 `retrieve`；`screen` 仅保留为独立诊断函数。
+生产流程不再调用 `screen`，B 的候选直接进入 `retrieve`；`screen` 仅保留为校验并去重的兼容接口。
 `screen` 和 `decide_next` 不调用 LLM；`retrieve`、`evaluate`、`review` 通过共享 DeepSeek 客户端调用模型。模型 ID 为：
 
 ```text
@@ -23,90 +23,12 @@ deepseek-v4-flash
 
 ---
 
-## 1. `screen(listings, profile)`：硬条件筛选
+## 1. `screen(listings, profile)`：兼容交接
 
-### 它要解决什么问题
-
-先回答一个最基础的问题：**这套房源能不能进入候选池？**
-
-这里不需要 LLM。预算、地点、卧室数等条件应该有稳定、可解释、可复现的判断结果。例如，同一份数据输入十次，结果必须一致。
-
-### 输入
-
-```python
-screen(listings: list[Listing], profile: ConversationProfile) -> ScreenResult
-```
-
-- `listings`：B 返回的标准化房源列表。
-- `profile`：A 已让用户确认的 `ConversationProfile`。C 只接受
-  `status="confirmed"` 且 `confirmed_version == version` 的画像。
-
-### 如何判断
-
-每套房源都会调用 `_hard_constraint_checks(listing, profile)`。它先检查租/买意图，
-然后遍历 `profile.listing_constraints` 中所有 `strength="hard"` 的约束。
-
-新 contract 用统一结构表达条件，例如：
-
-```python
-{
-    "field_path": "price.amount",
-    "operator": "lte",
-    "value": 3500,
-    "strength": "hard",
-    "priority": "high",
-}
-```
-
-代码支持 `eq`、`neq`、`lt`、`lte`、`gt`、`gte`、`between`、`in` 和
-`contains`。因此不是把预算、面积、家具等每个字段分别写死，而是读取字段路径并执行对应运算。
-
-| 硬条件 | 判断方式 |
-| --- | --- |
-| 租或买 | 用户租房时要求 `transaction_type == "rent"`；买房时要求 `"sale"` |
-| 币种 | 如果存在 `price.currency eq "SGD"`，检查币种是否一致 |
-| 计价周期 | 如果存在 `price.period eq "month"`，检查是否按月报价 |
-| 出租范围 | `attributes.listing_scope eq "whole_unit"` 等约束 |
-| 预算 | `price.amount lte 3500` 等约束 |
-| 卧室数 | `bedrooms gte 2` 等约束 |
-| 其他房源字段 | 面积、卫生间、家具、做饭、宠物、产权等都使用同一套运算逻辑 |
-| 房源状态 | `inactive` 一定不能推荐；`unknown` 需要核实 |
-
-地点、通勤、附近设施等在新 contract 中属于 `derived_data_requirements`，由 B 获取或计算；
-当前 `Listing` 没有相应派生结果字段时，C 不会凭空用 `location_id` 替代这些要求。
-
-每项都会产生一个 `ConstraintCheck`：
-
-```python
-{
-    "field": "price.amount",
-    "status": "pass",  # pass / fail / unknown
-    "reason": "月租不超过预算上限",
-    "evidence_ids": ["L2:price.amount"],
-}
-```
-
-### 输出如何分类
-
-```text
-所有条件 pass                  → eligible
-至少有一个条件 fail             → rejected
-没有 fail，但至少有一个 unknown → needs_verification
-```
-
-例如用户预算为 SGD 3,500：
-
-```text
-房源月租 SGD 3,200 → pass，可进入 eligible
-房源月租 SGD 3,800 → fail，进入 rejected
-房源价格缺失       → unknown，进入 needs_verification
-```
-
-### 为什么不用 LLM
-
-LLM 很适合解释用户偏好，但不应该决定 “3,800 是否小于等于 3,500”。使用代码判断可以避免不一致、幻觉和不可解释的结果。
-
----
+`screen` 校验已确认画像和 Listing 结构，按 `listing_key` 去重，保留首次出现顺序。
+所有唯一候选进入 `eligible`，每项 `checks=[]`；`rejected` 和 `needs_verification` 均为空。
+这是当前原始代码已经采用的行为，本次重构没有重新加入硬条件筛选。
+`eligible` 这个旧字段名不代表 C 已证明房源满足所有需求。生产流程直接进入 retrieve。
 
 ## 2. `retrieve(query, eligible_listings, top_k, ctx)`：需求满足度打分与排序
 

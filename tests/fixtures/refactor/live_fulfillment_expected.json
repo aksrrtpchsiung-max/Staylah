@@ -1,0 +1,3067 @@
+{
+  "status": "partial",
+  "data": {
+    "request_id": "request-nus_bedroom_rent",
+    "profile_version": 1,
+    "status": "partial",
+    "search_result": {
+      "plan_id": "plan-287892bf77bf4eadaa230dda4e3953d5",
+      "profile_version": 1,
+      "items": [
+        {
+          "listing_key": "propertyguru:500238096",
+          "source": "propertyguru",
+          "source_listing_id": "500238096",
+          "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+          "source_mode": "live",
+          "title": "731 Clementi West Street 2",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 1100,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:500238096:price.amount",
+              "propertyguru:500238096:price.currency",
+              "propertyguru:500238096:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "hdb",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 2,
+            "room_type": "common",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:500238096:price.amount",
+              "field": "price.amount",
+              "value": 1100,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=1100"
+            },
+            {
+              "evidence_id": "propertyguru:500238096:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:500238096:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:500238096:title",
+              "field": "title",
+              "value": "731 Clementi West Street 2",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=731 Clementi West Street 2"
+            },
+            {
+              "evidence_id": "propertyguru:500238096:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "hdb",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Common Room | 1 pax (female) | HDB Flat | Built: 1979"
+            },
+            {
+              "evidence_id": "propertyguru:500238096:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Common Room | 1 pax (female) | HDB Flat | Built: 1979 | 731 Clementi West Street 2 | 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town"
+            },
+            {
+              "evidence_id": "propertyguru:500238096:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 2,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=2"
+            },
+            {
+              "evidence_id": "propertyguru:500238096:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 1,100 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:500238096:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.161430217",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500238096/UPHO.161430217.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/500238096/UPHO.161430217.V550/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.161430219",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500238096/UPHO.161430219.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.161154392",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500238096/UPHO.161154392.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.161154394",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500238096/UPHO.161154394.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.161154395",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500238096/UPHO.161154395.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909457",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9848/ZPPHO.96909457.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909458",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9848/ZPPHO.96909458.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909459",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9848/ZPPHO.96909459.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909460",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9848/ZPPHO.96909460.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909462",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9848/ZPPHO.96909462.V800/731-Clementi-West-Street-2-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "731 Clementi West Street 2, 731 Clementi West Street 2, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 500238096 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 10,
+                "extracted_count": 10,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-731-clementi-west-street-2-500238096",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":10,\"extracted_count\":10,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        },
+        {
+          "listing_key": "propertyguru:60018853",
+          "source": "propertyguru",
+          "source_listing_id": "60018853",
+          "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+          "source_mode": "live",
+          "title": "327 Clementi Avenue 5",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 1200,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:60018853:price.amount",
+              "propertyguru:60018853:price.currency",
+              "propertyguru:60018853:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "hdb",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 2,
+            "room_type": "common",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:60018853:price.amount",
+              "field": "price.amount",
+              "value": 1200,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=1200"
+            },
+            {
+              "evidence_id": "propertyguru:60018853:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:60018853:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:60018853:title",
+              "field": "title",
+              "value": "327 Clementi Avenue 5",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=327 Clementi Avenue 5"
+            },
+            {
+              "evidence_id": "propertyguru:60018853:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "hdb",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Common Room | 1 pax (male) | HDB Flat | Built: 1978 | Ready to Move"
+            },
+            {
+              "evidence_id": "propertyguru:60018853:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Common Room | 1 pax (male) | HDB Flat | Built: 1978 | Ready to Move | 327 Clementi Avenue 5 | 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town"
+            },
+            {
+              "evidence_id": "propertyguru:60018853:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 2,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=2"
+            },
+            {
+              "evidence_id": "propertyguru:60018853:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 1,200 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:60018853:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.155449495",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449495.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449495.V550.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155449496",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449496.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - Study - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155449497",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449497.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155449498",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449498.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155449499",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449499.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155449501",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449501.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155449502",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449502.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155449503",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60018853/UPHO.155449503.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96908992",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9769/ZPPHO.96908992.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96908998",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9769/ZPPHO.96908998.V800/327-Clementi-Avenue-5-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "327 Clementi Avenue 5, 327 Clementi Avenue 5, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 60018853 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 10,
+                "extracted_count": 10,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-327-clementi-avenue-5-60018853",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":10,\"extracted_count\":10,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        },
+        {
+          "listing_key": "propertyguru:25220123",
+          "source": "propertyguru",
+          "source_listing_id": "25220123",
+          "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+          "source_mode": "live",
+          "title": "Master and Common bedrooms for female near Nus, Curtin, Clementi mrt",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 1450,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:25220123:price.amount",
+              "propertyguru:25220123:price.currency",
+              "propertyguru:25220123:price.period",
+              "propertyguru:25220123:detail:5f5c4bc32d9a3b5c1c44"
+            ]
+          },
+          "attributes": {
+            "property_type": "hdb",
+            "unit_layout": null,
+            "listing_scope": null,
+            "area_sqft": null,
+            "bathrooms": 1,
+            "room_type": "common",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "fully",
+            "tenure_type": "leasehold",
+            "lease_years": 99
+          },
+          "bedrooms": 0,
+          "location_id": null,
+          "listing_status": "active",
+          "listed_date": "2026-08-28",
+          "fetched_at": "2026-09-24T05:33:18.857000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": "2026-09-24T05:33:18.857000+00:00",
+          "raw_description": "位于NUS、科廷、Clementi 地铁站附近的女性主卧和普通卧室\n\n* Immediate move in \n* No agent fee\n* Fully furnished - bed, study table, aircon\n* Include Utilities and wifi\n* Bus stop right below the room, direct to Clementi Central and mrt, and to NUS, NUH\n* Many amenities nearby\n* Stay with 1 friendly landlady only\n*Contact Zheng Ronghua @ 9_6_6_5_9_2_5_9 or Wechat id ZhengRonghua08 for enquiries and viewings \n\n* 立即入住 \n* 无中介费\n* 家具齐全-- 床，书桌、空调\n* 包括水电和无线网络\n* 房间正下方有巴士站，可直达金文泰中心和地铁站，也可直达新加坡国立大学和新加坡国立大学医院\n* 附近设施齐全\n* 仅与一位友善的女房东同住\n*联系 Zheng Ronghua @ 9_6_6_5_9_2_5_9 或微信id ZhengRonghua08 查询和看房。",
+          "raw_details": [
+            "home-open-o: 4A HDB for rent",
+            "furnished-o: Fully furnished",
+            "document-with-lines-o: TOP in 1977",
+            "asterisk-o: 1 year lease",
+            "calendar-time-o: Listed on 28 Aug 2026",
+            "document-with-lines-o: Listing ID - 25220123",
+            "auto-size-o: S$ 7.25 psf (floor)",
+            "calendar-days-o: 99-year lease",
+            "new-project-o: Developed by Housing & Development Board (HDB)",
+            "Location information: {\"address\":\"410 Commonwealth Avenue West\",\"postalCode\":\"120410\",\"sourceFormattedAddress\":\"410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town\"}"
+          ],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:25220123:price.amount",
+              "field": "price.amount",
+              "value": 1450,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=1450"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:title",
+              "field": "title",
+              "value": "410 Commonwealth Avenue West",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=410 Commonwealth Avenue West"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "hdb",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Room | HDB Flat | Built: 1977"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:bedrooms",
+              "field": "bedrooms",
+              "value": 0,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bedrooms=0"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 1,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=1"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 1,450 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.155013155",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.155013155.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.155013155.V550.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - Master bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155013156",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.155013156.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - Master bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160861333",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.160861333.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - Common bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160861334",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.160861334.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - Common bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.150001810",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.150001810.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.150001812",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.150001812.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.150001813",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.150001813.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155013157",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.155013157.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.155013158",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25220123/UPHO.155013158.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909473",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9854/ZPPHO.96909473.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909474",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9854/ZPPHO.96909474.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909477",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9854/ZPPHO.96909477.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96909481",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/9854/ZPPHO.96909481.V800/410-Commonwealth-Avenue-West-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "410 Commonwealth Avenue West, 410 Commonwealth Avenue West, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25220123 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 13,
+                "extracted_count": 13,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":13,\"extracted_count\":13,\"status\":\"complete\"}"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:detail:5f5c4bc32d9a3b5c1c44",
+              "field": "price.amount",
+              "value": 1450,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:18.857000+00:00",
+              "excerpt": "PropertyGuru detail: price={\"amount\":\"S$ 1,450 /mo\",\"isPeriodic\":false,\"priceType\":\"Negotiable\"}"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:detail:076b667b0b0a4a508f3c",
+              "field": "attributes.property_type",
+              "value": "hdb",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:18.857000+00:00",
+              "excerpt": "PropertyGuru detail: home-open-o=4A HDB for rent"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:detail:84403ac1b33d47fd7650",
+              "field": "attributes.furnishing",
+              "value": "fully",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:18.857000+00:00",
+              "excerpt": "PropertyGuru detail: furnished-o=Fully furnished"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:detail:caaada2737d244bcc088",
+              "field": "listed_date",
+              "value": "2026-08-28",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:18.857000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-time-o=Listed on 28 Aug 2026"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:detail:e30d51d2b1d026f5d608",
+              "field": "attributes.tenure_type",
+              "value": "leasehold",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:18.857000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-days-o=99-year lease"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:detail:00a8615d8197d09b9310",
+              "field": "attributes.lease_years",
+              "value": 99,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:18.857000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-days-o=99-year lease"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:detail:71cf5531954c1503f3fe",
+              "field": "title",
+              "value": "Master and Common bedrooms for female near Nus, Curtin, Clementi mrt",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:18.857000+00:00",
+              "excerpt": "PropertyGuru detail: Master and Common bedrooms for female near Nus, Curtin, Clementi mrt"
+            },
+            {
+              "evidence_id": "propertyguru:25220123:detail:5ba4fc95564a36098487",
+              "field": "listing_status",
+              "value": "active",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-410-commonwealth-avenue-west-25220123",
+              "observed_at": "2026-09-24T05:33:18.857000+00:00",
+              "excerpt": "PropertyGuru detail: listing detail page returned current listing data"
+            }
+          ],
+          "field_issues": [
+            "constraint:nus_bedroom_rent-c5:unknown"
+          ]
+        },
+        {
+          "listing_key": "propertyguru:25217127",
+          "source": "propertyguru",
+          "source_listing_id": "25217127",
+          "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+          "source_mode": "live",
+          "title": "New HDB common room for female near nus, nuh, curtin",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 1300,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:25217127:price.amount",
+              "propertyguru:25217127:price.currency",
+              "propertyguru:25217127:price.period",
+              "propertyguru:25217127:detail:1c650add408bc29c9461"
+            ]
+          },
+          "attributes": {
+            "property_type": "hdb",
+            "unit_layout": null,
+            "listing_scope": null,
+            "area_sqft": null,
+            "bathrooms": 1,
+            "room_type": "unknown",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "fully",
+            "tenure_type": "leasehold",
+            "lease_years": 99
+          },
+          "bedrooms": 0,
+          "location_id": null,
+          "listing_status": "active",
+          "listed_date": "2026-09-05",
+          "fetched_at": "2026-09-24T05:33:23.792000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": "2026-09-24T05:33:23.792000+00:00",
+          "raw_description": "位于新加坡国立大学（NUS）、新加坡国立大学医学院（NUH）和科廷大学（Curtin）附近的全新组屋, 找女性租客 \n\n* For female\n* Spacious common bedroom \n* Fully furnished with aircon\n* Near NUS, NUH and Curtin \n* Direct bus to Clementi Central and mrt\n* For enquiries and viewings please contact Zheng Ronghua @ 9_6_6_5_9_2_5_9 or Wechat id ZhengRonghua08 \n\n* 找女性租客 \n* 宽敞的公用卧室 \n* 家具齐全，配有空调\n* 靠近新加坡国立大学、新加坡国立大学医院和科廷大学 \n* 巴士直达金文泰中心和地铁站\n* 如需咨询或看房，请联系 Zheng Ronghua @ 9_6_6_5_9_2_5_9 或微信 id ZhengRonghua08",
+          "raw_details": [
+            "home-open-o: 4NG (New Generation) HDB for rent",
+            "furnished-o: Fully furnished",
+            "document-with-lines-o: TOP in Jul 2023",
+            "asterisk-o: 1 year lease",
+            "calendar-time-o: Listed on 5 Sep 2026",
+            "document-with-lines-o: Listing ID - 25217127",
+            "auto-size-o: S$ 10.83 psf (floor)",
+            "loading-bay-o: Available from 1 Oct 2026",
+            "calendar-days-o: 99-year lease",
+            "new-project-o: Developed by Housing & Development Board (HDB)",
+            "Location information: {\"address\":\"801C West Coast Crescent\",\"postalCode\":\"123801\",\"sourceFormattedAddress\":\"801C West Coast Crescent, Buona Vista / West Coast / Clementi New Town\"}"
+          ],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:25217127:price.amount",
+              "field": "price.amount",
+              "value": 1300,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=1300"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:title",
+              "field": "title",
+              "value": "801C West Coast Crescent",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=801C West Coast Crescent"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "hdb",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Room | HDB Flat | Built: 2023 | Available from 1 Oct"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:bedrooms",
+              "field": "bedrooms",
+              "value": 0,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bedrooms=0"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 1,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=1"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 1,300 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.149965212",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25217127/UPHO.149965212.V800/801C-West-Coast-Crescent-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/25217127/UPHO.149965212.V550.jpg"
+                    ],
+                    "caption": "801C West Coast Crescent, 801C West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25217127 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.149965213",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25217127/UPHO.149965213.V800/801C-West-Coast-Crescent-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "801C West Coast Crescent, 801C West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25217127 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.149965214",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25217127/UPHO.149965214.V800/801C-West-Coast-Crescent-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "801C West Coast Crescent, 801C West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25217127 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.149965215",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/25217127/UPHO.149965215.V800/801C-West-Coast-Crescent-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "801C West Coast Crescent, 801C West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 120 sqft, HDB Flat For Rent, by Zheng Ronghua 郑荣华, 25217127 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 4,
+                "extracted_count": 4,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":4,\"extracted_count\":4,\"status\":\"complete\"}"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:detail:1c650add408bc29c9461",
+              "field": "price.amount",
+              "value": 1300,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:23.792000+00:00",
+              "excerpt": "PropertyGuru detail: price={\"amount\":\"S$ 1,300 /mo\",\"isPeriodic\":false,\"priceType\":\"\"}"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:detail:fdc76b97eb9aa9e6b51b",
+              "field": "attributes.property_type",
+              "value": "hdb",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:23.792000+00:00",
+              "excerpt": "PropertyGuru detail: home-open-o=4NG (New Generation) HDB for rent"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:detail:54bb0c19b8770877a8de",
+              "field": "attributes.furnishing",
+              "value": "fully",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:23.792000+00:00",
+              "excerpt": "PropertyGuru detail: furnished-o=Fully furnished"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:detail:5f5c1a712fcd522d5181",
+              "field": "listed_date",
+              "value": "2026-09-05",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:23.792000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-time-o=Listed on 5 Sep 2026"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:detail:43224e945f8ca63ba4e2",
+              "field": "attributes.tenure_type",
+              "value": "leasehold",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:23.792000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-days-o=99-year lease"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:detail:613529290790824022de",
+              "field": "attributes.lease_years",
+              "value": 99,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:23.792000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-days-o=99-year lease"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:detail:fa269a9800901e3971b1",
+              "field": "title",
+              "value": "New HDB common room for female near nus, nuh, curtin",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:23.792000+00:00",
+              "excerpt": "PropertyGuru detail: New HDB common room for female near nus, nuh, curtin"
+            },
+            {
+              "evidence_id": "propertyguru:25217127:detail:29e8eca7175ec10f4a26",
+              "field": "listing_status",
+              "value": "active",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-801c-west-coast-crescent-25217127",
+              "observed_at": "2026-09-24T05:33:23.792000+00:00",
+              "excerpt": "PropertyGuru detail: listing detail page returned current listing data"
+            }
+          ],
+          "field_issues": [
+            "constraint:nus_bedroom_rent-c5:unknown"
+          ]
+        },
+        {
+          "listing_key": "propertyguru:500120679",
+          "source": "propertyguru",
+          "source_listing_id": "500120679",
+          "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+          "source_mode": "live",
+          "title": "Chwee Chian View",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 1450,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:500120679:price.amount",
+              "propertyguru:500120679:price.currency",
+              "propertyguru:500120679:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "landed",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 0,
+            "room_type": "common",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:500120679:price.amount",
+              "field": "price.amount",
+              "value": 1450,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=1450"
+            },
+            {
+              "evidence_id": "propertyguru:500120679:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:500120679:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:500120679:title",
+              "field": "title",
+              "value": "Chwee Chian View",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=Chwee Chian View"
+            },
+            {
+              "evidence_id": "propertyguru:500120679:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "landed",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Common Room | 1 pax | Terraced House | Built: 1991"
+            },
+            {
+              "evidence_id": "propertyguru:500120679:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Common Room | 1 pax | Terraced House | Built: 1991 | Chwee Chian View | Chwee Chian View, Buona Vista / West Coast / Clementi New Town"
+            },
+            {
+              "evidence_id": "propertyguru:500120679:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 0,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=0"
+            },
+            {
+              "evidence_id": "propertyguru:500120679:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 1,450 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:500120679:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.159596215",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159596215.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159596215.V550/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159596219",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159596219.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597007",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597007.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597008",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597008.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597009",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597009.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597010",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597010.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Study - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597074",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597074.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597075",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597075.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597077",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597077.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597078",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597078.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597080",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597080.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597081",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597081.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597082",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597082.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Entrance - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597083",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597083.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597088",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597088.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Exterior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597089",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597089.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Exterior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597090",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597090.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597091",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597091.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597096",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597096.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159597097",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500120679/UPHO.159597097.V800/Chwee-Chian-View-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Chwee Chian View, Chwee Chian View, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Terraced House For Rent, by Alan Huy, 500120679 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 20,
+                "extracted_count": 20,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-chwee-chian-view-500120679",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":20,\"extracted_count\":20,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        },
+        {
+          "listing_key": "propertyguru:500246782",
+          "source": "propertyguru",
+          "source_listing_id": "500246782",
+          "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+          "source_mode": "live",
+          "title": "290G Bukit Batok Street 24",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 1200,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:500246782:price.amount",
+              "propertyguru:500246782:price.currency",
+              "propertyguru:500246782:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "hdb",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 2,
+            "room_type": "master",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:500246782:price.amount",
+              "field": "price.amount",
+              "value": 1200,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=1200"
+            },
+            {
+              "evidence_id": "propertyguru:500246782:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:500246782:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:500246782:title",
+              "field": "title",
+              "value": "290G Bukit Batok Street 24",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=290G Bukit Batok Street 24"
+            },
+            {
+              "evidence_id": "propertyguru:500246782:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "hdb",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Master Room | 2 pax | HDB Flat | Built: 1996"
+            },
+            {
+              "evidence_id": "propertyguru:500246782:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Master Room | 2 pax | HDB Flat | Built: 1996 | 290G Bukit Batok Street 24 | 290G Bukit Batok Street 24, Dairy Farm / Bukit Panjang / Choa Chu Kang"
+            },
+            {
+              "evidence_id": "propertyguru:500246782:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 2,
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=2"
+            },
+            {
+              "evidence_id": "propertyguru:500246782:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 1,200 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:500246782:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.161261838",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500246782/UPHO.161261838.V800/290G-Bukit-Batok-Street-24-Dairy-Farm-Bukit-Panjang-Choa-Chu-Kang-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/500246782/UPHO.161261838.V550/290G-Bukit-Batok-Street-24-Dairy-Farm-Bukit-Panjang-Choa-Chu-Kang-Singapore.jpg"
+                    ],
+                    "caption": "290G Bukit Batok Street 24, 290G Bukit Batok Street 24, Dairy Farm / Bukit Panjang / Choa Chu Kang, Room Rental, 300 sqft, HDB Flat For Rent, by WANG YONG SHUI 王永水, 500246782 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.161261839",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500246782/UPHO.161261839.V800/290G-Bukit-Batok-Street-24-Dairy-Farm-Bukit-Panjang-Choa-Chu-Kang-Singapore.jpg"
+                    ],
+                    "caption": "290G Bukit Batok Street 24, 290G Bukit Batok Street 24, Dairy Farm / Bukit Panjang / Choa Chu Kang, Room Rental, 300 sqft, HDB Flat For Rent, by WANG YONG SHUI 王永水, 500246782 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.161261840",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500246782/UPHO.161261840.V800/290G-Bukit-Batok-Street-24-Dairy-Farm-Bukit-Panjang-Choa-Chu-Kang-Singapore.jpg"
+                    ],
+                    "caption": "290G Bukit Batok Street 24, 290G Bukit Batok Street 24, Dairy Farm / Bukit Panjang / Choa Chu Kang, Room Rental, 300 sqft, HDB Flat For Rent, by WANG YONG SHUI 王永水, 500246782 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96903316",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/8657/ZPPHO.96903316.V800/290G-Bukit-Batok-Street-24-Dairy-Farm-Bukit-Panjang-Choa-Chu-Kang-Singapore.jpg"
+                    ],
+                    "caption": "290G Bukit Batok Street 24, 290G Bukit Batok Street 24, Dairy Farm / Bukit Panjang / Choa Chu Kang, Room Rental, 300 sqft, HDB Flat For Rent, by WANG YONG SHUI 王永水, 500246782 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96903317",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/8657/ZPPHO.96903317.V800/290G-Bukit-Batok-Street-24-Dairy-Farm-Bukit-Panjang-Choa-Chu-Kang-Singapore.jpg"
+                    ],
+                    "caption": "290G Bukit Batok Street 24, 290G Bukit Batok Street 24, Dairy Farm / Bukit Panjang / Choa Chu Kang, Room Rental, 300 sqft, HDB Flat For Rent, by WANG YONG SHUI 王永水, 500246782 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96903319",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/8657/ZPPHO.96903319.V800/290G-Bukit-Batok-Street-24-Dairy-Farm-Bukit-Panjang-Choa-Chu-Kang-Singapore.jpg"
+                    ],
+                    "caption": "290G Bukit Batok Street 24, 290G Bukit Batok Street 24, Dairy Farm / Bukit Panjang / Choa Chu Kang, Room Rental, 300 sqft, HDB Flat For Rent, by WANG YONG SHUI 王永水, 500246782 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96903320",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/8657/ZPPHO.96903320.V800/290G-Bukit-Batok-Street-24-Dairy-Farm-Bukit-Panjang-Choa-Chu-Kang-Singapore.jpg"
+                    ],
+                    "caption": "290G Bukit Batok Street 24, 290G Bukit Batok Street 24, Dairy Farm / Bukit Panjang / Choa Chu Kang, Room Rental, 300 sqft, HDB Flat For Rent, by WANG YONG SHUI 王永水, 500246782 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 7,
+                "extracted_count": 7,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/hdb-for-rent-290g-bukit-batok-street-24-500246782",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":7,\"extracted_count\":7,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        },
+        {
+          "listing_key": "propertyguru:60158354",
+          "source": "propertyguru",
+          "source_listing_id": "60158354",
+          "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+          "source_mode": "live",
+          "title": "The Parc Condominium",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 2500,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:60158354:price.amount",
+              "propertyguru:60158354:price.currency",
+              "propertyguru:60158354:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "condo",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 1,
+            "room_type": "master",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:60158354:price.amount",
+              "field": "price.amount",
+              "value": 2500,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=2500"
+            },
+            {
+              "evidence_id": "propertyguru:60158354:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:60158354:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:60158354:title",
+              "field": "title",
+              "value": "The Parc Condominium",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=The Parc Condominium"
+            },
+            {
+              "evidence_id": "propertyguru:60158354:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "condo",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Master Room | 6 pax | Condominium | Built: 2011 | Ready to Move"
+            },
+            {
+              "evidence_id": "propertyguru:60158354:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Master Room | 6 pax | Condominium | Built: 2011 | Ready to Move | The Parc Condominium | 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town"
+            },
+            {
+              "evidence_id": "propertyguru:60158354:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 1,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=1"
+            },
+            {
+              "evidence_id": "propertyguru:60158354:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 2,500 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:60158354:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.160304077",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.160304077.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.160304077.V550/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160304078",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.160304078.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160304079",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.160304079.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160304082",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.160304082.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - Corridor - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160304080",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.160304080.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160304081",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.160304081.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028753",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028753.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028754",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028754.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028756",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028756.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028747",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028747.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028748",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028748.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028749",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028749.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028750",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028750.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028751",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028751.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.157028752",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/60158354/UPHO.157028752.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96890651",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/5637/ZPPHO.96890651.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96890652",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/5637/ZPPHO.96890652.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96890654",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/5637/ZPPHO.96890654.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96890657",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/5637/ZPPHO.96890657.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96890660",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/5637/ZPPHO.96890660.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.103898901",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/5637/ZPPHO.103898901.V800/The-Parc-Condominium-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "The Parc Condominium, 9 West Coast Walk, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Young Chng, 60158354 - Pool - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 21,
+                "extracted_count": 21,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-parc-condominium-60158354",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":21,\"extracted_count\":21,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        },
+        {
+          "listing_key": "propertyguru:24321756",
+          "source": "propertyguru",
+          "source_listing_id": "24321756",
+          "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+          "source_mode": "live",
+          "title": "Master Bedroom with attached Bath for Rent",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 2000,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:24321756:price.amount",
+              "propertyguru:24321756:price.currency",
+              "propertyguru:24321756:price.period",
+              "propertyguru:24321756:detail:0e87212bfa665dd0e222"
+            ]
+          },
+          "attributes": {
+            "property_type": "condo",
+            "unit_layout": null,
+            "listing_scope": null,
+            "area_sqft": null,
+            "bathrooms": 1,
+            "room_type": "unknown",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "fully",
+            "tenure_type": "leasehold",
+            "lease_years": 99
+          },
+          "bedrooms": 0,
+          "location_id": null,
+          "listing_status": "active",
+          "listed_date": "2026-09-21",
+          "fetched_at": "2026-09-24T05:33:26.032000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": "2026-09-24T05:33:26.032000+00:00",
+          "raw_description": "Master Bedroom\nOwn Attached Bathroom\nAvailable now\nHas air-conditioning\n\nLandlord is staying in the same apartment.\n\nLooking for:\nSingle Only \n1year\nMale Only\nNo pets\n\nComes with wifi, electricity (comes with a sgd70 cap) and water included in rent, no agent fee.\n\nWest Bay Condo\nNear NUS, Mapletree\nNear amenities, eg supermarket, hawker centre, food centre.\n\nWestBay Condo 主人房带独立卫生间\n只限于单人住\n\n房东也居住在这房子。\n\n可步行到 NUS学院，户型好，宽大通风，景色迷人，采光好，冷气，一张双人床，一张书桌，一个衣橱，窗帘，小冰箱。\n\n欢迎爱干净，规律的学生以及专业人士。只找男生。\n\n月租 $2000 即可入住，包水电网，空调清洗.\n\n小区设施齐全；泳池，健身房，网球场，烧烤。\n环境佳，安静，舒适。\n交通方便，餐馆，食阁，快餐店都在附近。\n\n欢迎询问 -\n电话 / Whatsapp：\n          \n          \n        \n微信：Clare_Lee_0309",
+          "raw_details": [
+            "home-open-o: Condominium for rent",
+            "furnished-o: Fully furnished",
+            "document-with-lines-o: TOP in Dec 1994",
+            "asterisk-o: 1 year lease",
+            "calendar-time-o: Listed on 21 Sep 2026",
+            "document-with-lines-o: Listing ID - 24321756",
+            "auto-size-o: S$ 10.00 psf (floor)",
+            "layers-2-o: High floor level",
+            "calendar-days-o: 99-year lease",
+            "new-project-o: Developed by Far East Organization",
+            "block-o: 318 total units",
+            "Location information: {\"address\":\"52 West Coast Crescent\",\"postalCode\":\"128036\",\"sourceFormattedAddress\":\"52 West Coast Crescent, Buona Vista / West Coast / Clementi New Town\"}"
+          ],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:24321756:price.amount",
+              "field": "price.amount",
+              "value": 2000,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=2000"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:title",
+              "field": "title",
+              "value": "West Bay Condo",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=West Bay Condo"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "condo",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Room | Condominium | Built: 1994"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:bedrooms",
+              "field": "bedrooms",
+              "value": 0,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bedrooms=0"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 1,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=1"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 2,000 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.139698617",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/24321756/UPHO.139698617.V800/West-Bay-Condo-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/24321756/UPHO.139698617.V550/West-Bay-Condo-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "West Bay Condo, 52 West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Clare Lee, 24321756 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.139698619",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/24321756/UPHO.139698619.V800/West-Bay-Condo-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "West Bay Condo, 52 West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Clare Lee, 24321756 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.139698621",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/24321756/UPHO.139698621.V800/West-Bay-Condo-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "West Bay Condo, 52 West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Clare Lee, 24321756 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887619",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4979/ZPPHO.96887619.V800/West-Bay-Condo-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "West Bay Condo, 52 West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Clare Lee, 24321756 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887622",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4979/ZPPHO.96887622.V800/West-Bay-Condo-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "West Bay Condo, 52 West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Clare Lee, 24321756 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UFLOO.139698624",
+                    "kind": "floor_plan",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/24321756/UFLOO.139698624.V800.jpg"
+                    ],
+                    "caption": "West Bay Condo, 52 West Coast Crescent, Buona Vista / West Coast / Clementi New Town, Room Rental, 200 sqft, Condominium For Rent, by Clare Lee, 24321756 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 5,
+                "extracted_count": 5,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":5,\"extracted_count\":5,\"status\":\"complete\"}"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:detail:0e87212bfa665dd0e222",
+              "field": "price.amount",
+              "value": 2000,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:26.032000+00:00",
+              "excerpt": "PropertyGuru detail: price={\"amount\":\"S$ 2,000 /mo\",\"isPeriodic\":false,\"priceType\":\"\"}"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:detail:6cfaa0a9a0e9976818b4",
+              "field": "attributes.property_type",
+              "value": "condo",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:26.032000+00:00",
+              "excerpt": "PropertyGuru detail: home-open-o=Condominium for rent"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:detail:346fe4ba27527afd941f",
+              "field": "attributes.furnishing",
+              "value": "fully",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:26.032000+00:00",
+              "excerpt": "PropertyGuru detail: furnished-o=Fully furnished"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:detail:efde6f958a8aa296f8a3",
+              "field": "listed_date",
+              "value": "2026-09-21",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:26.032000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-time-o=Listed on 21 Sep 2026"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:detail:0ae07f8e048819ae38de",
+              "field": "attributes.tenure_type",
+              "value": "leasehold",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:26.032000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-days-o=99-year lease"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:detail:cf8d4ae9407a5b59f641",
+              "field": "attributes.lease_years",
+              "value": 99,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:26.032000+00:00",
+              "excerpt": "PropertyGuru detail: calendar-days-o=99-year lease"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:detail:9e2ce46bcea435678a29",
+              "field": "title",
+              "value": "Master Bedroom with attached Bath for Rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:26.032000+00:00",
+              "excerpt": "PropertyGuru detail: Master Bedroom with attached Bath for Rent"
+            },
+            {
+              "evidence_id": "propertyguru:24321756:detail:9a3eb1b3b3cd09a7ce25",
+              "field": "listing_status",
+              "value": "active",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-west-bay-condo-24321756",
+              "observed_at": "2026-09-24T05:33:26.032000+00:00",
+              "excerpt": "PropertyGuru detail: listing detail page returned current listing data"
+            }
+          ],
+          "field_issues": [
+            "constraint:nus_bedroom_rent-c5:unknown"
+          ]
+        },
+        {
+          "listing_key": "propertyguru:500045190",
+          "source": "propertyguru",
+          "source_listing_id": "500045190",
+          "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+          "source_mode": "live",
+          "title": "Maple Woods",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 1500,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:500045190:price.amount",
+              "propertyguru:500045190:price.currency",
+              "propertyguru:500045190:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "condo",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 2,
+            "room_type": "common",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:500045190:price.amount",
+              "field": "price.amount",
+              "value": 1500,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=1500"
+            },
+            {
+              "evidence_id": "propertyguru:500045190:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:500045190:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:500045190:title",
+              "field": "title",
+              "value": "Maple Woods",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=Maple Woods"
+            },
+            {
+              "evidence_id": "propertyguru:500045190:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "condo",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Common Room | 1 pax | Condominium | Built: 1997"
+            },
+            {
+              "evidence_id": "propertyguru:500045190:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Common Room | 1 pax | Condominium | Built: 1997 | Maple Woods | 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah"
+            },
+            {
+              "evidence_id": "propertyguru:500045190:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 2,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=2"
+            },
+            {
+              "evidence_id": "propertyguru:500045190:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 1,500 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:500045190:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.158431285",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500045190/UPHO.158431285.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/500045190/UPHO.158431285.V550/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158431286",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500045190/UPHO.158431286.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158431287",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500045190/UPHO.158431287.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158431288",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500045190/UPHO.158431288.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158431289",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500045190/UPHO.158431289.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158431290",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500045190/UPHO.158431290.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158431291",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500045190/UPHO.158431291.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96886789",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4860/ZPPHO.96886789.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96886791",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4860/ZPPHO.96886791.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96886793",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4860/ZPPHO.96886793.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96886794",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4860/ZPPHO.96886794.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96886795",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4860/ZPPHO.96886795.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96886798",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4860/ZPPHO.96886798.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96886799",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4860/ZPPHO.96886799.V800/Maple-Woods-Clementi-Park-Upper-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Maple Woods, 987 Bukit Timah Road, Clementi Park / Upper Bukit Timah, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500045190 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 14,
+                "extracted_count": 14,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-maple-woods-500045190",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":14,\"extracted_count\":14,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        },
+        {
+          "listing_key": "propertyguru:500154362",
+          "source": "propertyguru",
+          "source_listing_id": "500154362",
+          "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+          "source_mode": "live",
+          "title": "Normanton Park",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 2000,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:500154362:price.amount",
+              "propertyguru:500154362:price.currency",
+              "propertyguru:500154362:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "condo",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 2,
+            "room_type": "common",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:500154362:price.amount",
+              "field": "price.amount",
+              "value": 2000,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=2000"
+            },
+            {
+              "evidence_id": "propertyguru:500154362:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:500154362:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:500154362:title",
+              "field": "title",
+              "value": "Normanton Park",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=Normanton Park"
+            },
+            {
+              "evidence_id": "propertyguru:500154362:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "condo",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Common Room | 1 pax | Condominium | Built: 2023 | Available from 12 Oct"
+            },
+            {
+              "evidence_id": "propertyguru:500154362:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Common Room | 1 pax | Condominium | Built: 2023 | Available from 12 Oct | Normanton Park | 55 Normanton Park, Buona Vista / West Coast / Clementi New Town"
+            },
+            {
+              "evidence_id": "propertyguru:500154362:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 2,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=2"
+            },
+            {
+              "evidence_id": "propertyguru:500154362:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 2,000 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:500154362:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.160058387",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500154362/UPHO.160058387.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/500154362/UPHO.160058387.V550/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160058361",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500154362/UPHO.160058361.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160058386",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500154362/UPHO.160058386.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160058362",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500154362/UPHO.160058362.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160058363",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500154362/UPHO.160058363.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.126509286",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4954/ZPPHO.126509286.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.126509287",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4954/ZPPHO.126509287.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.133762491",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4954/ZPPHO.133762491.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.133762503",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4954/ZPPHO.133762503.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.133762517",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4954/ZPPHO.133762517.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.126509288",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4954/ZPPHO.126509288.V800/Normanton-Park-Buona-Vista-West-Coast-Clementi-New-Town-Singapore.jpg"
+                    ],
+                    "caption": "Normanton Park, 55 Normanton Park, Buona Vista / West Coast / Clementi New Town, Room Rental, 100 sqft, Condominium For Rent, by Kelvin Tan, 500154362 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 11,
+                "extracted_count": 11,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-normanton-park-500154362",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":11,\"extracted_count\":11,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        },
+        {
+          "listing_key": "propertyguru:500055976",
+          "source": "propertyguru",
+          "source_listing_id": "500055976",
+          "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+          "source_mode": "live",
+          "title": "Eleven @ Holland",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 3500,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:500055976:price.amount",
+              "propertyguru:500055976:price.currency",
+              "propertyguru:500055976:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "unknown",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 1,
+            "room_type": "master",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:500055976:price.amount",
+              "field": "price.amount",
+              "value": 3500,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=3500"
+            },
+            {
+              "evidence_id": "propertyguru:500055976:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:500055976:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:500055976:title",
+              "field": "title",
+              "value": "Eleven @ Holland",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=Eleven @ Holland"
+            },
+            {
+              "evidence_id": "propertyguru:500055976:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Master Room | 2 pax | Cluster House | Built: 2014 | Eleven @ Holland | 11 Holland Link, Tanglin / Holland / Bukit Timah"
+            },
+            {
+              "evidence_id": "propertyguru:500055976:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 1,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=1"
+            },
+            {
+              "evidence_id": "propertyguru:500055976:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 3,500 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:500055976:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.158596388",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500055976/UPHO.158596388.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/500055976/UPHO.158596388.V550/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - Master Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158596387",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500055976/UPHO.158596387.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158596389",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500055976/UPHO.158596389.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158596390",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500055976/UPHO.158596390.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - Corridor - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.158596426",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500055976/UPHO.158596426.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96983233",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/18863/ZPPHO.96983233.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.103850669",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/18863/ZPPHO.103850669.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.103850670",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/18863/ZPPHO.103850670.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.103850671",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/18863/ZPPHO.103850671.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.103850672",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/18863/ZPPHO.103850672.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.103850673",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/18863/ZPPHO.103850673.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.103850675",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/18863/ZPPHO.103850675.V800/Eleven-Holland-Tanglin-Holland-Bukit-Timah-Singapore.jpg"
+                    ],
+                    "caption": "Eleven @ Holland, 11 Holland Link, Tanglin / Holland / Bukit Timah, Room Rental, 250 sqft, Cluster House For Rent, by Kerry Liao, 500055976 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 12,
+                "extracted_count": 12,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-eleven-holland-500055976",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":12,\"extracted_count\":12,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        },
+        {
+          "listing_key": "propertyguru:500104284",
+          "source": "propertyguru",
+          "source_listing_id": "500104284",
+          "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+          "source_mode": "live",
+          "title": "The Anchorage",
+          "transaction_type": "rent",
+          "price": {
+            "amount": 1300,
+            "currency": "SGD",
+            "period": "month",
+            "status": "known",
+            "evidence_ids": [
+              "propertyguru:500104284:price.amount",
+              "propertyguru:500104284:price.currency",
+              "propertyguru:500104284:price.period"
+            ]
+          },
+          "attributes": {
+            "property_type": "condo",
+            "unit_layout": null,
+            "listing_scope": "room",
+            "area_sqft": null,
+            "bathrooms": 0,
+            "room_type": "common",
+            "ensuite_bathroom": null,
+            "owner_stays": null,
+            "utilities_included": null,
+            "wifi_included": null,
+            "visitors_allowed": null,
+            "pets_allowed": null,
+            "cooking_policy": "unknown",
+            "furnishing": "unknown",
+            "tenure_type": "unknown",
+            "lease_years": null
+          },
+          "bedrooms": null,
+          "location_id": null,
+          "listing_status": "unknown",
+          "listed_date": null,
+          "fetched_at": "2026-09-24T05:33:13.287000+00:00",
+          "source_updated_at": null,
+          "last_verified_at": null,
+          "raw_description": null,
+          "raw_details": [],
+          "evidence": [
+            {
+              "evidence_id": "propertyguru:500104284:price.amount",
+              "field": "price.amount",
+              "value": 1300,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price=1300"
+            },
+            {
+              "evidence_id": "propertyguru:500104284:price.currency",
+              "field": "price.currency",
+              "value": "SGD",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price currency=SGD"
+            },
+            {
+              "evidence_id": "propertyguru:500104284:transaction_type",
+              "field": "transaction_type",
+              "value": "rent",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: typeCode=RENT"
+            },
+            {
+              "evidence_id": "propertyguru:500104284:title",
+              "field": "title",
+              "value": "The Anchorage",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: localizedTitle=The Anchorage"
+            },
+            {
+              "evidence_id": "propertyguru:500104284:attributes.property_type",
+              "field": "attributes.property_type",
+              "value": "condo",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: propertyType/listingFeatures=Common Room | 2 pax | Condominium | Built: 1997"
+            },
+            {
+              "evidence_id": "propertyguru:500104284:attributes.listing_scope",
+              "field": "attributes.listing_scope",
+              "value": "room",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: listing scope/title=Common Room | 2 pax | Condominium | Built: 1997 | The Anchorage | 370A Alexandra Road, Alexandra / Commonwealth"
+            },
+            {
+              "evidence_id": "propertyguru:500104284:attributes.bathrooms",
+              "field": "attributes.bathrooms",
+              "value": 0,
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: bathrooms=0"
+            },
+            {
+              "evidence_id": "propertyguru:500104284:price.period",
+              "field": "price.period",
+              "value": "month",
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: price label=S$ 1,300 /mo"
+            },
+            {
+              "evidence_id": "propertyguru:500104284:media.search_card_photos",
+              "field": "media.search_card_photos",
+              "value": {
+                "version": 1,
+                "images": [
+                  {
+                    "image_id": "pg:UPHO.159821016",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821016.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg",
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821016.V550/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160755238",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.160755238.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.160755241",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.160755241.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Bedroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821068",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821068.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821015",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821015.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821014",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821014.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Balcony - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821019",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821019.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Interior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821020",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821020.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821017",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821017.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821018",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821018.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821069",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821069.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Kitchen - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821072",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821072.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Bathroom - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:UPHO.159821021",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/listing/500104284/UPHO.159821021.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - Exterior - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887262",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4924/ZPPHO.96887262.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887266",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4924/ZPPHO.96887266.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887267",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4924/ZPPHO.96887267.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887269",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4924/ZPPHO.96887269.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887270",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4924/ZPPHO.96887270.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887271",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4924/ZPPHO.96887271.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - PropertyGuru.com.sg"
+                  },
+                  {
+                    "image_id": "pg:ZPPHO.96887272",
+                    "kind": "photo",
+                    "urls": [
+                      "https://sg1-cdn.pgimgs.com/projectnet-project/4924/ZPPHO.96887272.V800/The-Anchorage-Alexandra-Commonwealth-Singapore.jpg"
+                    ],
+                    "caption": "The Anchorage, 370A Alexandra Road, Alexandra / Commonwealth, Room Rental, 200 sqft, Condominium For Rent, by Alan Huy, 500104284 - PropertyGuru.com.sg"
+                  }
+                ],
+                "reported_count": 20,
+                "extracted_count": 20,
+                "status": "complete",
+                "issues": []
+              },
+              "source_url": "https://www.propertyguru.com.sg/listing/for-rent-the-anchorage-500104284",
+              "observed_at": "2026-09-24T05:33:13.287000+00:00",
+              "excerpt": "PropertyGuru search result: mediaCarousel.previewMedia + thumbnail + mediaItems={\"reported_count\":20,\"extracted_count\":20,\"status\":\"complete\"}"
+            }
+          ],
+          "field_issues": []
+        }
+      ],
+      "coverage": {
+        "queried_sources": [
+          "propertyguru"
+        ],
+        "failed_sources": [],
+        "queries_completed": true,
+        "has_more": false,
+        "next_pages": [],
+        "truncated": true,
+        "applied_filters": [
+          "price.amount",
+          "transaction_type"
+        ],
+        "unsupported_filters": [
+          "attributes.listing_scope",
+          "location_id",
+          "price.currency",
+          "price.period"
+        ]
+      }
+    },
+    "coverage": {
+      "fulfilled_requirement_ids": [],
+      "unsupported_requirement_ids": [
+        "nus_bedroom_rent-area"
+      ],
+      "unverified_requirement_ids": [],
+      "skipped_best_effort_requirement_ids": []
+    },
+    "clarification_questions": []
+  },
+  "issues": [
+    {
+      "code": "RETRIEVAL_DEGRADED",
+      "message": "来源结果被截断，保留当前已取得的房源",
+      "field_path": null,
+      "source": null,
+      "retryable": false,
+      "retry_after_seconds": null
+    },
+    {
+      "code": "RETRIEVAL_DEGRADED",
+      "message": "nus_bedroom_rent-c5: 字段缺失、未知或证据冲突，不能判定满足",
+      "field_path": "result.data.search_result.items[2].attributes.listing_scope",
+      "source": "propertyguru",
+      "retryable": false,
+      "retry_after_seconds": null
+    },
+    {
+      "code": "RETRIEVAL_DEGRADED",
+      "message": "nus_bedroom_rent-c5: 字段缺失、未知或证据冲突，不能判定满足",
+      "field_path": "result.data.search_result.items[3].attributes.listing_scope",
+      "source": "propertyguru",
+      "retryable": false,
+      "retry_after_seconds": null
+    },
+    {
+      "code": "RETRIEVAL_DEGRADED",
+      "message": "nus_bedroom_rent-c5: 字段缺失、未知或证据冲突，不能判定满足",
+      "field_path": "result.data.search_result.items[7].attributes.listing_scope",
+      "source": "propertyguru",
+      "retryable": false,
+      "retry_after_seconds": null
+    }
+  ],
+  "meta": {
+    "trace_id": "trace-request-nus_bedroom_rent",
+    "call_id": "call-request-nus_bedroom_rent",
+    "duration_ms": 0
+  }
+}

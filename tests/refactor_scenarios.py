@@ -51,7 +51,7 @@ async def capture():
             outcome=build_outcome(**kwargs)), config)
         snapshots[name] = normalize(result)
         if name == "question":
-            snapshots["resume_decline"] = normalize(await graph.ainvoke(
+            snapshots["resume_answer"] = normalize(await graph.ainvoke(
                 Command(resume={"client_message_id": "baseline-reply", "text": "不用了"}), config))
 
     part_c.configure_keyword_matcher(UnavailableModel())

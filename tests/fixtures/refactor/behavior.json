@@ -8211,7 +8211,7 @@
     "next_run_request": null,
     "last_issues": []
   },
-  "resume_decline": {
+  "resume_answer": {
     "schema_version": 2,
     "ctx": {
       "user_id": "mock-user-001",

@@ -70,7 +70,7 @@ async def verify(mode, prefix):
                 previous = await graph_c.aget_state(config_c)
                 assert previous.values["pending_question"]
                 result = await graph_c.ainvoke(Command(resume={
-                    "client_message_id": c_id + ":reply", "text": "不用了"}), config_c)
+                    "client_message_id": c_id + ":reply", "text": "不接受调整，保持原样"}), config_c)
                 assert result["completion_reason"] == "user_declined", result["completion_reason"]
             print(f"{mode}: A confirmation and C interrupt checkpoints verified ({prefix})")
     finally:

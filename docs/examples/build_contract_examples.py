@@ -1,4 +1,7 @@
-"""生成完整接口示例并检查结构；不运行尚未实现的业务函数。
+"""历史评审 / 数据工具快照，不是当前运行时契约。
+正式类型唯一位于 property_agent/contracts.py；保留本文件供历史材料重现。
+
+生成完整接口示例并检查结构；不运行尚未实现的业务函数。
 执行（Python 3.11+）：python3 docs/examples/build_contract_examples.py
 """
 import copy

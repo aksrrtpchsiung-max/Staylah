@@ -1,6 +1,9 @@
 # Behavior-preserving refactor
 
 Baseline: `41f86d9` (the original application), Python 3.12.13, existing dependency versions.
+The only human-maintained old/new module list is [模块对应表](../../模块对应表.md).
+Final results and reproducible commands are in [acceptance.md](acceptance.md).
+
 The implementation keeps HTTP payloads, prompts, ranking, graph node/state names,
 checkpoint identifiers, database schema, configuration precedence and CLI commands.
 

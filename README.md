@@ -23,27 +23,23 @@ flowchart LR
     C -. run/checkpoint .-> P
 ```
 
-共享业务契约位于 `contracts_v0.py`，正式产品入口是：
+共享业务契约唯一定义在 `property_agent/contracts.py`，根目录 `contracts_v0.py` 保留兼容导出。
+旧编号和新实现的唯一对应清单见 [模块对应表](模块对应表.md)。正式产品入口是：
 
 ```bash
 .venv/bin/python -m property_agent.orchestration --conversation demo-001
 ```
 
-## 主要目录
+## 代码组织
 
-| 路径 | 职责 |
-| --- | --- |
-| `requirement_understanding/` | A 的需求提取、澄清、确认和 RequirementRequest 构造 |
-| `part1/`、`part2/`、`part3/`、`part45/` | B 的计划、监督、来源能力、调查与汇总 |
-| `guru_search/` | PropertyGuru OpenCLI 适配器与技能 |
-| `part_c.py` | C 的筛选、检索、评估、复核与路线判断 |
-| `property_agent/orchestration/` | A → B → C 外层会话循环与 CLI |
-| `property_agent/decision/` | C 后的 Decision LangGraph |
-| `property_agent/persistence/` | SQLAlchemy 模型、仓储和依赖接线 |
-| `runtime.toml` | 非敏感模型参数、超时、搜索额度和运行模式 |
-| `.env` | 本地密钥与数据库连接，不提交到 Git |
+正式业务实现集中在 `property_agent/`：`requirements` 负责需求理解，`search` 负责搜索调查，
+`evaluation` 负责检索、评估、复核，`decision` 和 `orchestration` 负责决策与整个会话。
+跨模块规则在 `domain`，数据库在 `persistence`，配置与模型客户端在 `runtime`。
+网页入口在 `web/`，PropertyGuru 网站工具仍在 `guru_search/`。
 
-更完整的边界与时序说明见 [`docs/architecture/`](docs/architecture/) 和 [`docs/clarification-integration.md`](docs/clarification-integration.md)。
+完整目录见 [项目目录](项目目录.md)，当前流程见 [模块设计](模块设计.md)。
+旧编号目录和根目录入口保留兼容，新增业务代码请修改新实现；对应关系只维护在
+[模块对应表](模块对应表.md)。`deepseek_agent/` 是独立教学示例。
 
 ## 本地启动
 
@@ -149,8 +145,9 @@ TEST_DATABASE_URL=postgresql+psycopg://property_agent:property_agent_dev@127.0.0
 
 ## 进一步阅读
 
-- [`docs/architecture/contracts.md`](docs/architecture/contracts.md)：共享契约与模块边界
-- [`docs/architecture/pipeline-v1.md`](docs/architecture/pipeline-v1.md)：搜索管线设计
+- [模块设计](模块设计.md)：当前业务边界与流程
+- [重构验收与回退](docs/refactoring/acceptance.md)：验证结果、已知限制和回退方法
+- [文档索引](docs/README.md)：当前说明与历史设计资料
 - [`docs/clarification-integration.md`](docs/clarification-integration.md)：追问、补搜与持久化接线
 - [`C_EVALUATOR_FUNCTION_GUIDE.md`](C_EVALUATOR_FUNCTION_GUIDE.md)：C 的函数级说明
 
@@ -195,7 +192,7 @@ CLI 使用 `InMemorySaver` 和 `InMemoryProfileRepository`，因此退出进程�
 本地调用 DeepSeek V4 Flash 时，只从环境变量读取密钥：
 
 ```python
-from requirement_understanding import DeepSeekRequirementInterpreter, build_requirement_graph
+from property_agent.requirements import DeepSeekRequirementInterpreter, build_requirement_graph
 
 graph = build_requirement_graph(interpreter=DeepSeekRequirementInterpreter())
 ```
@@ -204,15 +201,15 @@ graph = build_requirement_graph(interpreter=DeepSeekRequirementInterpreter())
 `.env` 后提交；仓库已经忽略 `.env` 和 `.env.local`。官方模型 ID 为
 `deepseek-v4-flash`。
 
-运行契约示例检查：
+运行当前契约示例检查（`docs/examples/` 保留的是历史评审快照）：
 
 ```bash
-.venv/bin/python docs/examples/build_contract_examples.py
+.venv/bin/python build_contract_examples.py
 ```
 
 ## C 模块：DeepSeek 评估流程
 
-`part_c.py` 的流程是：
+`property_agent/evaluation/` 的流程是（`part_c.py` 保留兼容入口）：
 
 ```text
 B 返回候选（C 不再执行 screen，最多 12 套）
@@ -222,7 +219,7 @@ B 返回候选（C 不再执行 screen，最多 12 套）
   → decide_next（执行 evaluate 建议，但保留安全边界）
 ```
 
-三个 LLM 步骤与 B 的 planner/supervisor 共用 `config.py` 中的 DeepSeek HTTP 客户端；
+三个 LLM 步骤与 B 的 planner/supervisor 共用 `property_agent/runtime/model_client.py` 中的 DeepSeek HTTP 客户端；
 B 通过轻量 `ainvoke` 适配层调用，C 直接读取结构化 JSON。默认模型 ID 为：
 
 ```text
@@ -239,7 +236,7 @@ DEEPSEEK_API_KEY=你的 DeepSeek 密钥
 启动时显式注入：
 
 ```python
-from part_c import (
+from property_agent.evaluation.service import (
     configure_deepseek_keyword_matcher,
     configure_deepseek_evaluation_review_model,
 )
@@ -268,7 +265,7 @@ Listing 字段；派生数据、开放数据和未知字段不获得分数，也
 独立 LLM 语义复核。C 不再复核候选是否符合硬条件，不能把 B 候选数量当作已确认合格数。
 ## 大模型 API 接入
 
-`config.py` 通过 DeepSeek 的 OpenAI 兼容 `/chat/completions` 接口提供一个共享 HTTP 客户端。
+`property_agent/runtime/model_client.py` 通过 DeepSeek 的 OpenAI 兼容 `/chat/completions` 接口提供一个共享 HTTP 客户端。
 B 的现有 LangGraph 节点通过 `DeepSeekChatModel.ainvoke()` 适配器使用它，C 的结构化步骤通过
 `DeepSeekChatClient.complete()` 使用同一个底层实现。
 
@@ -307,7 +304,7 @@ DEEPSEEK_MAX_TOKENS=2600
 业务代码在服务构造时创建模型，再注入节点闭包：
 
 ```python
-from config import create_chat_model
+from property_agent.runtime.model_client import create_chat_model
 
 model = create_chat_model()
 
@@ -318,7 +315,7 @@ async def model_node(state):
 
 模型客户端和密钥不放入共享契约、`RunContext` 或图状态。
 `source_mode` 仍只描述房源来源，业务节点后续需要按 `ctx.deadline_at` 约束剩余时间。
-搜索业务图已在 `graph.py` 实现。
+搜索业务图在 `property_agent/search/graph.py`。
 
 搜索管理节点通过消息接口让模型从合法任务菜单中选择任务，再严格校验 JSON 和任务 ID。
 模型不生成房源、地址或坐标；这些事实必须由 Provider 取得。
@@ -326,7 +323,7 @@ async def model_node(state):
 
 ## 3a 房源搜索与详情
 
-`part3/capabilities/listings.py` 提供两个异步内部能力，供 LangGraph 执行节点调用：
+`property_agent/search/capabilities/listings.py` 提供两个异步内部能力，供 LangGraph 执行节点调用：
 
 - `ListingsCapability.search_page(plan, query_id, *, ctx, cursor=None)`：执行一页搜索，返回
   `Result[ListingPage]`，包含标准 `Listing`、下一页游标、分页可信状态、截断标记和筛选覆盖。
@@ -341,7 +338,7 @@ async def model_node(state):
 ```
 
 输入来自共享 `SearchPlan` / `RunContext` 契约，默认查询 Tampines、Clementi、Punggol。
-打印实际 3a 输入、搜索输出和详情输出；没有预设的房源结果，也没有独立测试文件。
+打印实际 3a 输入、搜索输出和详情输出；没有预设的房源结果，独立回归测试另在 `tests/` 中。
 三组搜索均取得候选且详情成功后才通过。两个模块也支持 `python -m` 运行。
 详情验收还会逐项核对页面明确标注的家具、挂牌日期、房东同住、水电、Wi-Fi、做饭、
 访客、宠物、共享浴室和产权年限，以及对应的详情证据；仅请求成功不足以通过。
@@ -371,9 +368,9 @@ Python 自动寻找 PATH 或 `~/.npm-global/bin/opencli`，也可在 `.env` 配�
 在一次 `search` 执行开始时构造一个共享额度对象，并把 Provider 注入能力对象：
 
 ```python
-from execution.budget import SearchBudget
-from providers.guru_search import GuruSearchProvider
-from part3.capabilities.listings import ListingsCapability
+from property_agent.search.execution.budget import SearchBudget
+from property_agent.search.providers.guru_search import GuruSearchProvider
+from property_agent.search.capabilities.listings import ListingsCapability
 
 # plan、ctx 由编排层传入；两者的 source_mode/attempt_id 必须一致。
 budget = SearchBudget(plan, ctx)
@@ -391,9 +388,8 @@ Provider 和额度对象留在服务/节点闭包中，不放入可序列化图�
 同一次执行中的查询共享它；失败调用也消耗页数尝试。此额度实现用于单进程执行，恢复持久化图时
 需由后续执行层恢复已使用额度，不能重置后继续调用。
 
-目前来源支持交易类型及符合 SGD 月租/总价口径的价格上限参数。最低卧室数、整租/单间、
-规范地点 ID 和货币/周期校验会如实列入未支持筛选项，交给后续筛选处理；自由文本地点检索不代表
-已经验证房源地区。3a 不放宽硬条件，也不承担搜索管理、最终汇总或周边/通勤调查。
+来源支持的价格、卧室、整租/单间和物业类别条件由 Provider 下推到网站；
+不能精确表达的条件保留待核实。自由文本地点检索不代表已经验证房源地区。3a 不放宽硬条件，也不承担搜索管理、最终汇总或周边/通勤调查。
 
 适配器从页面 `__NEXT_DATA__` 脚本读取公开数据，兼容 Browser Bridge 隔离执行环境。
 详情读取房源自身 `listingDetail.location.address` 的地址和邮编，供 3b 查询；
@@ -405,7 +401,7 @@ Provider 和额度对象留在服务/节点闭包中，不放入可序列化图�
 管理层先只开放 3a 搜索页任务（含可复用页面），搜索阶段结束后才开放 3a 详情和 3b 地址定位。
 Agent 在当前阶段内选择一项任务，代码禁止跨阶段调用；额度耗尽可以进入补充阶段，但不代表搜索完整完成。
 搜索结束后汇总为契约规定的 `Result[SearchResult]`，不修改 A 给出的硬条件。
-`part1/planner.py` 的计划生成已接通；3c 周边设施与 3d 通勤也已接入，见文末能力说明。
+`property_agent/search/planning/planner.py` 的计划生成已接通；3c 周边设施与 3d 通勤也已接入，见文末能力说明。
 
 ```bash
 .venv/bin/python -m part2.supervisor
@@ -455,7 +451,7 @@ ONEMAP_PASSWORD=
 ### 在代码中调用
 
 ```python
-from api import create_live_search_service
+from property_agent.search.api import create_live_search_service
 
 # 构造时注入现有大模型网关、GuruSearchProvider、OneMapProvider。
 # 服务可以复用，每次 search 会独立创建额度、状态和执行缓存。
@@ -567,7 +563,7 @@ A 只调用 `api.fulfill_requirements(request, *, ctx)`。输入是已确认的
 三个契约函数，供模块联调使用；它们的画像参数已改成 `ConversationProfile`。
 
 ```python
-from api import fulfill_requirements
+from property_agent.search.api import fulfill_requirements
 
 result = await fulfill_requirements(request, ctx=ctx)
 if result['data'] is not None:
@@ -753,10 +749,10 @@ const slides = photos.length ? photos : (media?.images ?? []).filter(image => im
 - `field_issues`、`Result.issues`：未定位、来源故障、额度不足等缺口。
 
 `fulfilled` 表示已完成相应调查，不表示房源满足阈值。例如真实通勤 55 分钟，需求上限 40 分钟：
-调查可以完成，但对应证据的 `check=fail`。C 应读取该比较结果和真实证据继续筛选。
+调查可以完成，但对应证据的 `check=fail`。C 读取该比较结果和真实证据进行排序与评估，不重复硬筛。
 受支持需求有候选尚未调查完时为 `unverified`，并返回 `partial`；不支持的指标仍为 `unsupported`。
 
-测试入口保留在各模块自身的 `if __name__ == '__main__':`，不新增独立测试文件：
+真实来源检查入口保留在各模块自身的 `if __name__ == '__main__':`；离线回归另在 `tests/`：
 
 ```bash
 .venv/bin/python -B -m part3.capabilities.travel --input /绝对路径/真实通勤输入.json --output /tmp/travel-results.json

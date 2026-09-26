@@ -1,5 +1,7 @@
 # Pipeline v1：验收与模型评测
 
+> 历史设计资料，保留原方案。当前实现请看 [模块设计](../../模块设计.md)、[网页 API](../../web/README.md) 和 [共享契约](../../property_agent/contracts.py)，不要将本文中的未实现功能当成现有行为。
+
 日期：2026-09-08。本文定义待实现系统的测试要求，不代表这些测试已经通过。  
 设计：[pipeline-v1.md](pipeline-v1.md)；接口：[contracts.md](contracts.md)。
 
