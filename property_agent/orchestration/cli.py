@@ -9,8 +9,8 @@ from uuid import uuid4
 from dotenv import load_dotenv
 
 from property_agent.orchestration.postgres import postgres_conversation_runtime
-from requirement_understanding.workflow_constants import DEFAULT_USER_ID
-from runtime_settings import load_runtime_settings
+from property_agent.requirements.workflow_constants import DEFAULT_USER_ID
+from property_agent.runtime.settings import load_runtime_settings
 
 
 def parse_args() -> argparse.Namespace:

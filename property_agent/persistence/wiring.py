@@ -49,7 +49,7 @@ def build_postgres_deps(
 
 
 def _clarification_adapter(*, use_deepseek: bool):
-    from runtime_settings import load_runtime_settings
+    from property_agent.runtime.settings import load_runtime_settings
 
     key_env = load_runtime_settings().deepseek.api_key_env
     if use_deepseek and os.getenv(key_env):

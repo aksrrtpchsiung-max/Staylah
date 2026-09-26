@@ -25,7 +25,7 @@ from property_agent.persistence.repositories import (
     SqlRunRepository,
 )
 from property_agent.persistence.wiring import build_postgres_deps
-from requirement_understanding import (
+from property_agent.requirements import (
     DeepSeekHousingQuestionAnswerer,
     DeepSeekInputGuard,
     DeepSeekParserConfig,
@@ -33,7 +33,7 @@ from requirement_understanding import (
     DeepSeekTurnIntentClassifier,
     build_requirement_graph,
 )
-from runtime_settings import RuntimeSettings, load_runtime_settings
+from property_agent.runtime.settings import RuntimeSettings, load_runtime_settings
 
 
 def build_postgres_requirement_graph(
@@ -64,7 +64,7 @@ async def postgres_conversation_runtime(
 ) -> AsyncIterator[ConversationOrchestrator]:
     """A/C 共享 AsyncPostgresSaver；业务表走同步 Session。"""
 
-    import part_c
+    from property_agent.evaluation import service as part_c
 
     settings = settings or load_runtime_settings()
     engine = build_engine(database_url(settings.database))

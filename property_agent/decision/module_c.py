@@ -1,7 +1,7 @@
 """正式模块 C：直接实现 EvaluationModule，签名与 contracts_v0 一致。"""
 from __future__ import annotations
 
-import part_c
+from property_agent.evaluation import service as part_c
 
 from property_agent.contracts import (
     ConversationProfile,

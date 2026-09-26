@@ -6,10 +6,10 @@ from collections.abc import Awaitable, Callable, Sequence
 from time import monotonic
 from typing import Any, Literal, Protocol, TypedDict
 
-import part_c
+from property_agent.evaluation import service as part_c
 
-from execution.history import query_fingerprint
-from part45.requirements import build_fulfillment
+from property_agent.search.execution.history import query_fingerprint
+from property_agent.search.aggregation.requirements import build_fulfillment
 from property_agent.contracts import (
     AttemptSummary,
     Clarification,
@@ -384,25 +384,25 @@ class BSearchRunner:
     async def _default_prepare(
         profile: ConversationProfile, *, ctx: RunContext
     ) -> Result:
-        from api import prepare_query
+        from property_agent.search.api import prepare_query
 
         return await prepare_query(profile, ctx=ctx)
 
     @staticmethod
     def _default_planner() -> Planner:
-        from api import create_live_planner_service
+        from property_agent.search.api import create_live_planner_service
 
         return create_live_planner_service()
 
     @staticmethod
     def _default_search() -> SearchService:
-        from api import create_live_search_service
+        from property_agent.search.api import create_live_search_service
 
         return create_live_search_service()
 
     @staticmethod
     def _default_fulfillment() -> FulfillmentService:
-        from api import create_live_fulfillment_service
+        from property_agent.search.api import create_live_fulfillment_service
 
         return create_live_fulfillment_service()
 

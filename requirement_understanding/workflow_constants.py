@@ -1,12 +1,13 @@
-"""保存 workflow 与回复模板共享、不可随语气变化的产品常量。"""
+"""Compatibility entry point for property_agent.requirements.workflow_constants."""
+from pathlib import Path
+import sys
+if __name__ == "__main__" and __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+import importlib as _importlib
+import sys as _sys
 
-# 单用户开发阶段的可信调用身份。接入登录后由认证上下文替换此默认值。
-DEFAULT_USER_ID = "local-development-user"
-
-FALCON_SCOPE_MESSAGE = (
-    "I'm Falcon, your all day housing agent. I can help you to find the listing "
-    "that meet you best around Singapore. If you'd like to settle down in Singapore, "
-    "feel free to reach out!"
-)
-
-SAFE_ERROR_MESSAGE = "Sorry, I can't process this request right now. Please try again later."
+if __name__ == "__main__":
+    import runpy
+    runpy.run_module("property_agent.requirements.workflow_constants", run_name="__main__")
+else:
+    _sys.modules[__name__] = _importlib.import_module("property_agent.requirements.workflow_constants")

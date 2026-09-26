@@ -17,9 +17,9 @@ from property_agent.decision.runtime import thread_config
 from property_agent.evaluation_trace import record_event, stage_span
 from property_agent.persistence.boundaries import ConversationFavoriteRepository
 from property_agent.results import is_usable
-from requirement_understanding.response_renderer import ResponseRenderer
-from requirement_understanding.workflow import build_requirement_request
-from requirement_understanding.workflow_constants import DEFAULT_USER_ID
+from property_agent.requirements.response_renderer import ResponseRenderer
+from property_agent.requirements.workflow import build_requirement_request
+from property_agent.requirements.workflow_constants import DEFAULT_USER_ID
 
 TurnPhase = Literal[
     "a_dialogue",

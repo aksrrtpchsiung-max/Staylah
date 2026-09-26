@@ -6,7 +6,7 @@ from collections.abc import Callable
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from runtime_settings import DatabaseSettings, load_runtime_settings
+from property_agent.runtime.settings import DatabaseSettings, load_runtime_settings
 
 DEFAULT_DATABASE_URL = (
     "postgresql+psycopg://property_agent:property_agent_dev"

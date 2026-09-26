@@ -52,3 +52,7 @@ evaluation_runs/
 # StayLah local services and tools
 .local-tools/
 .local-state/
+
+# Local browser verification artifacts
+.playwright-cli/
+output/playwright/

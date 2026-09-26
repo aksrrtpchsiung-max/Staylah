@@ -1,10 +1,6 @@
-"""跨模块共享的数据契约（ConversationProfile / 2026-09 版）。
+"""Canonical shared business types. Runtime validation lives at module boundaries.
 
-本文件是仓库根目录 `contracts_v0.py` 的类型副本，只保留 TypedDict 与
-ContractViolation，不含九个函数的未实现签名。权威文件升级时
-`tests/test_contracts_sync.py` 会先失败。
-
-TypedDict 只提供静态类型，不做运行时校验；运行时校验在各模块的边界完成。
+contracts_v0 re-exports these exact objects for legacy callers.
 """
 from typing import Generic, Literal, TypeVar, TypedDict, Union
 

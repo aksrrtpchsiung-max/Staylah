@@ -34,7 +34,7 @@ class DeepSeekClarificationAdapter:
 
     @classmethod
     def from_env(cls) -> "DeepSeekClarificationAdapter":
-        from runtime_settings import load_runtime_settings
+        from property_agent.runtime.settings import load_runtime_settings
 
         settings = load_runtime_settings().deepseek
         api_key = os.getenv(settings.api_key_env)

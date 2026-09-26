@@ -11,7 +11,7 @@ import threading
 import re
 from uuid import uuid4
 
-from requirement_understanding.workflow_constants import DEFAULT_USER_ID
+from property_agent.requirements.workflow_constants import DEFAULT_USER_ID
 
 ROOT = Path(__file__).resolve().parent
 

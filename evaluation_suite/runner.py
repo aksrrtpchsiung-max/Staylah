@@ -17,7 +17,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 
 from property_agent.evaluation_trace import capture_trace, record_event, stage_span, stage_totals
-from runtime_settings import load_runtime_settings
+from property_agent.runtime.settings import load_runtime_settings
 
 
 HERE = Path(__file__).resolve().parent
@@ -310,7 +310,7 @@ async def run(
     if suite == "clarification":
         # Same A graph as the product; no PostgreSQL or B/C construction.
         from langgraph.checkpoint.memory import InMemorySaver
-        from requirement_understanding.graph import build_requirement_graph
+        from property_agent.requirements.graph import build_requirement_graph
 
         a_graph = build_requirement_graph(checkpointer=InMemorySaver())
         for case in cases:

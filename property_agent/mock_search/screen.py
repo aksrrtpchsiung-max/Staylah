@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import part_c
+from property_agent.evaluation import service as part_c
 
 from property_agent.contracts import ConversationProfile, ScreenResult
 
