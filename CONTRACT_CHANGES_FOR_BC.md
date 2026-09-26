@@ -19,7 +19,7 @@
 
 本次修改统一了数据库房源字段与跨模块接口。数据库仍可使用规范化的
 `listing + hdb_detail/condo_detail/landed_detail`，B 在返回 `SearchResult` 前将查询结果
-转换为 `contracts_v0.Listing`；C 只依赖 contract，不直接依赖数据库子表。
+转换为 `property_agent.contracts.Listing`；C 只依赖 contract，不直接依赖数据库子表。
 
 ## A：conversation 画像与用户确认
 

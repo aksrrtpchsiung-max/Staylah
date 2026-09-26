@@ -12,7 +12,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from property_agent.decision import build_decision_graph, build_stub_deps
 from property_agent.orchestration import ConversationOrchestrator, InMemoryChatRepository
 from property_agent.results import CallTimer
-from requirement_understanding import (
+from property_agent.requirements import (
     DeepSeekRequirementInterpreter,
     InMemoryProfileRepository,
     build_requirement_graph,
@@ -374,7 +374,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
 
 class RuntimeSettingsTests(unittest.TestCase):
     def test_runtime_toml_exposes_all_model_stacks(self):
-        from runtime_settings import load_runtime_settings
+        from property_agent.runtime.settings import load_runtime_settings
 
         settings = load_runtime_settings(reload=True)
         self.assertEqual(settings.deepseek.api_key_env, "DEEPSEEK_API_KEY")
@@ -385,7 +385,7 @@ class RuntimeSettingsTests(unittest.TestCase):
 
     def test_database_environment_is_resolved_into_settings(self):
         from property_agent.persistence.database import checkpoint_database_uri, database_url
-        from runtime_settings import load_runtime_settings
+        from property_agent.runtime.settings import load_runtime_settings
 
         settings = load_runtime_settings(
             environ={
@@ -403,7 +403,7 @@ class RuntimeSettingsTests(unittest.TestCase):
         )
 
     def test_installed_runtime_falls_back_when_toml_is_absent(self):
-        import runtime_settings
+        from property_agent.runtime import settings as runtime_settings
 
         missing = Path("/private/tmp/falcon-missing-runtime.toml")
         try:

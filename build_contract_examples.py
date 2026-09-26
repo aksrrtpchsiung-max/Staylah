@@ -10,7 +10,7 @@ import types
 import typing
 
 ROOT = Path(__file__).resolve().parent
-spec = importlib.util.spec_from_file_location('contracts_v0', ROOT / 'contracts_v0.py')
+spec = importlib.util.spec_from_file_location('contract_example_signatures', ROOT / 'examples' / 'contract_signatures.py')
 contracts = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(contracts)
 D = copy.deepcopy

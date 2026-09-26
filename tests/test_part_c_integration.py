@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-import part_c
+from property_agent.evaluation import service as part_c
 from langgraph.checkpoint.memory import InMemorySaver
 
 from property_agent.decision import (

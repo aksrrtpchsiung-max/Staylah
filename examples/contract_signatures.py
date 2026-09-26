@@ -1,4 +1,6 @@
-"""Legacy contract signatures; shared types live in property_agent.contracts."""
+"""Type signatures for executable contract examples; these are documentation stubs.
+
+All shared types are imported from the canonical property_agent.contracts module."""
 from property_agent.contracts import *  # noqa: F401,F403
 
 # 依赖（模型、词表、Provider 注册表等）由服务构造时注入，业务参数不携带连接。

@@ -4,8 +4,8 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 import json
 
-from api import fulfill_requirements
-from contracts_v0 import RequirementRequest
+from property_agent.search.api import fulfill_requirements
+from property_agent.contracts import RequirementRequest
 
 
 request_1: RequirementRequest = {

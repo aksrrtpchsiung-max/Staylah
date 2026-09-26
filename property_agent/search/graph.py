@@ -1,7 +1,7 @@
 """LangGraph 搜索子图：管理 → 执行 → 管理 → 汇总。
 
 每次 run 新建状态、额度和缓存，服务可重复调用；当前不启用持久化断点恢复。
-计划生成仍由 part1 负责，这里接收已经生成的 SearchPlan。
+计划生成由 property_agent.search.planning 负责，这里接收已经生成的 SearchPlan。
 """
 from time import monotonic
 

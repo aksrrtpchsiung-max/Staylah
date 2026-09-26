@@ -1,7 +1,7 @@
 """本模块与外部的接缝：模块 C、模块 B、档案写入和持久化。
 
 Protocol 只描述我们依赖的调用形状，实现由各自负责方提供。`evaluate` 和 `review`
-的签名与 contracts_v0 完全一致，C 完成后应当可以直接替换 stub。
+的签名与 property_agent.contracts 完全一致，C 完成后应当可以直接替换 stub。
 
 AttemptOutcome 和 NextRunRequest 是**新增的内部交付对象**，不属于已冻结的公共契约；
 它们只在模块 A 内部和与运行控制层之间传递，接口评审确认后再决定是否公开。

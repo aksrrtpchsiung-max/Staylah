@@ -1,5 +1,7 @@
 # 房源开发 Mock 数据包
 
+> 历史数据工具：此目录自带的契约是数据生成时的快照，其文件摘要记录在 output/manifest.json 中。请勿用作正式应用契约；当前业务类型唯一定义在 ../property_agent/contracts.py。保留快照原始字节，以便校验已有数据。
+
 已提供 **1,000 条完全合成的房源**：900 条普通样本、100 条边界样本（30 类场景）。普通样本也包含正常的数据缺失；“普通”不等于所有字段非空或一定满足用户筛选条件。
 
 依据用户提供的 **2026-09-14 最新 `contracts_v0.py` 和 `CONTRACT_CHANGES_FOR_BC.md`** 生成，包内 `contracts/` 保存附件的原样副本。当前工作区 `docs/contracts_v0.py` 是旧版；接入本数据包时请以包内版本为准。接口金额是整数，房源交易类型是 `rent/sale`，完整 `attributes` 必填，范围在 `attributes.listing_scope`，`RunContext` 含 `user_id`。

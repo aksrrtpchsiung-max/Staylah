@@ -8,7 +8,7 @@ import copy
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 
-import part_c
+from property_agent.evaluation import service as part_c
 from property_agent.decision import build_decision_graph, build_stub_deps, initial_state
 from property_agent.decision.policy import DEFAULT_POLICY
 from tests.support import build_ctx, build_outcome, load_profile

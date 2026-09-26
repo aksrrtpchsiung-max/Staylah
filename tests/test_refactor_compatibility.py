@@ -1,52 +1,71 @@
-"""Legacy imports must share implementations, configuration and exception identity."""
+"""Public contracts and behavior stay stable after retiring old source paths."""
+import ast
 import importlib
 import inspect
 import json
 from pathlib import Path
+import typing
 import unittest
-from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
+MODULE_MAP = json.loads((ROOT / 'tests/fixtures/refactor/module-map.json').read_text())
 
 
 class CompatibilityTests(unittest.TestCase):
-    def test_legacy_modules_are_aliases_not_copies(self):
-        mapping = json.loads((ROOT / "tests/fixtures/refactor/module-map.json").read_text())
-        for old, new in mapping.items():
+    def test_retired_paths_are_absent_and_canonical_modules_import(self):
+        for old, new in {**MODULE_MAP, 'contracts_v0': 'property_agent.contracts'}.items():
             with self.subTest(module=old):
-                self.assertIs(importlib.import_module(old), importlib.import_module(new))
+                self.assertFalse((ROOT / (old.replace('.', '/') + '.py')).exists())
+                self.assertTrue(importlib.import_module(new).__file__)
 
-    def test_root_contract_types_are_canonical(self):
-        import contracts_v0 as legacy
+    def test_public_signatures_use_the_single_shared_contract(self):
         from property_agent import contracts
-        for name, value in vars(contracts).items():
-            if isinstance(value, type) and value.__module__ == contracts.__name__:
-                self.assertIs(getattr(legacy, name), value)
+        from property_agent.search import api
+        from property_agent.domain import validation
+        self.assertIs(typing.get_type_hints(api.fulfill_requirements)['request'], contracts.RequirementRequest)
+        self.assertIs(api.ContractViolation, contracts.ContractViolation)
         with self.assertRaises(contracts.ContractViolation):
-            raise legacy.ContractViolation("INVALID_INPUT", "request", "bad input")
+            raise validation.ContractViolation('INVALID_INPUT', 'request', 'bad input')
 
-    def test_monkeypatching_legacy_factory_reaches_canonical_api(self):
-        import api
-        from property_agent.search import api as canonical
-        sentinel = object()
-        with patch.object(api, "create_live_fulfillment_service", return_value=sentinel):
-            self.assertIs(canonical.create_live_fulfillment_service(), sentinel)
+    def test_evaluation_entry_points_share_model_configuration(self):
+        from property_agent.evaluation import service, configuration
+        from property_agent.decision import module_c
+        original = configuration._keyword_matcher
+        marker = object()
+        try:
+            service.configure_keyword_matcher(marker)
+            self.assertIs(configuration._resolve_keyword_matcher()[0], marker)
+            self.assertIs(service, module_c.part_c)
+        finally:
+            service.configure_keyword_matcher(original)
 
     def test_runtime_paths_still_point_to_original_resources(self):
-        import config
-        import runtime_settings
+        from property_agent.runtime import model_client, settings
         from property_agent.runtime.paths import PROJECT_ROOT
         self.assertEqual(PROJECT_ROOT, ROOT)
-        self.assertEqual(config.DEFAULT_ENV_FILE, ROOT / ".env")
-        self.assertEqual(runtime_settings.DEFAULT_ENV_FILE, ROOT / ".env")
-        self.assertEqual(runtime_settings.DEFAULT_RUNTIME_FILE, ROOT / "runtime.toml")
+        self.assertEqual(model_client.DEFAULT_ENV_FILE, ROOT / '.env')
+        self.assertEqual(settings.DEFAULT_ENV_FILE, ROOT / '.env')
+        self.assertEqual(settings.DEFAULT_RUNTIME_FILE, ROOT / 'runtime.toml')
 
     def test_public_b_signature_is_unchanged(self):
-        import api
+        from property_agent.search import api
         parameters = inspect.signature(api.fulfill_requirements).parameters
-        self.assertEqual(list(parameters), ["request", "ctx"])
-        self.assertEqual(parameters["ctx"].kind, inspect.Parameter.KEYWORD_ONLY)
+        self.assertEqual(list(parameters), ['request', 'ctx'])
+        self.assertEqual(parameters['ctx'].kind, inspect.Parameter.KEYWORD_ONLY)
+
+    def test_application_and_tools_do_not_import_retired_modules(self):
+        retired_roots = {name.split('.')[0] for name in MODULE_MAP} | {'contracts_v0'}
+        files = [ROOT / name for name in ['test_all.py', 'test_search.py', 'build_contract_examples.py']]
+        for directory in ['property_agent', 'web', 'scripts', 'evaluation_suite']:
+            files.extend((ROOT / directory).rglob('*.py'))
+        for file in files:
+            for node in ast.walk(ast.parse(file.read_text())):
+                names = ([node.module] if isinstance(node, ast.ImportFrom) and not node.level else
+                         [item.name for item in node.names] if isinstance(node, ast.Import) else [])
+                for name in names:
+                    with self.subTest(file=str(file.relative_to(ROOT)), line=node.lineno, module=name):
+                        self.assertNotIn(name.split('.')[0], retired_roots)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

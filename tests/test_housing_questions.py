@@ -4,7 +4,7 @@ import unittest
 
 import httpx
 
-from requirement_understanding.housing_questions import DuckDuckGoHousingWebSearch
+from property_agent.requirements.housing_questions import DuckDuckGoHousingWebSearch
 
 
 class HousingWebSearchTests(unittest.TestCase):

@@ -1,6 +1,6 @@
 """3a：供 LangGraph 执行节点 await 的找房/详情能力。
 
-运行真实搜索/详情测试：python3 -m part3.capabilities.listings
+运行真实搜索/详情测试：python3 -m property_agent.search.capabilities.listings
 也支持直接运行本文件，路径解析不依赖当前工作目录。
 本模块不生成搜索计划、不决定翻页、不执行 C 的硬条件筛选。
 """

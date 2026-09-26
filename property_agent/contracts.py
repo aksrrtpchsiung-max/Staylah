@@ -1,6 +1,6 @@
 """Canonical shared business types. Runtime validation lives at module boundaries.
 
-contracts_v0 re-exports these exact objects for legacy callers.
+All active modules import these exact types; retired root aliases are removed.
 """
 from typing import Generic, Literal, TypeVar, TypedDict, Union
 

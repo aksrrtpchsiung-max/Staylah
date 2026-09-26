@@ -6,7 +6,7 @@
 - [项目目录](../项目目录.md)：当前目录结构。
 - [模块设计](../模块设计.md)：实际职责与调用流程。
 - [模块对应表](../模块对应表.md)：唯一的原模块 / 编号 → 新实现清单。
-- [共享契约](../property_agent/contracts.py)：运行时类型的唯一定义；根目录 contracts_v0.py 兼容导出。
+- [共享契约](../property_agent/contracts.py)：运行时类型的唯一定义；根目录旧兼容文件已删除。
 - [网页说明](../web/README.md)：页面入口与当前 HTTP API。
 - [C 函数说明](../C_EVALUATOR_FUNCTION_GUIDE.md)：检索、评估、复核与路由。
 - [追问集成](clarification-integration.md)：追问、onboarding handoff 与 PostgreSQL 接线。

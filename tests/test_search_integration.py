@@ -6,14 +6,14 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from time import monotonic
 
-from part1.requirements import normalize_requirements
-from part3.capabilities.listings import merge_detail
-from part45.requirements import build_fulfillment
+from property_agent.domain.requirements import normalize_requirements
+from property_agent.search.capabilities.listings import merge_detail
+from property_agent.search.aggregation.requirements import build_fulfillment
 from property_agent.integration import BCAttemptAdapter, BSearchRunner
 from property_agent.mock_search.pipeline import load_search_fixture
 from property_agent.persistence.wiring import build_postgres_deps
 from property_agent.results import is_usable, make_issue
-from requirement_understanding.workflow import build_requirement_request
+from property_agent.requirements.workflow import build_requirement_request
 from tests.support import load_profile
 
 

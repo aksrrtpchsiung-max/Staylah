@@ -1,0 +1,964 @@
+{
+  "Issue": {
+    "annotations": {
+      "code": "typing.Literal['INVALID_INPUT', 'INVALID_OUTPUT', 'INVALID_STATE', 'TIMEOUT', 'RATE_LIMITED', 'AUTH_REQUIRED', 'SOURCE_UNAVAILABLE', 'TEMPORARY_UNAVAILABLE', 'PARSE_ERROR', 'MODEL_UNAVAILABLE', 'CONSTRAINT_CHANGE_NOT_ALLOWED', 'NO_NEW_QUERY', 'BUDGET_EXHAUSTED', 'STATE_CONFLICT', 'INTERNAL_ERROR', 'PERSISTENCE_ERROR', 'RETRIEVAL_DEGRADED']",
+      "message": "<class 'str'>",
+      "field_path": "str | None",
+      "source": "str | None",
+      "retryable": "<class 'bool'>",
+      "retry_after_seconds": "int | None"
+    },
+    "required_keys": [
+      "code",
+      "field_path",
+      "message",
+      "retry_after_seconds",
+      "retryable",
+      "source"
+    ]
+  },
+  "ResultMeta": {
+    "annotations": {
+      "trace_id": "<class 'str'>",
+      "call_id": "<class 'str'>",
+      "duration_ms": "<class 'int'>"
+    },
+    "required_keys": [
+      "call_id",
+      "duration_ms",
+      "trace_id"
+    ]
+  },
+  "Result": {
+    "annotations": {
+      "status": "typing.Literal['success', 'partial', 'error']",
+      "data": "typing.Optional[~T]",
+      "issues": "list[Issue]",
+      "meta": "<class 'ResultMeta'>"
+    },
+    "required_keys": [
+      "data",
+      "issues",
+      "meta",
+      "status"
+    ]
+  },
+  "RunContext": {
+    "annotations": {
+      "user_id": "<class 'str'>",
+      "run_id": "<class 'str'>",
+      "conversation_id": "<class 'str'>",
+      "attempt_id": "str | None",
+      "trace_id": "<class 'str'>",
+      "call_id": "<class 'str'>",
+      "deadline_at": "<class 'str'>",
+      "source_mode": "typing.Literal['mock', 'live']"
+    },
+    "required_keys": [
+      "attempt_id",
+      "call_id",
+      "conversation_id",
+      "deadline_at",
+      "run_id",
+      "source_mode",
+      "trace_id",
+      "user_id"
+    ]
+  },
+  "UserMessage": {
+    "annotations": {
+      "message_id": "<class 'str'>",
+      "text": "<class 'str'>"
+    },
+    "required_keys": [
+      "message_id",
+      "text"
+    ]
+  },
+  "ChatMessage": {
+    "annotations": {
+      "message_id": "<class 'str'>",
+      "role": "typing.Literal['user', 'assistant']",
+      "text": "<class 'str'>"
+    },
+    "required_keys": [
+      "message_id",
+      "role",
+      "text"
+    ]
+  },
+  "SourceReference": {
+    "annotations": {
+      "message_id": "<class 'str'>",
+      "text": "<class 'str'>",
+      "start": "<class 'int'>",
+      "end": "<class 'int'>"
+    },
+    "required_keys": [
+      "end",
+      "message_id",
+      "start",
+      "text"
+    ]
+  },
+  "ProfileFact": {
+    "annotations": {
+      "field": "typing.Literal['household.occupant_count', 'household.has_children', 'household.planning_children', 'occupant.workplace', 'occupant.school']",
+      "value": "typing.Union[NoneType, bool, int, float, str, list['JsonValue'], dict[str, 'JsonValue']]",
+      "source": "<class 'SourceReference'>"
+    },
+    "required_keys": [
+      "field",
+      "source",
+      "value"
+    ]
+  },
+  "ListingConstraint": {
+    "annotations": {
+      "constraint_id": "<class 'str'>",
+      "field_path": "typing.Literal['transaction_type', 'price.amount', 'price.currency', 'price.period', 'attributes.property_type', 'attributes.unit_layout', 'attributes.listing_scope', 'attributes.area_sqft', 'attributes.bathrooms', 'attributes.room_type', 'attributes.ensuite_bathroom', 'attributes.owner_stays', 'attributes.cooking_policy', 'attributes.utilities_included', 'attributes.wifi_included', 'attributes.visitors_allowed', 'attributes.pets_allowed', 'attributes.furnishing', 'attributes.tenure_type', 'attributes.lease_years', 'bedrooms', 'listed_date']",
+      "operator": "typing.Literal['eq', 'neq', 'lt', 'lte', 'gt', 'gte', 'between', 'in', 'contains']",
+      "value": "typing.Union[NoneType, bool, int, float, str, list['JsonValue'], dict[str, 'JsonValue']]",
+      "strength": "typing.Literal['hard', 'soft']",
+      "priority": "typing.Literal['high', 'medium', 'low']",
+      "source": "<class 'SourceReference'>"
+    },
+    "required_keys": [
+      "constraint_id",
+      "field_path",
+      "operator",
+      "priority",
+      "source",
+      "strength",
+      "value"
+    ]
+  },
+  "DerivedDataRequirement": {
+    "annotations": {
+      "requirement_id": "<class 'str'>",
+      "category": "typing.Literal['commute', 'nearby_amenity', 'environment', 'accessibility']",
+      "target": "str | None",
+      "metric": "<class 'str'>",
+      "operator": "typing.Literal['eq', 'lte', 'gte', 'between', 'minimize', 'maximize', 'preferred']",
+      "value": "typing.Union[NoneType, bool, int, float, str, list['JsonValue'], dict[str, 'JsonValue']]",
+      "unit": "str | None",
+      "strength": "typing.Literal['hard', 'soft']",
+      "priority": "typing.Literal['high', 'medium', 'low']",
+      "source": "<class 'SourceReference'>"
+    },
+    "required_keys": [
+      "category",
+      "metric",
+      "operator",
+      "priority",
+      "requirement_id",
+      "source",
+      "strength",
+      "target",
+      "unit",
+      "value"
+    ]
+  },
+  "OpenDataRequirement": {
+    "annotations": {
+      "requirement_id": "<class 'str'>",
+      "description": "<class 'str'>",
+      "handling": "typing.Literal['best_effort']",
+      "strength": "typing.Literal['hard', 'soft']",
+      "priority": "typing.Literal['high', 'medium', 'low']",
+      "source": "<class 'SourceReference'>"
+    },
+    "required_keys": [
+      "description",
+      "handling",
+      "priority",
+      "requirement_id",
+      "source",
+      "strength"
+    ]
+  },
+  "HardConstraints": {
+    "annotations": {
+      "currency": "<class 'str'>",
+      "max_price": "int | None",
+      "price_period": "typing.Optional[typing.Literal['month', 'week', 'total']]",
+      "rental_scope": "typing.Optional[typing.Literal['whole_unit', 'room']]",
+      "locations": "list[str]",
+      "min_bedrooms": "int | None"
+    },
+    "required_keys": [
+      "currency",
+      "locations",
+      "max_price",
+      "min_bedrooms",
+      "price_period",
+      "rental_scope"
+    ]
+  },
+  "ConversationProfile": {
+    "annotations": {
+      "profile_id": "<class 'str'>",
+      "user_id": "<class 'str'>",
+      "conversation_id": "<class 'str'>",
+      "version": "<class 'int'>",
+      "confirmed_version": "int | None",
+      "status": "typing.Literal['draft', 'pending_confirmation', 'confirmed', 'idle']",
+      "intent": "typing.Optional[typing.Literal['rent', 'buy']]",
+      "user_context": "list[ProfileFact]",
+      "listing_constraints": "list[ListingConstraint]",
+      "derived_data_requirements": "list[DerivedDataRequirement]",
+      "open_data_requirements": "list[OpenDataRequirement]",
+      "unresolved": "list[str]",
+      "field_sources": "dict[str, str]",
+      "created_at": "<class 'str'>",
+      "updated_at": "<class 'str'>",
+      "last_user_message_at": "<class 'str'>",
+      "confirmed_at": "str | None"
+    },
+    "required_keys": [
+      "confirmed_at",
+      "confirmed_version",
+      "conversation_id",
+      "created_at",
+      "derived_data_requirements",
+      "field_sources",
+      "intent",
+      "last_user_message_at",
+      "listing_constraints",
+      "open_data_requirements",
+      "profile_id",
+      "status",
+      "unresolved",
+      "updated_at",
+      "user_context",
+      "user_id",
+      "version"
+    ]
+  },
+  "ProfileChange": {
+    "annotations": {
+      "operation": "typing.Literal['set', 'append', 'remove']",
+      "field": "typing.Literal['intent', 'user_context', 'listing_constraints', 'derived_data_requirements', 'open_data_requirements', 'unresolved']",
+      "value": "typing.Union[NoneType, bool, int, float, str, list['JsonValue'], dict[str, 'JsonValue']]",
+      "source_message_id": "<class 'str'>"
+    },
+    "required_keys": [
+      "field",
+      "operation",
+      "source_message_id",
+      "value"
+    ]
+  },
+  "Clarification": {
+    "annotations": {
+      "field": "<class 'str'>",
+      "text": "<class 'str'>"
+    },
+    "required_keys": [
+      "field",
+      "text"
+    ]
+  },
+  "RequirementConfirmation": {
+    "annotations": {
+      "confirmation_id": "<class 'str'>",
+      "profile_id": "<class 'str'>",
+      "profile_version": "<class 'int'>",
+      "summary": "<class 'str'>",
+      "status": "typing.Literal['pending', 'confirmed', 'rejected', 'cancelled']"
+    },
+    "required_keys": [
+      "confirmation_id",
+      "profile_id",
+      "profile_version",
+      "status",
+      "summary"
+    ]
+  },
+  "OnboardResult": {
+    "annotations": {
+      "base_profile_version": "<class 'int'>",
+      "profile_patch": "list[ProfileChange]",
+      "draft_profile": "<class 'ConversationProfile'>",
+      "missing_required_fields": "list[str]",
+      "questions": "list[Clarification]",
+      "confirmation": "RequirementConfirmation | None",
+      "next_action": "typing.Literal['ask_clarification', 'ask_confirmation']"
+    },
+    "required_keys": [
+      "base_profile_version",
+      "confirmation",
+      "draft_profile",
+      "missing_required_fields",
+      "next_action",
+      "profile_patch",
+      "questions"
+    ]
+  },
+  "ConfirmationReply": {
+    "annotations": {
+      "confirmation_id": "<class 'str'>",
+      "message_id": "<class 'str'>",
+      "action": "typing.Literal['confirm', 'correct', 'cancel']",
+      "text": "str | None"
+    },
+    "required_keys": [
+      "action",
+      "confirmation_id",
+      "message_id",
+      "text"
+    ]
+  },
+  "ConfirmationResult": {
+    "annotations": {
+      "profile": "<class 'ConversationProfile'>",
+      "ready_for_handoff": "<class 'bool'>",
+      "confirmation": "RequirementConfirmation | None",
+      "questions": "list[Clarification]"
+    },
+    "required_keys": [
+      "confirmation",
+      "profile",
+      "questions",
+      "ready_for_handoff"
+    ]
+  },
+  "RequirementRequest": {
+    "annotations": {
+      "request_id": "<class 'str'>",
+      "schema_version": "typing.Literal['0.3-draft']",
+      "conversation_id": "<class 'str'>",
+      "profile_id": "<class 'str'>",
+      "profile_version": "<class 'int'>",
+      "intent": "typing.Literal['rent', 'buy']",
+      "user_context": "list[ProfileFact]",
+      "listing_constraints": "list[ListingConstraint]",
+      "derived_data_requirements": "list[DerivedDataRequirement]",
+      "open_data_requirements": "list[OpenDataRequirement]",
+      "unresolved_fields": "list[str]",
+      "confirmed_at": "<class 'str'>"
+    },
+    "required_keys": [
+      "confirmed_at",
+      "conversation_id",
+      "derived_data_requirements",
+      "intent",
+      "listing_constraints",
+      "open_data_requirements",
+      "profile_id",
+      "profile_version",
+      "request_id",
+      "schema_version",
+      "unresolved_fields",
+      "user_context"
+    ]
+  },
+  "Entity": {
+    "annotations": {
+      "type": "typing.Literal['location', 'project', 'station', 'landmark']",
+      "raw_text": "<class 'str'>",
+      "canonical_id": "str | None",
+      "aliases": "list[str]"
+    },
+    "required_keys": [
+      "aliases",
+      "canonical_id",
+      "raw_text",
+      "type"
+    ]
+  },
+  "QueryFeatures": {
+    "annotations": {
+      "profile_version": "<class 'int'>",
+      "entities": "list[Entity]",
+      "semantic_query": "<class 'str'>",
+      "unresolved": "list[Clarification]"
+    },
+    "required_keys": [
+      "entities",
+      "profile_version",
+      "semantic_query",
+      "unresolved"
+    ]
+  },
+  "NextPage": {
+    "annotations": {
+      "kind": "typing.Literal['next_page']",
+      "query_id": "<class 'str'>",
+      "cursor": "<class 'str'>"
+    },
+    "required_keys": [
+      "cursor",
+      "kind",
+      "query_id"
+    ]
+  },
+  "AliasQuery": {
+    "annotations": {
+      "kind": "typing.Literal['alias_query']",
+      "entity_id": "<class 'str'>",
+      "alias": "<class 'str'>"
+    },
+    "required_keys": [
+      "alias",
+      "entity_id",
+      "kind"
+    ]
+  },
+  "AlternateSource": {
+    "annotations": {
+      "kind": "typing.Literal['alternate_source']",
+      "source": "<class 'str'>"
+    },
+    "required_keys": [
+      "kind",
+      "source"
+    ]
+  },
+  "SearchDirective": {
+    "annotations": {
+      "reason_code": "typing.Literal['insufficient_candidates', 'incomplete_coverage']",
+      "strategy_changes": "list[NextPage | AliasQuery | AlternateSource]",
+      "base_profile_version": "<class 'int'>",
+      "evidence_listing_keys": "list[str]"
+    },
+    "required_keys": [
+      "base_profile_version",
+      "evidence_listing_keys",
+      "reason_code",
+      "strategy_changes"
+    ]
+  },
+  "SearchQuery": {
+    "annotations": {
+      "query_id": "<class 'str'>",
+      "source": "<class 'str'>",
+      "text": "<class 'str'>",
+      "cursor": "str | None"
+    },
+    "required_keys": [
+      "cursor",
+      "query_id",
+      "source",
+      "text"
+    ]
+  },
+  "SearchPlan": {
+    "annotations": {
+      "plan_id": "<class 'str'>",
+      "profile_version": "<class 'int'>",
+      "attempt_id": "<class 'str'>",
+      "intent": "typing.Literal['rent', 'buy']",
+      "required_filters": "<class 'HardConstraints'>",
+      "queries": "list[SearchQuery]",
+      "page_limit": "<class 'int'>",
+      "candidate_limit": "<class 'int'>",
+      "source_mode": "typing.Literal['mock', 'live']",
+      "reason": "<class 'str'>"
+    },
+    "required_keys": [
+      "attempt_id",
+      "candidate_limit",
+      "intent",
+      "page_limit",
+      "plan_id",
+      "profile_version",
+      "queries",
+      "reason",
+      "required_filters",
+      "source_mode"
+    ]
+  },
+  "AttemptSummary": {
+    "annotations": {
+      "attempt_id": "<class 'str'>",
+      "query_fingerprints": "list[str]",
+      "status": "typing.Literal['success', 'partial', 'error']",
+      "eligible_count": "<class 'int'>"
+    },
+    "required_keys": [
+      "attempt_id",
+      "eligible_count",
+      "query_fingerprints",
+      "status"
+    ]
+  },
+  "Evidence": {
+    "annotations": {
+      "evidence_id": "<class 'str'>",
+      "field": "<class 'str'>",
+      "value": "typing.Union[NoneType, bool, int, float, str, list['JsonValue'], dict[str, 'JsonValue']]",
+      "source_url": "str | None",
+      "observed_at": "<class 'str'>",
+      "excerpt": "<class 'str'>"
+    },
+    "required_keys": [
+      "evidence_id",
+      "excerpt",
+      "field",
+      "observed_at",
+      "source_url",
+      "value"
+    ]
+  },
+  "Price": {
+    "annotations": {
+      "amount": "int | None",
+      "currency": "<class 'str'>",
+      "period": "typing.Optional[typing.Literal['month', 'week', 'total']]",
+      "status": "typing.Literal['known', 'unknown', 'conflict']",
+      "evidence_ids": "list[str]"
+    },
+    "required_keys": [
+      "amount",
+      "currency",
+      "evidence_ids",
+      "period",
+      "status"
+    ]
+  },
+  "ListingAttributes": {
+    "annotations": {
+      "property_type": "typing.Literal['hdb', 'condo', 'landed', 'apartment', 'other', 'unknown']",
+      "unit_layout": "str | None",
+      "listing_scope": "typing.Optional[typing.Literal['whole_unit', 'room', 'bedspace']]",
+      "area_sqft": "int | None",
+      "bathrooms": "int | None",
+      "room_type": "typing.Literal['master', 'common', 'shared', 'unknown']",
+      "ensuite_bathroom": "bool | None",
+      "owner_stays": "bool | None",
+      "cooking_policy": "typing.Literal['none', 'light', 'full', 'unknown']",
+      "utilities_included": "bool | None",
+      "wifi_included": "bool | None",
+      "visitors_allowed": "bool | None",
+      "pets_allowed": "bool | None",
+      "furnishing": "typing.Literal['fully', 'partially', 'unfurnished', 'unknown']",
+      "tenure_type": "typing.Literal['freehold', 'leasehold', 'unknown']",
+      "lease_years": "int | None"
+    },
+    "required_keys": [
+      "area_sqft",
+      "bathrooms",
+      "cooking_policy",
+      "ensuite_bathroom",
+      "furnishing",
+      "lease_years",
+      "listing_scope",
+      "owner_stays",
+      "pets_allowed",
+      "property_type",
+      "room_type",
+      "tenure_type",
+      "unit_layout",
+      "utilities_included",
+      "visitors_allowed",
+      "wifi_included"
+    ]
+  },
+  "Listing": {
+    "annotations": {
+      "listing_key": "<class 'str'>",
+      "source": "<class 'str'>",
+      "source_listing_id": "str | None",
+      "source_url": "str | None",
+      "source_mode": "typing.Literal['mock', 'live']",
+      "title": "<class 'str'>",
+      "transaction_type": "typing.Literal['rent', 'sale']",
+      "price": "<class 'Price'>",
+      "attributes": "<class 'ListingAttributes'>",
+      "bedrooms": "int | None",
+      "location_id": "str | None",
+      "listing_status": "typing.Literal['active', 'inactive', 'unknown']",
+      "listed_date": "str | None",
+      "fetched_at": "<class 'str'>",
+      "source_updated_at": "str | None",
+      "last_verified_at": "str | None",
+      "raw_description": "str | None",
+      "raw_details": "list[str]",
+      "evidence": "list[Evidence]",
+      "field_issues": "list[str]"
+    },
+    "required_keys": [
+      "attributes",
+      "bedrooms",
+      "evidence",
+      "fetched_at",
+      "field_issues",
+      "last_verified_at",
+      "listed_date",
+      "listing_key",
+      "listing_status",
+      "location_id",
+      "price",
+      "raw_description",
+      "raw_details",
+      "source",
+      "source_listing_id",
+      "source_mode",
+      "source_updated_at",
+      "source_url",
+      "title",
+      "transaction_type"
+    ]
+  },
+  "Coverage": {
+    "annotations": {
+      "queried_sources": "list[str]",
+      "failed_sources": "list[str]",
+      "queries_completed": "<class 'bool'>",
+      "has_more": "<class 'bool'>",
+      "next_pages": "list[NextPage]",
+      "truncated": "<class 'bool'>",
+      "applied_filters": "list[str]",
+      "unsupported_filters": "list[str]"
+    },
+    "required_keys": [
+      "applied_filters",
+      "failed_sources",
+      "has_more",
+      "next_pages",
+      "queried_sources",
+      "queries_completed",
+      "truncated",
+      "unsupported_filters"
+    ]
+  },
+  "SearchResult": {
+    "annotations": {
+      "plan_id": "<class 'str'>",
+      "profile_version": "<class 'int'>",
+      "items": "list[Listing]",
+      "coverage": "<class 'Coverage'>"
+    },
+    "required_keys": [
+      "coverage",
+      "items",
+      "plan_id",
+      "profile_version"
+    ]
+  },
+  "RequirementCoverage": {
+    "annotations": {
+      "fulfilled_requirement_ids": "list[str]",
+      "unsupported_requirement_ids": "list[str]",
+      "unverified_requirement_ids": "list[str]",
+      "skipped_best_effort_requirement_ids": "list[str]"
+    },
+    "required_keys": [
+      "fulfilled_requirement_ids",
+      "skipped_best_effort_requirement_ids",
+      "unsupported_requirement_ids",
+      "unverified_requirement_ids"
+    ]
+  },
+  "RequirementFulfillment": {
+    "annotations": {
+      "request_id": "<class 'str'>",
+      "profile_version": "<class 'int'>",
+      "status": "typing.Literal['completed', 'partial', 'needs_clarification']",
+      "search_result": "SearchResult | None",
+      "coverage": "<class 'RequirementCoverage'>",
+      "clarification_questions": "list[Clarification]"
+    },
+    "required_keys": [
+      "clarification_questions",
+      "coverage",
+      "profile_version",
+      "request_id",
+      "search_result",
+      "status"
+    ]
+  },
+  "ConstraintCheck": {
+    "annotations": {
+      "field": "<class 'str'>",
+      "status": "typing.Literal['pass', 'fail', 'unknown']",
+      "reason": "<class 'str'>",
+      "evidence_ids": "list[str]"
+    },
+    "required_keys": [
+      "evidence_ids",
+      "field",
+      "reason",
+      "status"
+    ]
+  },
+  "ScreenedListing": {
+    "annotations": {
+      "listing_key": "<class 'str'>",
+      "checks": "list[ConstraintCheck]"
+    },
+    "required_keys": [
+      "checks",
+      "listing_key"
+    ]
+  },
+  "ScreenResult": {
+    "annotations": {
+      "profile_version": "<class 'int'>",
+      "eligible": "list[ScreenedListing]",
+      "rejected": "list[ScreenedListing]",
+      "needs_verification": "list[ScreenedListing]"
+    },
+    "required_keys": [
+      "eligible",
+      "needs_verification",
+      "profile_version",
+      "rejected"
+    ]
+  },
+  "RetrievalCandidate": {
+    "annotations": {
+      "listing_key": "<class 'str'>",
+      "exact_matches": "list[str]",
+      "vector_score": "float | None",
+      "keyword_score": "float | None",
+      "retrieval_rank": "<class 'int'>",
+      "retrieval_score": "float | None"
+    },
+    "required_keys": [
+      "exact_matches",
+      "keyword_score",
+      "listing_key",
+      "retrieval_rank",
+      "retrieval_score",
+      "vector_score"
+    ]
+  },
+  "RetrievalResult": {
+    "annotations": {
+      "profile_version": "<class 'int'>",
+      "candidates": "list[RetrievalCandidate]",
+      "input_count": "<class 'int'>",
+      "returned_count": "<class 'int'>",
+      "truncated": "<class 'bool'>",
+      "method_version": "<class 'str'>"
+    },
+    "required_keys": [
+      "candidates",
+      "input_count",
+      "method_version",
+      "profile_version",
+      "returned_count",
+      "truncated"
+    ]
+  },
+  "ListingSnapshot": {
+    "annotations": {
+      "snapshot_id": "<class 'str'>",
+      "profile_version": "<class 'int'>",
+      "items": "list[Listing]"
+    },
+    "required_keys": [
+      "items",
+      "profile_version",
+      "snapshot_id"
+    ]
+  },
+  "Claim": {
+    "annotations": {
+      "kind": "typing.Literal['fact', 'judgment']",
+      "text": "<class 'str'>",
+      "evidence_ids": "list[str]"
+    },
+    "required_keys": [
+      "evidence_ids",
+      "kind",
+      "text"
+    ]
+  },
+  "RecommendationItem": {
+    "annotations": {
+      "listing_key": "<class 'str'>",
+      "rank": "<class 'int'>",
+      "reasons": "list[Claim]",
+      "tradeoffs": "list[Claim]",
+      "unknowns": "list[str]"
+    },
+    "required_keys": [
+      "listing_key",
+      "rank",
+      "reasons",
+      "tradeoffs",
+      "unknowns"
+    ]
+  },
+  "Recommendation": {
+    "annotations": {
+      "ordered_items": "list[RecommendationItem]",
+      "summary": "<class 'str'>",
+      "limitations": "list[str]"
+    },
+    "required_keys": [
+      "limitations",
+      "ordered_items",
+      "summary"
+    ]
+  },
+  "RelaxationProposal": {
+    "annotations": {
+      "proposal_id": "<class 'str'>",
+      "field": "<class 'str'>",
+      "old_value": "typing.Union[NoneType, bool, int, float, str, list['JsonValue'], dict[str, 'JsonValue']]",
+      "proposed_value": "typing.Union[NoneType, bool, int, float, str, list['JsonValue'], dict[str, 'JsonValue']]",
+      "reason": "<class 'str'>",
+      "evidence_listing_keys": "list[str]",
+      "requires_user_confirmation": "typing.Literal[True]"
+    },
+    "required_keys": [
+      "evidence_listing_keys",
+      "field",
+      "old_value",
+      "proposal_id",
+      "proposed_value",
+      "reason",
+      "requires_user_confirmation"
+    ]
+  },
+  "Assessment": {
+    "annotations": {
+      "constraint_findings": "list[str]",
+      "search_directive": "SearchDirective | None",
+      "relaxation_proposals": "list[RelaxationProposal]",
+      "next_action": "typing.Literal['publish', 'research', 'ask_user', 'finish']",
+      "next_reason_code": "<class 'str'>"
+    },
+    "required_keys": [
+      "constraint_findings",
+      "next_action",
+      "next_reason_code",
+      "relaxation_proposals",
+      "search_directive"
+    ]
+  },
+  "EvaluationResult": {
+    "annotations": {
+      "profile_version": "<class 'int'>",
+      "snapshot_id": "<class 'str'>",
+      "recommendation": "<class 'Recommendation'>",
+      "assessment": "<class 'Assessment'>"
+    },
+    "required_keys": [
+      "assessment",
+      "profile_version",
+      "recommendation",
+      "snapshot_id"
+    ]
+  },
+  "ReviewIssue": {
+    "annotations": {
+      "code": "typing.Literal['UNKNOWN_LISTING', 'UNSUPPORTED_CLAIM', 'HARD_CONSTRAINT_VIOLATION', 'INVALID_RANK', 'TOO_MANY_ITEMS', 'MISSING_LIMITATION', 'STALE_EVIDENCE']",
+      "listing_key": "str | None",
+      "field_path": "<class 'str'>",
+      "message": "<class 'str'>",
+      "severity": "typing.Literal['blocking', 'warning']",
+      "suggested_fix": "<class 'str'>"
+    },
+    "required_keys": [
+      "code",
+      "field_path",
+      "listing_key",
+      "message",
+      "severity",
+      "suggested_fix"
+    ]
+  },
+  "ReviewResult": {
+    "annotations": {
+      "passed": "<class 'bool'>",
+      "issues": "list[ReviewIssue]"
+    },
+    "required_keys": [
+      "issues",
+      "passed"
+    ]
+  },
+  "RoutingPolicy": {
+    "annotations": {
+      "min_matches": "<class 'int'>",
+      "display_limit": "<class 'int'>",
+      "max_search_attempts": "<class 'int'>",
+      "max_repairs": "<class 'int'>"
+    },
+    "required_keys": [
+      "display_limit",
+      "max_repairs",
+      "max_search_attempts",
+      "min_matches"
+    ]
+  },
+  "PendingQuestion": {
+    "annotations": {
+      "question_id": "<class 'str'>",
+      "text": "<class 'str'>",
+      "reason_code": "<class 'str'>",
+      "proposals": "list[RelaxationProposal]",
+      "allowed_actions": "list[typing.Literal['answer', 'accept_proposal', 'decline', 'cancel']]",
+      "base_profile_version": "<class 'int'>",
+      "state_version": "<class 'int'>"
+    },
+    "required_keys": [
+      "allowed_actions",
+      "base_profile_version",
+      "proposals",
+      "question_id",
+      "reason_code",
+      "state_version",
+      "text"
+    ]
+  },
+  "DecisionState": {
+    "annotations": {
+      "run_id": "<class 'str'>",
+      "state_version": "<class 'int'>",
+      "profile_version": "<class 'int'>",
+      "current_profile_version": "<class 'int'>",
+      "cancelled": "<class 'bool'>",
+      "user_declined": "<class 'bool'>",
+      "deadline_exhausted": "<class 'bool'>",
+      "search_status": "typing.Literal['not_started', 'success', 'partial', 'error']",
+      "search_attempts_used": "<class 'int'>",
+      "repairs_used": "<class 'int'>",
+      "eligible_count": "<class 'int'>",
+      "review": "ReviewResult | None",
+      "failure_code": "str | None",
+      "search_directive": "SearchDirective | None",
+      "pending_question": "PendingQuestion | None",
+      "evaluation_next_action": "typing.Optional[typing.Literal['publish', 'research', 'ask_user', 'finish']]",
+      "evaluation_next_reason_code": "str | None"
+    },
+    "required_keys": [
+      "cancelled",
+      "current_profile_version",
+      "deadline_exhausted",
+      "eligible_count",
+      "evaluation_next_action",
+      "evaluation_next_reason_code",
+      "failure_code",
+      "pending_question",
+      "profile_version",
+      "repairs_used",
+      "review",
+      "run_id",
+      "search_attempts_used",
+      "search_directive",
+      "search_status",
+      "state_version",
+      "user_declined"
+    ]
+  },
+  "RouteDecision": {
+    "annotations": {
+      "action": "typing.Literal['publish', 'research', 'repair', 'ask_user', 'finish', 'stop']",
+      "reason_code": "<class 'str'>",
+      "search_directive": "SearchDirective | None",
+      "pending_question": "PendingQuestion | None"
+    },
+    "required_keys": [
+      "action",
+      "pending_question",
+      "reason_code",
+      "search_directive"
+    ]
+  }
+}

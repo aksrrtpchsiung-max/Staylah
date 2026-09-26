@@ -2,7 +2,7 @@
 
 import unittest
 
-from requirement_understanding import FALCON_SCOPE_MESSAGE, ResponseRenderer
+from property_agent.requirements import FALCON_SCOPE_MESSAGE, ResponseRenderer
 
 
 class ResponseRendererTests(unittest.TestCase):

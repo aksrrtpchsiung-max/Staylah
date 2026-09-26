@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import httpx
 
-from requirement_understanding import (
+from property_agent.requirements import (
     DEFAULT_USER_ID,
     DeepSeekRequirementInterpreter,
     FALCON_SCOPE_MESSAGE,
@@ -15,9 +15,9 @@ from requirement_understanding import (
     InputGuardDecision,
     build_requirement_graph,
 )
-from requirement_understanding.workflow import validate_patch
-from requirement_understanding.housing_questions import HousingQuestionAnswer, HousingSearchResult
-from requirement_understanding.turn_router import TurnIntentDecision
+from property_agent.requirements.workflow import validate_patch
+from property_agent.requirements.housing_questions import HousingQuestionAnswer, HousingSearchResult
+from property_agent.requirements.turn_router import TurnIntentDecision
 
 
 class AlwaysHousingGuard:

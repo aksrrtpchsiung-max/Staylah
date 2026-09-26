@@ -23,7 +23,7 @@ flowchart LR
     C -. run/checkpoint .-> P
 ```
 
-共享业务契约唯一定义在 `property_agent/contracts.py`，根目录 `contracts_v0.py` 保留兼容导出。
+共享业务契约唯一定义在 `property_agent/contracts.py`，原根目录兼容入口已在真实链路通过后删除。
 旧编号和新实现的唯一对应清单见 [模块对应表](模块对应表.md)。正式产品入口是：
 
 ```bash
@@ -38,7 +38,7 @@ flowchart LR
 网页入口在 `web/`，PropertyGuru 网站工具仍在 `guru_search/`。
 
 完整目录见 [项目目录](项目目录.md)，当前流程见 [模块设计](模块设计.md)。
-旧编号目录和根目录入口保留兼容，新增业务代码请修改新实现；对应关系只维护在
+旧编号目录和根目录兼容文件已经移除，代码和脚本统一使用新路径；对应关系只维护在
 [模块对应表](模块对应表.md)。`deepseek_agent/` 是独立教学示例。
 
 ## 本地启动
@@ -169,7 +169,7 @@ python3 -m venv .venv
 启动同一 `thread_id` 的交互调试：
 
 ```bash
-./.venv/bin/python -m requirement_understanding.cli --thread demo-001 --tone warm --trace
+./.venv/bin/python -m property_agent.requirements.cli --thread demo-001 --tone warm --trace
 ```
 
 CLI 自动加载 `.env.local`，支持：
@@ -209,7 +209,7 @@ graph = build_requirement_graph(interpreter=DeepSeekRequirementInterpreter())
 
 ## C 模块：DeepSeek 评估流程
 
-`property_agent/evaluation/` 的流程是（`part_c.py` 保留兼容入口）：
+`property_agent/evaluation/` 的流程是：
 
 ```text
 B 返回候选（C 不再执行 screen，最多 12 套）
@@ -288,13 +288,13 @@ DEEPSEEK_TEMPERATURE=0
 DEEPSEEK_MAX_TOKENS=2600
 ```
 
-环境变量优先于 `.env`；默认从 `config.py` 所在目录读取，和启动目录无关。
+环境变量优先于 `.env`；默认从 `property_agent/runtime/model_client.py` 所在目录读取，和启动目录无关。
 密钥必填，`.env` 与 `.venv` 已被 Git 忽略。URL 填 API 根地址，不追加 `/chat/completions`。
 
 运行 `__main__` 内的三组真实模型输入输出检查（需要配置密钥和联网）：
 
 ```bash
-.venv/bin/python config.py
+.venv/bin/python -m property_agent.runtime.model_client
 ```
 
 三组输入分别为 Tampines、Clementi、Punggol 的租房需求，通过 LangGraph 调用真实网关，
@@ -333,8 +333,8 @@ async def model_node(state):
 运行模块 `__main__` 内的三组真实搜索及详情检查：
 
 ```bash
-.venv/bin/python part3/capabilities/listings.py --output /tmp/listings-live.json
-.venv/bin/python providers/guru_search.py
+.venv/bin/python -m property_agent.search.capabilities.listings --output /tmp/listings-live.json
+.venv/bin/python -m property_agent.search.providers.guru_search
 ```
 
 输入来自共享 `SearchPlan` / `RunContext` 契约，默认查询 Tampines、Clementi、Punggol。
@@ -404,21 +404,21 @@ Agent 在当前阶段内选择一项任务，代码禁止跨阶段调用；额�
 `property_agent/search/planning/planner.py` 的计划生成已接通；3c 周边设施与 3d 通勤也已接入，见文末能力说明。
 
 ```bash
-.venv/bin/python -m part2.supervisor
-.venv/bin/python -m part3.capabilities.location
-.venv/bin/python -m providers.onemap
+.venv/bin/python -m property_agent.search.execution.supervisor
+.venv/bin/python -m property_agent.search.capabilities.location
+.venv/bin/python -m property_agent.search.providers.onemap
 ```
 
 以上命令全部进行真实外部调用，需要配置和联网。每个模块默认至少三组输入，
 将实际输出打印为 JSON；没有模拟 Provider、预设模型决策或预设坐标。
-`part2.supervisor` 检查每组都有成功的搜索、详情、唯一定位，以及真实模型决策；
+`property_agent.search.execution.supervisor` 检查每组都有成功的搜索、详情、唯一定位，以及真实模型决策；
 模型降级或定位不确定都不会算作联调通过。同时检查每轮模型菜单不混合阶段，所有搜索任务先于补充任务执行。
 每组默认只实际取一页、一个候选，并用第二个查询 ID 复用真实页面，验证已有候选时仍须先处理剩余搜索任务，
 因此结果可能因候选额度返回 `partial`；这不等于已经找到符合所有硬条件的房源。
 阶段测试默认聚焦 2→3a→3b，暂不注册可选配套 Provider；加 `--with-investigations` 可同时执行已注册的补充调查。
 
 ```bash
-.venv/bin/python part2/supervisor.py --output /tmp/search-live.json
+.venv/bin/python -m property_agent.search.execution.supervisor --output /tmp/search-live.json
 ```
 
 2026-09-18 本机真实验证：Tampines、Clementi、Punggol 三组完整链路全部通过，
@@ -463,18 +463,18 @@ result = await service.search(plan, ctx=ctx)
 # state["history"] / state["locations"] / state["result"]
 ```
 
-`plan` 和 `ctx` 来自 A/编排层，仍使用 `contracts_v0.py` 的字段：
+`plan` 和 `ctx` 来自 A/编排层，仍使用 `property_agent/contracts.py` 的字段：
 `source_mode="live"`，查询来源为 `propertyguru`，`attempt_id` 一致，
 `ctx.deadline_at` 是带时区的未来时间。
 不要先调用 `run` 再调用 `search` 来获取同一次结果，那会启动两次搜索；
 `run` 返回的 `state["result"]` 是 B 内部汇总完成的 SearchResult。
-如需要重新整理已取得的内部状态，也可调用 `part45.aggregation.aggregate(state, started)`，
+如需要重新整理已取得的内部状态，也可调用 `property_agent.search.aggregation.results.aggregate(state, started)`，
 其中 `started` 是执行前记录的 `time.monotonic()`；重新汇总不会调用外部服务。
 
 内部调试也可以用 CLI 读取 B 生成的 JSON 输入文件，结构为 `{"plan": {...}, "ctx": {...}}`：
 
 ```bash
-.venv/bin/python -m part2.supervisor --live --input /绝对路径/search-input.json
+.venv/bin/python -m property_agent.search.execution.supervisor --live --input /绝对路径/search-input.json
 ```
 
 真实联调需要 DeepSeek 配置、OneMap 凭据，以及 OpenCLI / Browser Bridge 环境。
@@ -489,7 +489,7 @@ result = await service.search(plan, ctx=ctx)
 - 3b 从 3a 的 `raw_details` 读取明确标注的 Address、Postal code、Building / Project，
   或 `Location information` JSON 中的地址字段；不使用附近地铁位置冒充房源位置。
 - `LocationCapability.locate(request, *, ctx)` 可由后续 3c/3d 复用。
-  `LocationRequest` 和 `LocationResult` 定义在 `execution/tasks.py`，属于内部接口。
+  `LocationRequest` 和 `LocationResult` 定义在 `property_agent/search/execution/tasks.py`，属于内部接口。
 - 唯一且信息相符的候选才确认坐标；门牌/道路冲突、多楼栋或候选分页未结束时保留歧义。
   精度表示匹配到楼栋或道路，不代表 GPS 实测误差。
 - 定位事实写入现有 `Listing.evidence`（`field="location"`，`value` 包含地址、
@@ -505,7 +505,7 @@ result = await service.search(plan, ctx=ctx)
 
 ## 4 / 5 汇总与完整 search
 
-`part45/aggregation.py` 整理管理层结束状态，`graph.py` 的 `aggregate` 节点在退出前生成
+`property_agent/search/aggregation/results.py` 整理管理层结束状态，`property_agent/search/graph.py` 的 `aggregate` 节点在退出前生成
 `Result[SearchResult]`。内部调用为 `await api.search(plan, ctx=ctx)`；A 使用下文的新入口 `fulfill_requirements`。
 汇总阶段不会继续派工，不改写硬条件，也不执行 C 的匹配筛选或推荐。
 
@@ -518,10 +518,10 @@ result = await service.search(plan, ctx=ctx)
   重试恢复后的历史失败不进入 `failed_sources`，失效或循环游标不交给下一轮。
 - 全部完成且无问题返回 `success`，包括真实空结果；有有效结果但存在缺口/截断返回 `partial`；
   未取得有效页面且失败返回 `error`、`data=None`。
-- `part1.validation.validate_search_result` 校验完整输出、证据引用、追踪标识、版本、数量和覆盖一致性；
+- `property_agent.domain.validation.validate_search_result` 校验完整输出、证据引用、追踪标识、版本、数量和覆盖一致性；
   输出校验失败使用 `INVALID_OUTPUT`，与调用方的 `INVALID_INPUT` 区分。
 
-完整链路测试放在 `api.py` 的 `if __name__ == '__main__':` 中，调用新公开入口 `fulfill_requirements`。
+完整链路测试放在 `property_agent/search/api.py` 的 `if __name__ == '__main__':` 中，调用新公开入口 `fulfill_requirements`。
 默认运行 `test_all.py` 中按 PropertyGuru 实际挂牌设计的四种不同业务需求，
 具体验收方式见下文。真实调用模型、guru_search、定位服务，不注入参考房源。
 测试脚本直接传入请求与上下文，打印入口原始返回。
@@ -534,10 +534,10 @@ result = await service.search(plan, ctx=ctx)
 执行实际管理/搜索/定位，把最终内部状态送入汇总并保存两侧实际数据：
 
 ```bash
-.venv/bin/python -m part45.aggregation --input /绝对路径/search-inputs.json --output /tmp/aggregation-results.json
+.venv/bin/python -m property_agent.search.aggregation.results --input /绝对路径/search-inputs.json --output /tmp/aggregation-results.json
 ```
 
-2026-09-18 完整 `api.search` 真实验收通过 3/3：Tampines / Clementi / Punggol，
+2026-09-18 完整 `property_agent.search.api.search` 真实验收通过 3/3：Tampines / Clementi / Punggol，
 房源 ID 分别为 `500252593` / `500256915` / `60052380`。
 每组取得真实详情和 OneMap 定位证据，模型无降级；最终均因一候选额度返回 `partial`，
 唯一问题为 `BUDGET_EXHAUSTED`，并保留 `pg:v1:1:1` 续页游标。
@@ -557,7 +557,7 @@ result = await service.search(plan, ctx=ctx)
 
 ## 新接口接入与完整联调
 
-A 只调用 `api.fulfill_requirements(request, *, ctx)`。输入是已确认的
+A 只调用 `property_agent.search.api.fulfill_requirements(request, *, ctx)`。输入是已确认的
 `RequirementRequest`，输出是 `Result[RequirementFulfillment]`。不要再由 A 构造查询、
 计划、历史或 Provider 参数。B 内部保留 `prepare_query`、`build_search_plan`、`search`
 三个契约函数，供模块联调使用；它们的画像参数已改成 `ConversationProfile`。
@@ -611,15 +611,15 @@ SEARCH_FINALIZE_RESERVE_SECONDS=10
 浏览器调用继续串行。截止前 10 秒停止并取消尚未完成的外部任务，保留已有结果进入
 汇总；不改写 `ctx.deadline_at`，未查完仍返回 `partial` 或 `error`。
 
-执行 `python graph.py` 可运行文件内三组真实搜索配置检查（Tampines、Clementi、Punggol）；
+执行 `python -m property_agent.search.graph` 可运行文件内三组真实搜索配置检查（Tampines、Clementi、Punggol）；
 每组默认总时限 120 秒，可用 `--timeout-seconds` 修改。检查真实候选、单次条数、页数、
 模型调用次数/耗时、重试及汇总预留时间；`--output` 可保存实际输入输出。来源失败时
 不会用虚拟数据代替，也不会将没有真实候选的用例记为通过。
 
-可复用 `api.create_live_fulfillment_service()`；内部联调用 `service.run(request, ctx=ctx)`
+可复用 `property_agent.search.api.create_live_fulfillment_service()`；内部联调用 `service.run(request, ctx=ctx)`
 可读取查询、计划、SearchResult 和最终结果。每次请求使用独立状态与预算，不启用跨请求的
 历史持久化或自动续页。`SearchDirective` / `AttemptSummary` 仍可用于 B 内部显式续页，
-但不是 A 的公开输入；内部历史指纹使用 `execution.history.query_fingerprint`。
+但不是 A 的公开输入；内部历史指纹使用 `property_agent.search.execution.history.query_fingerprint`。
 
 `test_all.py` 默认运行以下四种不同需求。2026-09-20 已打开 PropertyGuru 详情页核查设计依据；
 这些是遵守 `RequirementRequest` 的测试需求，不是 A 的生产日志，也不伪造 B 的返回。
@@ -644,7 +644,7 @@ SEARCH_FINALIZE_RESERVE_SECONDS=10
 .venv/bin/python -B test_all.py
 ```
 
-`api.py` 的运行入口复用同一调用；`python -m part1.planner` 只运行内部计划生成。
+`property_agent/search/api.py` 的模块运行入口复用同一调用；`python -m property_agent.search.planning.planner` 只运行内部计划生成。
 其他模块仍通过 `INPUTS` 复用这四组请求。
 
 以下为旧输入的历史链路记录，不代表上述新需求或 examples 用例验收通过：
@@ -701,7 +701,7 @@ const slides = photos.length ? photos : (media?.images ?? []).filter(image => im
 2→3a 的 live 输入，逐条对照同次搜索的原始媒体链接、数量和顺序，并核验缓存、去重合并、最终汇总：
 
 ```bash
-.venv/bin/python -B -m part3.capabilities.listings --photos-only --output /tmp/propertyguru-photo-live-results.json
+.venv/bin/python -B -m property_agent.search.capabilities.listings --photos-only --output /tmp/propertyguru-photo-live-results.json
 ```
 
 可用 `--input` 指定至少三组真实 `{plan, ctx}`。测试使用 guru_search 的
@@ -755,13 +755,13 @@ const slides = photos.length ? photos : (media?.images ?? []).filter(image => im
 真实来源检查入口保留在各模块自身的 `if __name__ == '__main__':`；离线回归另在 `tests/`：
 
 ```bash
-.venv/bin/python -B -m part3.capabilities.travel --input /绝对路径/真实通勤输入.json --output /tmp/travel-results.json
-.venv/bin/python -B -m part3.capabilities.amenities --input /绝对路径/真实设施输入.json --output /tmp/amenity-results.json
+.venv/bin/python -B -m property_agent.search.capabilities.travel --input /绝对路径/真实通勤输入.json --output /tmp/travel-results.json
+.venv/bin/python -B -m property_agent.search.capabilities.amenities --input /绝对路径/真实设施输入.json --output /tmp/amenity-results.json
 ```
 
 通勤输入是至少三项 `{listing, location, requirement, user_context, ctx}`，房源和定位必须来自实际上游。
 可用 `expected` 指定要断言的方式、小时、分钟或歧义结果；不注入任何预设地图响应。
-设施输入是至少三项 `{request, ctx}`，其中 `request` 为 `execution.tasks.AmenityRequest`。
+设施输入是至少三项 `{request, ctx}`，其中 `request` 为 `property_agent.search.execution.tasks.AmenityRequest`。
 每组五类设施都实际请求；测试保留一次有界重试前后的返回值，不隐藏外部故障。
 
 2026-09-20 本次真实验收：3c 的 Tampines / Clementi / Punggol 三组全部通过，五类设施均取得真实响应；

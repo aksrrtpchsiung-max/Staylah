@@ -1,7 +1,7 @@
 """3b：带来源的地址线索 → 标准地址、坐标、精度及歧义。
 
 不修改 Listing.location_id，不从标题/周边设施猜房源位置。
-运行真实定位输入输出：.venv/bin/python -m part3.capabilities.location
+运行真实定位输入输出：.venv/bin/python -m property_agent.search.capabilities.location
 """
 import asyncio
 from copy import deepcopy

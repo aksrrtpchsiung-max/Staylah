@@ -5,7 +5,9 @@ The only human-maintained old/new module list is [模块对应表](../../模块�
 Final results and reproducible commands are in [acceptance.md](acceptance.md).
 
 The implementation keeps HTTP payloads, prompts, ranking, graph node/state names,
-checkpoint identifiers, database schema, configuration precedence and CLI commands.
+checkpoint identifiers, database schema and configuration precedence. After the
+user requested cleanup and live A/B/C passed, 45 old source aliases were removed.
+Use canonical Python paths; web and orchestration startup commands are unchanged.
 
 ## Baseline calibration
 

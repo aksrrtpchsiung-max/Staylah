@@ -5,9 +5,9 @@ from datetime import datetime, timedelta, timezone
 import unittest
 from unittest.mock import patch
 
-from api import fulfill_requirements
-from fulfillment import FulfillmentService
-from requirement_understanding.workflow import build_requirement_request
+from property_agent.search.api import fulfill_requirements
+from property_agent.search.fulfillment import FulfillmentService
+from property_agent.requirements.workflow import build_requirement_request
 
 
 class RecordingPlanner:
@@ -170,7 +170,7 @@ class ABCommunicationTests(unittest.TestCase):
             "source_mode": "mock",
         }
 
-        with patch("api.create_live_fulfillment_service", return_value=service):
+        with patch("property_agent.search.api.create_live_fulfillment_service", return_value=service):
             result = asyncio.run(fulfill_requirements(request, ctx=ctx))
 
         self.assertEqual(handoff["status"], "ready_for_b")

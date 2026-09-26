@@ -7,13 +7,17 @@ import argparse
 import asyncio
 from dataclasses import replace
 import json
+import logging
 import os
 from pathlib import Path
 import sys
 from uuid import uuid4
 
 async def main(env_file):
-    from runtime_settings import load_runtime_settings, secret_environ
+    from importlib import import_module
+    module = "property_agent.runtime.settings" if (Path(sys.path[0]) / "property_agent/runtime/settings.py").is_file() else "runtime_settings"
+    settings_module = import_module(module)
+    load_runtime_settings, secret_environ = settings_module.load_runtime_settings, settings_module.secret_environ
     from property_agent.orchestration.postgres import postgres_conversation_runtime
     from property_agent.persistence.database import normalize_psycopg_uri
     from test_all import request_1
@@ -51,6 +55,27 @@ if __name__ == "__main__":
     root = Path(__file__).resolve().parents[1]
     parser.add_argument("--source-root", type=Path, default=root)
     parser.add_argument("--env-file", type=Path, default=root / ".env")
+    parser.add_argument("--trace-output", type=Path, help="Save stage results and source call arguments for diagnosis")
     args = parser.parse_args()
     sys.path.insert(0, str(args.source_root.resolve()))
+    if args.trace_output:
+        from property_agent.evaluation_trace import capture_trace
+
+        class SearchCalls(logging.Handler):
+            def emit(self, record):
+                event = getattr(record, "audit", None)
+                if isinstance(event, dict) and event.get("event") == "cli_call":
+                    calls.append(event)
+
+        calls = []
+        logger = logging.getLogger("search.audit")
+        logger.setLevel(logging.INFO)
+        logger.addHandler(SearchCalls())
+        with capture_trace("live-cleanup-verification") as trace:
+            try:
+                result = asyncio.run(main(args.env_file))
+            finally:
+                trace["source_calls"] = calls
+                args.trace_output.write_text(json.dumps(trace, ensure_ascii=False, indent=2, default=str) + "\n")
+        raise SystemExit(result)
     raise SystemExit(asyncio.run(main(args.env_file)))

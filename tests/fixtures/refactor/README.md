@@ -10,7 +10,9 @@ The original application baseline is Git commit `41f86d9`.
 - `source_fingerprints.json`: SHA-256 of original function/class ASTs; only import
   paths are canonicalized by `test_refactor_source_equivalence.py`.
 - `frontend_fingerprints.json`: SHA-256 of verbatim sections of the original app.js.
-- `module-map.json`: machine input for compatibility and AST tests. The only
+- `contract-schema.json`: all 55 TypedDict fields and required keys captured before
+  removing the root alias, so schema checks do not depend on a duplicate contract.
+- `module-map.json`: machine input for retired-path and AST checks. The only
   human-maintained module correspondence table is [模块对应表](../../../模块对应表.md).
 - `live_search.json`: the request/context and SearchResult from the real recording
   `evaluation_runs/test_all_20260924_133304/01_request-nus_bedroom_rent_input.json`

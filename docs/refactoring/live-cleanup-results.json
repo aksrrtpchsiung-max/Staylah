@@ -1,0 +1,94 @@
+{
+  "baseline": "41f86d9",
+  "alias_fix": "9ea911c",
+  "date": "2026-09-27 Asia/Singapore",
+  "original_user_text": "我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。",
+  "runs": [
+    {
+      "phase": "before_cleanup",
+      "results": [
+        {
+          "stage": "A",
+          "phase": "a_dialogue",
+          "status": "awaiting_confirmation",
+          "issues": []
+        },
+        {
+          "stage": "ABC",
+          "phase": "published",
+          "status": "completed",
+          "run_id": "run:ce2b87b37a6d0db09f993be1",
+          "recommendations": 10,
+          "issues": []
+        }
+      ]
+    },
+    {
+      "phase": "after_cleanup_before_alias_fix",
+      "results": [
+        {
+          "stage": "A",
+          "phase": "a_dialogue",
+          "status": "awaiting_confirmation",
+          "issues": []
+        },
+        {
+          "stage": "ABC",
+          "phase": "failed",
+          "status": "error",
+          "run_id": "run:0eef4408231676735efc2b19",
+          "recommendations": 0,
+          "issues": [
+            {
+              "code": "PARSE_ERROR",
+              "message": "PropertyGuru 未解析到房源，页面也未明确表示无匹配，不能当作空结果",
+              "field_path": null,
+              "source": "propertyguru",
+              "retryable": false,
+              "retry_after_seconds": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "after_cleanup_and_alias_fix",
+      "results": [
+        {
+          "stage": "A",
+          "phase": "a_dialogue",
+          "status": "awaiting_confirmation",
+          "issues": []
+        },
+        {
+          "stage": "ABC",
+          "phase": "published",
+          "status": "completed",
+          "run_id": "run:09746882c0541b5dd3d7a836",
+          "recommendations": 10,
+          "issues": []
+        }
+      ]
+    }
+  ],
+  "final_source_queries": [
+    "Tampines"
+  ],
+  "final_c_stages": [
+    {
+      "stage": "c_retrieval_result",
+      "status": "success",
+      "issues": []
+    },
+    {
+      "stage": "c_evaluation",
+      "status": "success",
+      "issues": []
+    },
+    {
+      "stage": "c_review",
+      "status": "success",
+      "issues": []
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-"""3a 的内部执行数据；不扩展 contracts_v0 的公开接口。"""
+"""3a 的内部执行数据；不扩展 property_agent.contracts 的公开接口。"""
 from typing import Literal, TypedDict
 
 from property_agent.contracts import Evidence, Issue, JsonValue, Listing

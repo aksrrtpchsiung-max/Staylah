@@ -20,7 +20,12 @@ async def verify(mode, prefix):
     from property_agent.persistence.wiring import build_postgres_deps
     from property_agent.decision.graph import build_decision_graph, initial_state
     from property_agent.decision.stubs import ScriptedModuleC, ScriptedSearchRunner
-    from requirement_understanding import DeepSeekRequirementInterpreter, build_requirement_graph
+    # The explicit old-checkout mode still needs its historical package name.
+    from importlib import import_module
+    package = "property_agent.requirements" if (Path(sys.path[0]) / "property_agent/requirements").is_dir() else "requirement_understanding"
+    requirements = import_module(package)
+    DeepSeekRequirementInterpreter = requirements.DeepSeekRequirementInterpreter
+    build_requirement_graph = requirements.build_requirement_graph
     from tests.test_requirement_understanding import AlwaysHousingGuard, TestTurnIntentClassifier, complete_sentence_output, mock_deepseek_client
     from tests.test_orchestration import REQUIREMENT
     from tests.support import build_ctx, build_outcome, load_profile

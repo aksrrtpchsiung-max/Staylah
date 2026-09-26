@@ -5,11 +5,11 @@ from datetime import datetime, timedelta, timezone
 import json
 from uuid import uuid4
 
-from api import search as api_search
-from contracts_v0 import SearchPlan
+from property_agent.search.api import search as api_search
+from property_agent.contracts import SearchPlan
 
 
-# 完整的 SearchPlan 示例：字段与 contracts_v0.py 一致，可直接复制修改。
+# 完整的 SearchPlan 示例：字段与 property_agent/contracts.py 一致，可直接复制修改。
 # page_limit 是整个 search 的页数上限，candidate_limit 是整个调用的候选上限。
 search_plan_1: SearchPlan = {
     "plan_id": "plan-tampines-whole",
