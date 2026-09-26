@@ -6,7 +6,7 @@ import unittest
 from property_agent.domain.requirements import location_entity, normalize_requirements
 from property_agent.search.planning.query import prepare_request_query
 from property_agent.search.planning.planner import _location_options
-from test_all import request_1
+from scripts.live_requirements import request_1
 from tests.support import build_ctx
 
 

@@ -1,6 +1,6 @@
 """decide_next 的契约用例回归。
 
-前 9 个用例直接读 docs/examples/function-contract-cases.json，避免手抄评审稿。
+前 9 个用例直接读 tests/fixtures/decision_routes.json，避免手抄评审稿。
 其余用例覆盖评审稿"补充约束"一节里没有配 JSON 样例的规则。
 """
 import copy
@@ -11,7 +11,7 @@ from pathlib import Path
 from property_agent.contracts import ContractViolation
 from property_agent.decision import DEFAULT_POLICY, decide_next
 
-CASES_PATH = Path(__file__).resolve().parents[1] / "docs/examples/function-contract-cases.json"
+CASES_PATH = Path(__file__).resolve().parents[1] / "tests/fixtures/decision_routes.json"
 
 
 def load_cases() -> dict[str, dict]:

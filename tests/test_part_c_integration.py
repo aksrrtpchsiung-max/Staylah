@@ -14,6 +14,7 @@ from property_agent.decision import (
 from property_agent.decision.stubs import ScriptedSearchRunner
 from property_agent.persistence.wiring import build_postgres_deps
 from tests.support import build_ctx, build_outcome, load_profile
+from tests.refactor_scenarios import UnavailableModel
 
 
 class AcceptingPartCModel:
@@ -146,8 +147,10 @@ class PartCIntegrationTests(unittest.IsolatedAsyncioTestCase):
             result["published_recommendation"]["limitations"],
         )
 
-    async def test_graph_publishes_with_deterministic_fallback_without_bedrock(self):
-        part_c.configure_evaluation_review_model(None)
+    async def test_graph_publishes_with_deterministic_fallback_without_model(self):
+        # None enables automatic model configuration; inject an explicit outage
+        # so this regression never depends on credentials or another test.
+        part_c.configure_evaluation_review_model(UnavailableModel())
         profile = load_profile()
         deps = build_stub_deps(profile)
         deps.module_c = PartCEvaluationModule()

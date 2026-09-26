@@ -118,7 +118,7 @@ if __name__ == '__main__':
     from property_agent.search.api import create_live_search_service
     from property_agent.runtime.model_client import load_search_plan_settings
     from property_agent.search.execution.budget import remaining_seconds
-    from test_search import search_plan_1, search_plan_2, search_plan_3
+    from scripts.live_search import search_plan_1, search_plan_2, search_plan_3
 
     parser = argparse.ArgumentParser(description='三组真实搜索验证执行参数；不注入虚拟返回')
     parser.add_argument('--timeout-seconds', type=int, default=120, help='每组真实输入的总时限')

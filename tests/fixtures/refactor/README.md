@@ -18,7 +18,7 @@ The original application baseline is Git commit `41f86d9`.
   `evaluation_runs/test_all_20260924_133304/01_request-nus_bedroom_rent_input.json`
   and `01_request-nus_bedroom_rent_output.json`. All 12 public PropertyGuru listings
   and their observations are preserved. The historical evaluation_runs directory
-  is local/ignored; the extracted input needed by regression is committed here.
+  was local/ignored and has been removed after extraction; the input needed by regression is committed here.
 - `live_fulfillment_expected.json`: result of replaying the recorded request and
   search output through the original `part45.requirements.build_fulfillment`;
   only duration_ms is zeroed. This is a historical replay, not current availability.

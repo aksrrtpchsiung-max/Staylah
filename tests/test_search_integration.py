@@ -10,7 +10,7 @@ from property_agent.domain.requirements import normalize_requirements
 from property_agent.search.capabilities.listings import merge_detail
 from property_agent.search.aggregation.requirements import build_fulfillment
 from property_agent.integration import BCAttemptAdapter, BSearchRunner
-from property_agent.mock_search.pipeline import load_search_fixture
+from tests.mock_search.pipeline import load_search_fixture
 from property_agent.persistence.wiring import build_postgres_deps
 from property_agent.results import is_usable, make_issue
 from property_agent.requirements.workflow import build_requirement_request

@@ -69,6 +69,51 @@
           "issues": []
         }
       ]
+    },
+    {
+      "phase": "after_removing_unused_tools_and_data",
+      "results": [
+        {
+          "stage": "A",
+          "phase": "a_dialogue",
+          "status": "awaiting_confirmation",
+          "issues": []
+        },
+        {
+          "stage": "ABC",
+          "phase": "published",
+          "status": "completed",
+          "run_id": "run:f092e5dc1dbcfa5d4803236c",
+          "recommendations": 10,
+          "issues": []
+        }
+      ],
+      "c_stages": [
+        {
+          "stage": "c_retrieval_result",
+          "status": "success",
+          "issues": []
+        },
+        {
+          "stage": "c_evaluation",
+          "status": "success",
+          "issues": []
+        },
+        {
+          "stage": "c_review",
+          "status": "partial",
+          "issues": [
+            {
+              "code": "MODEL_UNAVAILABLE",
+              "message": "REQUEST_FAILED: DeepSeek request failed (DeepSeek returned empty message content (finish_reason=length)); used deterministic review",
+              "field_path": null,
+              "source": "review_model",
+              "retryable": true,
+              "retry_after_seconds": null
+            }
+          ]
+        }
+      ]
     }
   ],
   "final_source_queries": [

@@ -366,7 +366,7 @@ if __name__ == '__main__':
     # 不导入接口文档中的虚构房源，不构造 Provider 或模型的预设输出。
     from datetime import datetime, timedelta, timezone
     import json
-    from test_all import INPUTS
+    from scripts.live_requirements import INPUTS
 
     for index, request in enumerate(INPUTS):
         ctx = dict(user_id='live-check', run_id=f'parse-{index}', conversation_id=request['conversation_id'],

@@ -54,8 +54,8 @@ class CompatibilityTests(unittest.TestCase):
         self.assertEqual(parameters['ctx'].kind, inspect.Parameter.KEYWORD_ONLY)
 
     def test_application_and_tools_do_not_import_retired_modules(self):
-        retired_roots = {name.split('.')[0] for name in MODULE_MAP} | {'contracts_v0'}
-        files = [ROOT / name for name in ['test_all.py', 'test_search.py', 'build_contract_examples.py']]
+        retired_roots = {name.split('.')[0] for name in MODULE_MAP} | {'contracts_v0', 'test_all', 'test_search', 'deepseek_agent'}
+        files = []
         for directory in ['property_agent', 'web', 'scripts', 'evaluation_suite']:
             files.extend((ROOT / directory).rglob('*.py'))
         for file in files:

@@ -285,7 +285,7 @@ if __name__ == '__main__':
     from datetime import datetime, timedelta, timezone
     from property_agent.search.api import create_live_planner_service
     from property_agent.search.planning.query import prepare_request_query
-    from test_all import INPUTS
+    from scripts.live_requirements import INPUTS
 
     async def main():
         planner = create_live_planner_service()

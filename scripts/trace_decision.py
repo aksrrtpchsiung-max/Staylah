@@ -6,8 +6,8 @@ nodes.py 里每个节点的 return 语句。
 
 从项目根目录运行：
 
-    .venv-agent/bin/python scripts/trace_decision.py --scenario relax --answer decline
-    .venv-agent/bin/python scripts/trace_decision.py --scenario repair
+    .venv/bin/python scripts/trace_decision.py --scenario relax --answer decline
+    .venv/bin/python scripts/trace_decision.py --scenario repair
 
 不调用模型、不访问网络：模块 C 与模块 B 都用 property_agent/decision/stubs.py 的替身。
 房源夹具复用 tests/support.py，所以需要在根目录执行。

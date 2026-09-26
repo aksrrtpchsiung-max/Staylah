@@ -5,7 +5,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 
 from property_agent.decision import build_decision_graph, build_stub_deps, initial_state
-from property_agent.mock_search import (
+from tests.mock_search import (
     MockSearchRunner,
     first_attempt_from_fixture,
     load_search_fixture,

@@ -149,6 +149,6 @@ async def search(plan: SearchPlan, *, ctx: RunContext) -> Result[SearchResult]:
 
 if __name__ == '__main__':
     import asyncio
-    from test_all import run_all
+    from scripts.live_requirements import run_all
 
     asyncio.run(run_all())

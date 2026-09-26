@@ -1,4 +1,4 @@
-"""测试夹具：用 mock_property_data 的真实合成房源拼出上游一次搜索尝试的产物。
+"""测试夹具：用保留下来的历史合成房源拼出上游一次搜索尝试的产物。
 
 不自己编造 Listing，避免夹具和契约悄悄分叉。筛选分组按房源实际字段手工指定，
 因为 screen 由模块 C 实现，这里只需要一个符合契约形状的输入。
@@ -12,7 +12,7 @@ from typing import Any
 from property_agent.profiles import from_legacy_user_profile
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURES = ROOT / "mock_property_data 2" / "output" / "fixtures"
+FIXTURES = ROOT / "tests" / "fixtures" / "search"
 
 # 档案为整租、CLEMENTI、月租 ≤ SGD 3500、至少两卧。以下分组据此手工核对。
 ELIGIBLE_KEYS = [

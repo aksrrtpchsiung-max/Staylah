@@ -20,7 +20,8 @@ async def main(env_file):
     load_runtime_settings, secret_environ = settings_module.load_runtime_settings, settings_module.secret_environ
     from property_agent.orchestration.postgres import postgres_conversation_runtime
     from property_agent.persistence.database import normalize_psycopg_uri
-    from test_all import request_1
+    request_module = "scripts.live_requirements" if (Path(sys.path[0]) / "scripts/live_requirements.py").is_file() else "test_all"
+    request_1 = import_module(request_module).request_1
 
     database = os.environ.get("TEST_DATABASE_URL")
     if not database:

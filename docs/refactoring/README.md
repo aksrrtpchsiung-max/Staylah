@@ -7,7 +7,7 @@ Final results and reproducible commands are in [acceptance.md](acceptance.md).
 The implementation keeps HTTP payloads, prompts, ranking, graph node/state names,
 checkpoint identifiers, database schema and configuration precedence. After the
 user requested cleanup and live A/B/C passed, 45 old source aliases were removed.
-Use canonical Python paths; web and orchestration startup commands are unchanged.
+A second cleanup removed unused tools and documents and retained only the fixture subset used by application regressions. Use canonical Python paths; web and orchestration startup commands are unchanged.
 
 ## Baseline calibration
 

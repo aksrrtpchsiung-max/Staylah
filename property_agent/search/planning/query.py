@@ -73,7 +73,7 @@ async def prepare_request_query(request: RequirementRequest, *, ctx: RunContext)
 if __name__ == '__main__':
     import asyncio
     from datetime import datetime, timedelta, timezone
-    from test_all import INPUTS
+    from scripts.live_requirements import INPUTS
 
     async def main():
         for index, request in enumerate(INPUTS):

@@ -21,7 +21,6 @@
   "providers.osm": "property_agent.search.providers.osm",
   "providers.guru_search": "property_agent.search.providers.guru_search",
   "providers.base": "property_agent.search.providers.base",
-  "providers.mock": "property_agent.search.providers.mock",
   "part3.capabilities.listings": "property_agent.search.capabilities.listings",
   "part3.capabilities.travel": "property_agent.search.capabilities.travel",
   "part3.capabilities.location": "property_agent.search.capabilities.location",
