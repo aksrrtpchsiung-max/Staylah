@@ -7,36 +7,7 @@ from typing import Any, Literal, Protocol
 import httpx
 from pydantic import Field
 
-from .models import (
-    CommuteRequirement,
-    ConstraintStrength,
-    DestinationType,
-    Intent,
-    IntentConstraint,
-    IssueCode,
-    LocationRelation,
-    LocationRequirement,
-    MoneyConstraint,
-    NormalizedRequirement,
-    NumericConstraint,
-    NumericOperator,
-    ParserMetadata,
-    PreferencePriority,
-    PreferenceRequirement,
-    PreferenceTopic,
-    ProfileFactField,
-    ProfileFactRequirement,
-    PricePeriod,
-    PropertyType,
-    PropertyTypeConstraint,
-    RentalScope,
-    RentalScopeConstraint,
-    RequirementIssue,
-    RequirementResult,
-    SourceSpan,
-    StrictModel,
-    TravelMode,
-)
+from .models import CommuteRequirement, ConstraintStrength, DestinationType, Intent, IntentConstraint, IssueCode, LocationRelation, LocationRequirement, MoneyConstraint, NormalizedRequirement, NumericConstraint, NumericOperator, ParserMetadata, PreferencePriority, PreferenceRequirement, PreferenceTopic, ProfileFactField, ProfileFactRequirement, PricePeriod, PropertyType, PropertyTypeConstraint, RentalScope, RentalScopeConstraint, RequirementIssue, RequirementResult, SourceSpan, StrictModel, TravelMode
 
 
 SYSTEM_PROMPT = """You are a Singapore housing requirement-understanding agent. Convert the user's natural-language input directly into normalized JSON.

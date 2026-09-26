@@ -4,43 +4,12 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any
 
-from .deepseek_parser import (
-    DeepSeekAPIError,
-    DeepSeekConfigurationError,
-    DeepSeekRequirementInterpreter,
-    RequirementInputError,
-    RequirementInterpreter,
-)
+from .deepseek_parser import DeepSeekAPIError, DeepSeekConfigurationError, DeepSeekRequirementInterpreter, RequirementInputError, RequirementInterpreter
 from .models import IssueCode, RequirementGraphState
-from .housing_questions import (
-    DeepSeekHousingQuestionAnswerer,
-    HousingQuestionAnswerer,
-)
+from .housing_questions import DeepSeekHousingQuestionAnswerer, HousingQuestionAnswerer
 from .response_renderer import ResponseRenderer
-from .turn_router import (
-    DeepSeekTurnIntentClassifier,
-    TurnIntentClassifier,
-)
-from .workflow import (
-    DeepSeekInputGuard,
-    InMemoryProfileRepository,
-    InputGuard,
-    ProfileRepository,
-    assess_completeness,
-    build_requirement_request,
-    detect_conflicts,
-    generate_confirmation,
-    handle_confirmation,
-    make_merge_profile_node,
-    make_persist_confirmed_profile_node,
-    make_validate_input_node,
-    normalized_requirement_to_patch,
-    recover_error,
-    route_workflow,
-    select_clarification,
-    utc_now,
-    validate_patch,
-)
+from .turn_router import DeepSeekTurnIntentClassifier, TurnIntentClassifier
+from .workflow import DeepSeekInputGuard, InMemoryProfileRepository, InputGuard, ProfileRepository, assess_completeness, build_requirement_request, detect_conflicts, generate_confirmation, handle_confirmation, make_merge_profile_node, make_persist_confirmed_profile_node, make_validate_input_node, normalized_requirement_to_patch, recover_error, select_clarification, utc_now, validate_patch
 
 
 def make_classify_turn_intent_node(
