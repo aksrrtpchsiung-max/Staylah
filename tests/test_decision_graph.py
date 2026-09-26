@@ -79,7 +79,7 @@ class PublishTests(DecisionGraphCase):
         # 截断只砍尾部，不按价格或任何数字重排模型给出的顺序。
         self.assertEqual([item["listing_key"] for item in items], ELIGIBLE_KEYS[:3])
         self.assertTrue(
-            any("合格候选共 7 条" in line for line in result["published_recommendation"]["limitations"])
+            any("B 候选共 7 条" in line for line in result["published_recommendation"]["limitations"])
         )
 
     async def test_publish_is_idempotent_across_lost_checkpoints(self):
@@ -109,8 +109,8 @@ class RelaxationTests(DecisionGraphCase):
         self.assertEqual(proposal["proposed_value"], OVER_BUDGET_AMOUNT)
         self.assertTrue(proposal["requires_user_confirmation"])
         self.assertEqual(proposal["evidence_listing_keys"], [OVER_BUDGET_KEY])
-        self.assertIn("本轮已有 2 套符合硬条件的房源，只是数量还偏少。", question["text"])
-        self.assertNotIn("没有符合当前硬条件的房源", question["text"])
+        self.assertIn("This search found 2 listings meeting your requirements, fewer than requested.", question["text"])
+        self.assertNotIn("No listings in this search meet all current requirements", question["text"])
         # 提案还没被接受，档案必须一字未改。
         self.assertEqual(self.deps.profiles.current_version("mock-profile-001"), 1)
         self.assertEqual(self.deps.recommendations.saved, {})
@@ -118,8 +118,8 @@ class RelaxationTests(DecisionGraphCase):
     async def test_ask_user_says_none_when_zero_eligible(self):
         result = await self.run_graph(eligible=0, include_over_budget=True)
         question = self.interrupted_question(result)
-        self.assertIn("本轮没有符合当前硬条件的房源。", question["text"])
-        self.assertNotIn("数量还偏少", question["text"])
+        self.assertIn("No listings in this search meet all current requirements.", question["text"])
+        self.assertNotIn("fewer than requested", question["text"])
         self.assertEqual(self.deps.recommendations.saved, {})
 
     async def test_c_can_ask_even_when_enough_matches(self):
@@ -179,8 +179,8 @@ class RelaxationTests(DecisionGraphCase):
         result = await self.run_graph(eligible=3, include_over_budget=True)
         question = self.interrupted_question(result)
         self.assertEqual(result["decision"]["action"], "ask_user")
-        self.assertIn("本轮已有 3 套符合硬条件的房源，只是数量还偏少。", question["text"])
-        self.assertNotIn("没有符合当前硬条件的房源", question["text"])
+        self.assertIn("This search found 3 listings meeting your requirements, fewer than requested.", question["text"])
+        self.assertNotIn("No listings in this search meet all current requirements", question["text"])
         self.assertEqual(self.deps.recommendations.saved, {})
 
     async def test_accepting_proposal_updates_profile_and_supersedes_run(self):
