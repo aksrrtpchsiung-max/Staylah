@@ -61,6 +61,15 @@ class PlanningRequirements(TypedDict):
 def location_entity(name: str) -> contracts.Entity:
     name = ' '.join(name.split())
     canonical = _LOCATION_LOOKUP.get(name.casefold().replace('_', ' '))
+    if canonical is None:
+        # A may retain both names from user text, e.g. 淡滨尼（Tampines）.
+        # Accept this only when both complete names identify the same known area.
+        bilingual = re.fullmatch(r'(.+?)\s*\(([^()]+)\)', name.replace('（', '(').replace('）', ')'))
+        if bilingual:
+            identities = [_LOCATION_LOOKUP.get(part.strip().casefold().replace('_', ' '))
+                          for part in bilingual.groups()]
+            if identities[0] is not None and identities[0] == identities[1]:
+                canonical = identities[0]
     return dict(type='location', raw_text=name, canonical_id=canonical,
                 aliases=list(_LOCATION_NAMES.get(canonical, ())))
 
