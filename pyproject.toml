@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "hackathon-deepseek-agent"
 version = "0.1.0"
-description = "A local LangGraph learning server with DeepSeek tool calling"
+description = "Singapore property search and recommendation workflows built with LangGraph"
 requires-python = ">=3.11"
 dependencies = [
     "httpx>=0.28,<1",
@@ -35,4 +35,9 @@ include = [
     "providers*",
     "requirement_understanding*",
     "evaluation_suite*",
+    "web*",
 ]
+
+[tool.setuptools.package-data]
+web = ["public/*.html", "public/*.css", "public/*.js", "public/*.json", "public/js/*.js"]
+evaluation_suite = ["data/*.json"]

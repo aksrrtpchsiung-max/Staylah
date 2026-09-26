@@ -1,0 +1,13 @@
+{
+  "js/core.js": "0670372d6a92aca62391ded6ad8d31493eaff4b322d5c35f72d60ce252f05912",
+  "js/sidebar.js": "b7a16b49adc55abde6d99a4419797b54f9efb4ee3aebbcc01590c6c37592e1bf",
+  "js/api.js": "11c07f2c2f5c8102d12931092e7c29a8a32119f9c2af8273025bcdf4d325599c",
+  "js/conversations.js": "770f85ae1a2d53f1bb97103eb643c1c8d065198e797dff2d0df2a4a3dba559ef",
+  "js/messages.js": "28ceaa5b7a16f8bbc7a007bb6728af569cddbabfbddbbdb030df1fd4b3a8d44d",
+  "js/favorites.js": "dafd2b5873571ee598ea50d8ec4cb283b764f732ecdb7a864bd2d2d6a996f81a",
+  "js/requirements.js": "1b45e20f48f93ea67fd64efff1d8d3970e7abcf4aea422b97d9445ebe505758c",
+  "js/listings.js": "f8f9004bb5038a3f8007349b57c19cf1b318d75f315ee5046c0eaef8833d0cec",
+  "js/turns.js": "836795a0ecc364d7a9a0dffb53ed0ec3a2f27837d00806613a1a8ef36b7909d5",
+  "js/preview.js": "5ae929113276c2bbf450ba4d31d19060b885412d19c4cb527e8fc315c7385cb4",
+  "app.js": "c075c13bf54009253125ebfe330d147ede8d402490fd1dac57508230abd427c5"
+}

@@ -98,18 +98,20 @@ PostgreSQL。生产认证和多实例共享的网页 session 仍需在正式部�
 
 - `public/index.html`：页面结构。
 - `public/style.css`：响应式视觉样式。
-- `public/app.js`：对话、需求确认、搜索状态和推荐卡片。
+- `public/js/`：会话、需求表单、搜索状态、卡片、收藏和侧边栏脚本。
+- `public/app.js`：事件绑定与启动；所有脚本按 index.html 中的 defer 顺序加载。
 - `public/shortcuts.js`：通勤、地铁和学校条件输入。
 - `public/mrt-stations.json`：带来源日期的地铁站点静态快照。
-- `server.py`：静态服务和现有编排器之间的适配层。
+- `server.py`：原启动入口；HTTP 路由在 `http.py`，会话桥接在 `bridge.py`，卡片转换在 `cards.py`。
 - `../tests/test_web.py`：会话、确认、取消、选择校验和幂等行为测试。
 
 ## 验证
 
 ```bash
-node --check web/public/app.js
-node --check web/public/shortcuts.js
-.venv/bin/python -m unittest tests.test_web tests.test_orchestration -q
+for script in web/public/*.js web/public/js/*.js; do node --check "$script"; done
+.venv/bin/python -m unittest tests.test_web tests.test_web_assets tests.test_orchestration -q
 ```
 
 真实来源检查会访问 DeepSeek、PropertyGuru 和 OneMap，应与离线回归测试分开执行。
+
+原模块对应关系统一见 [模块对应表](../模块对应表.md)，截图对比和恢复检查见 [重构验收](../docs/refactoring/acceptance.md)。
