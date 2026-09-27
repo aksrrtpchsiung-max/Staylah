@@ -1,4 +1,4 @@
-"""把 A graph、B 搜索和 C 决策接到同一套 PostgreSQL checkpoint / 业务库。"""
+"""Connect the A graph, B search, and C decision to the same PostgreSQL checkpoint / business database."""
 from __future__ import annotations
 
 import os
@@ -25,7 +25,7 @@ from property_agent.persistence.repositories import (
     SqlRunRepository,
 )
 from property_agent.persistence.wiring import build_postgres_deps
-from requirement_understanding import (
+from property_agent.requirements import (
     DeepSeekHousingQuestionAnswerer,
     DeepSeekInputGuard,
     DeepSeekParserConfig,
@@ -33,7 +33,7 @@ from requirement_understanding import (
     DeepSeekTurnIntentClassifier,
     build_requirement_graph,
 )
-from runtime_settings import RuntimeSettings, load_runtime_settings
+from property_agent.runtime.settings import RuntimeSettings, load_runtime_settings
 
 
 def build_postgres_requirement_graph(
@@ -42,7 +42,7 @@ def build_postgres_requirement_graph(
     checkpointer: Any,
     settings: RuntimeSettings | None = None,
 ) -> Any:
-    """A graph 使用 SQL profile 仓储和 Postgres checkpoint，thread_id=conversation_id。"""
+    """The A graph uses the SQL profile repository and Postgres checkpoint, thread_id=conversation_id."""
 
     resolved = settings or load_runtime_settings()
     parser_config = DeepSeekParserConfig.from_runtime(resolved.deepseek)
@@ -62,9 +62,9 @@ async def postgres_conversation_runtime(
     settings: RuntimeSettings | None = None,
     setup: bool = True,
 ) -> AsyncIterator[ConversationOrchestrator]:
-    """A/C 共享 AsyncPostgresSaver；业务表走同步 Session。"""
+    """A/C share AsyncPostgresSaver; business tables go through a synchronous Session."""
 
-    import part_c
+    from property_agent.evaluation import service as part_c
 
     settings = settings or load_runtime_settings()
     engine = build_engine(database_url(settings.database))

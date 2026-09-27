@@ -1,5 +1,5 @@
-# Falcon 运行时配置。密钥不写在这里，只声明环境变量名；实际值放 .env。
-# 改模型、超时、搜索额度时优先改本文件，不必翻多个模块。
+# Falcon runtime configuration. Secrets are not written here; only environment variable names are declared. Actual values go in .env.
+# When changing the model, timeout, or search quota, prefer editing this file rather than digging through multiple modules.
 
 [deepseek]
 base_url = "https://api.deepseek.com"

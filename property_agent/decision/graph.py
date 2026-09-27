@@ -1,4 +1,4 @@
-"""决策段的图装配。
+"""Graph assembly for the decision stage.
 
 ```text
 START ─┬─ evaluate_candidates ─┬─ review_recommendation ─┐
@@ -9,9 +9,9 @@ START ─┬─ evaluate_candidates ─┬─ review_recommendation ─┐
      └─────────▶ evaluate_candidates                publish / finish_run / stop_run
 ```
 
-一个找房 run 对应一个 thread（thread_id=run_id）；等待用户使用 interrupt，
-恢复使用同一 thread 与 Command(resume=...)。业务写入与框架 checkpoint 不是同一事务，
-因此推荐交付、提问和档案修改都设了稳定幂等键。
+One house-hunting run corresponds to one thread (thread_id=run_id); wait for the user using interrupt,
+and resume using the same thread with Command(resume=...). Business writes and framework checkpoints are not in the same transaction,
+so stable idempotency keys are set for delivery, questions, and profile modifications.
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ from property_agent.decision.state import SCHEMA_VERSION, DState
 
 
 def build_decision_graph(deps: DecisionDeps) -> StateGraph:
-    """返回未编译的图，便于调用方自己决定 checkpointer。"""
+    """Return the uncompiled graph so the caller can decide the checkpointer themselves."""
     nodes = DecisionNodes(deps)
     builder = StateGraph(DState)
 
@@ -64,7 +64,7 @@ def build_decision_graph(deps: DecisionDeps) -> StateGraph:
         ["publish", "repair", "research", "ask_user", "finish_run", "stop_run", END],
     )
 
-    # repair 与 research 都回到评价入口；两者各自扣自己的额度，不互相清零。
+    # Both repair and research return to the evaluation entry point; each deducts from its own quota and does not reset the other.
     builder.add_edge("repair", "evaluate_candidates")
     builder.add_conditional_edges(
         "research", route_after_research, ["evaluate_candidates", "prepare_decision"]
@@ -90,10 +90,10 @@ def initial_state(
     search_attempts_used: int = 1,
     deadline_exhausted: bool = False,
 ) -> DState:
-    """把上游一次搜索尝试的产物装成本段的初始状态。
+    """Load the output of one upstream search attempt as the initial state for this stage.
 
-    `profile` 是本 run 固定的需求版本快照；等待用户期间档案可能变化，
-    路由前会重新读取当前版本来判断是否已被取代。
+    `profile` is the requirement version snapshot fixed for this run; the profile may change while waiting for the user,
+    and before routing, the current version is re-read to determine whether it has been superseded.
     """
     resolved_policy = policy or DEFAULT_POLICY
     validate_policy(resolved_policy)

@@ -1,5 +1,0 @@
-{
-  "dependencies": ["."],
-  "graphs": {"agent": "./deepseek_agent/graph.py:agent"},
-  "env": ".env"
-}

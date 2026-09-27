@@ -1,4 +1,4 @@
-"""PostgreSQL 业务持久化与 LangGraph runtime。"""
+"""PostgreSQL business persistence and LangGraph runtime."""
 
 from property_agent.persistence.boundaries import ChatRepository, RunBootstrap
 from property_agent.persistence.database import (

@@ -1,7 +1,7 @@
-"""测试夹具：用 mock_property_data 的真实合成房源拼出上游一次搜索尝试的产物。
+"""Test fixture: assemble the artifact of one upstream search attempt using retained historical synthetic listings.
 
-不自己编造 Listing，避免夹具和契约悄悄分叉。筛选分组按房源实际字段手工指定，
-因为 screen 由模块 C 实现，这里只需要一个符合契约形状的输入。
+Do not fabricate Listings yourself, to avoid the fixture and the contract silently diverging. Screening groups are specified manually according to the actual listing fields,
+because screen is implemented by module C, and here we only need an input that conforms to the contract shape.
 """
 from __future__ import annotations
 
@@ -12,11 +12,11 @@ from typing import Any
 from property_agent.profiles import from_legacy_user_profile
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURES = ROOT / "mock_property_data 2" / "output" / "fixtures"
+FIXTURES = ROOT / "tests" / "fixtures" / "search"
 
-# 档案为整租、CLEMENTI、月租 ≤ SGD 3500、至少两卧。以下分组据此手工核对。
+# The profile is whole-unit rental, CLEMENTI, monthly rent <= SGD 3500, at least two bedrooms. The following groups are manually verified against this.
 ELIGIBLE_KEYS = [
-    "propertyguru:mock-000901",  # 3500，恰好等于预算上限
+    "propertyguru:mock-000901",  # 3500, exactly equal to the budget cap
     "propertyguru:mock-000910",
     "propertyguru:mock-000914",
     "propertyguru:mock-000915",
@@ -24,9 +24,9 @@ ELIGIBLE_KEYS = [
     "propertyguru:mock-000917",
     "propertyguru:mock-000920",
 ]
-OVER_BUDGET_KEY = "propertyguru:mock-000902"  # 3501，超预算 1 元
+OVER_BUDGET_KEY = "propertyguru:mock-000902"  # 3501, over budget by 1
 OVER_BUDGET_AMOUNT = 3501
-UNKNOWN_PRICE_KEY = "propertyguru:mock-000903"  # 价格未知，待核实
+UNKNOWN_PRICE_KEY = "propertyguru:mock-000903"  # price unknown, pending verification
 
 
 def load_profile() -> dict:
@@ -67,7 +67,7 @@ def build_outcome(
     failure_code: str | None = None,
     attempt_id: str = "attempt-001",
 ) -> dict:
-    """拼出一个 AttemptOutcome。search_status='error' 时不带候选。"""
+    """Assemble an AttemptOutcome. When search_status='error', no candidates are included."""
     snapshot = load_snapshot()
     if search_status == "error":
         return {
@@ -90,14 +90,14 @@ def build_outcome(
     screen_result = {
         "profile_version": snapshot["profile_version"],
         "eligible": [
-            {"listing_key": key, "checks": _checks("price.amount", "pass", "未超过月租上限")}
+            {"listing_key": key, "checks": _checks("price.amount", "pass", "does not exceed the monthly rent cap")}
             for key in keys
         ],
         "rejected": (
             [
                 {
                     "listing_key": OVER_BUDGET_KEY,
-                    "checks": _checks("price.amount", "fail", f"{OVER_BUDGET_AMOUNT} 超过月租上限"),
+                    "checks": _checks("price.amount", "fail", f"{OVER_BUDGET_AMOUNT} exceeds the monthly rent cap"),
                 }
             ]
             if include_over_budget
@@ -107,7 +107,7 @@ def build_outcome(
             [
                 {
                     "listing_key": UNKNOWN_PRICE_KEY,
-                    "checks": _checks("price.amount", "unknown", "来源未给出金额"),
+                    "checks": _checks("price.amount", "unknown", "the source did not provide an amount"),
                 }
             ]
             if include_unknown_price

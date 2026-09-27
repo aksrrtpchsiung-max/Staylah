@@ -1,7 +1,7 @@
-"""决策段的图级走查：从模块 C 的结果到交付、澄清、补搜与终止。
+"""Graph-level walkthrough of the decision stage: from module C's results to delivery, clarification, supplementary search, and termination.
 
-模块 C 与模块 B 都用替身，因此这些测试不需要网络或密钥。断言针对业务行为，
-不逐字比对模型文案。
+Both module C and module B use stand-ins, so these tests require no network or keys. Assertions target business behavior,
+not verbatim comparison of model wording.
 """
 import copy
 import unittest
@@ -28,7 +28,7 @@ from property_agent.profiles import read_relaxable_value
 
 
 class DecisionGraphCase(unittest.IsolatedAsyncioTestCase):
-    """每个用例一套独立的替身与 thread。"""
+    """Each test case gets its own independent set of stand-ins and thread."""
 
     def setUp(self) -> None:
         self.profile = load_profile()
@@ -50,7 +50,7 @@ class DecisionGraphCase(unittest.IsolatedAsyncioTestCase):
         return await self.graph.ainvoke(Command(resume=answer), self.config)
 
     def interrupted_question(self, result: dict) -> dict:
-        self.assertIn("__interrupt__", result, "本应停在等待用户回答")
+        self.assertIn("__interrupt__", result, "should have stopped waiting for the user's answer")
         return result["__interrupt__"][0].value["pending_question"]
 
 
@@ -66,7 +66,7 @@ class PublishTests(DecisionGraphCase):
         self.assertEqual(len(self.deps.recommendations.saved), 1)
 
     async def test_eligible_count_comes_from_screen_result(self):
-        """数量以 ScreenResult.eligible 的去重数量为准，不看网页条数或检索 Top-K。"""
+        """The count is based on the deduplicated count of ScreenResult.eligible, not the number of web pages or the retrieval Top-K."""
         result = await self.run_graph(eligible=2, include_unknown_price=True)
         self.assertEqual(result["eligible_count"], 2)
         self.assertNotEqual(result["decision"]["action"], "publish")
@@ -76,14 +76,14 @@ class PublishTests(DecisionGraphCase):
         result = await self.run_graph(eligible=7, policy=policy)
         items = result["published_recommendation"]["ordered_items"]
         self.assertEqual([item["rank"] for item in items], [1, 2, 3])
-        # 截断只砍尾部，不按价格或任何数字重排模型给出的顺序。
+        # Truncation only cuts the tail; it does not reorder the model's given order by price or any number.
         self.assertEqual([item["listing_key"] for item in items], ELIGIBLE_KEYS[:3])
         self.assertTrue(
-            any("合格候选共 7 条" in line for line in result["published_recommendation"]["limitations"])
+            any("B has 7 candidates in total" in line for line in result["published_recommendation"]["limitations"])
         )
 
     async def test_publish_is_idempotent_across_lost_checkpoints(self):
-        """业务事务成功但 checkpoint 丢失时，恢复不重复插入推荐。"""
+        """When the business transaction succeeds but the checkpoint is lost, recovery does not duplicate inserted recommendations."""
         first = await self.run_graph(eligible=3)
         self.config = {"configurable": {"thread_id": "thread-after-crash"}}
         second = await self.graph.ainvoke(
@@ -109,21 +109,21 @@ class RelaxationTests(DecisionGraphCase):
         self.assertEqual(proposal["proposed_value"], OVER_BUDGET_AMOUNT)
         self.assertTrue(proposal["requires_user_confirmation"])
         self.assertEqual(proposal["evidence_listing_keys"], [OVER_BUDGET_KEY])
-        self.assertIn("本轮已有 2 套符合硬条件的房源，只是数量还偏少。", question["text"])
-        self.assertNotIn("没有符合当前硬条件的房源", question["text"])
-        # 提案还没被接受，档案必须一字未改。
+        self.assertIn("This search found 2 listings meeting your requirements, fewer than requested.", question["text"])
+        self.assertNotIn("No listings in this search meet all current requirements", question["text"])
+        # The proposal has not yet been accepted, so the profile must remain completely unchanged.
         self.assertEqual(self.deps.profiles.current_version("mock-profile-001"), 1)
         self.assertEqual(self.deps.recommendations.saved, {})
 
     async def test_ask_user_says_none_when_zero_eligible(self):
         result = await self.run_graph(eligible=0, include_over_budget=True)
         question = self.interrupted_question(result)
-        self.assertIn("本轮没有符合当前硬条件的房源。", question["text"])
-        self.assertNotIn("数量还偏少", question["text"])
+        self.assertIn("No listings in this search meet all current requirements.", question["text"])
+        self.assertNotIn("fewer than requested", question["text"])
         self.assertEqual(self.deps.recommendations.saved, {})
 
     async def test_c_can_ask_even_when_enough_matches(self):
-        """听 C：够数时若 evaluate 仍建议 ask_user，就先问，并说明已有若干套。"""
+        """Listen to C: when there are enough, if evaluate still suggests ask_user, ask first and explain that several sets already exist."""
         snapshot = load_snapshot()
         ordered = []
         by_key = {item["listing_key"]: item for item in snapshot["items"]}
@@ -136,12 +136,12 @@ class RelaxationTests(DecisionGraphCase):
                     "reasons": [
                         {
                             "kind": "fact",
-                            "text": f"来源显示租金 {price.get('currency')} {price.get('amount')}，未超预算。",
+                            "text": f"The source shows rent {price.get('currency')} {price.get('amount')}, within budget.",
                             "evidence_ids": list(price.get("evidence_ids") or []),
                         }
                     ],
                     "tradeoffs": [],
-                    "unknowns": ["当前可租状态尚未向经纪人核实"],
+                    "unknowns": ["Current rental availability has not yet been verified with the agent"],
                 }
             )
         self.deps.module_c.evaluations.append(
@@ -152,8 +152,8 @@ class RelaxationTests(DecisionGraphCase):
                     "snapshot_id": snapshot["snapshot_id"],
                     "recommendation": {
                         "ordered_items": ordered,
-                        "summary": "本次共 3 条合格候选。",
-                        "limitations": ["仅覆盖本次查询"],
+                        "summary": "A total of 3 qualified candidates this time.",
+                        "limitations": ["Only covers this query"],
                     },
                     "assessment": {
                         "constraint_findings": [],
@@ -164,7 +164,7 @@ class RelaxationTests(DecisionGraphCase):
                                 "field": "listing_constraints.price.amount",
                                 "old_value": 3500,
                                 "proposed_value": OVER_BUDGET_AMOUNT,
-                                "reason": "本轮被排除的房源租金为 3501。",
+                                "reason": "The rent of the listing excluded this round is 3501.",
                                 "evidence_listing_keys": [OVER_BUDGET_KEY],
                                 "requires_user_confirmation": True,
                             }
@@ -179,8 +179,8 @@ class RelaxationTests(DecisionGraphCase):
         result = await self.run_graph(eligible=3, include_over_budget=True)
         question = self.interrupted_question(result)
         self.assertEqual(result["decision"]["action"], "ask_user")
-        self.assertIn("本轮已有 3 套符合硬条件的房源，只是数量还偏少。", question["text"])
-        self.assertNotIn("没有符合当前硬条件的房源", question["text"])
+        self.assertIn("This search found 3 listings meeting your requirements, fewer than requested.", question["text"])
+        self.assertNotIn("No listings in this search meet all current requirements", question["text"])
         self.assertEqual(self.deps.recommendations.saved, {})
 
     async def test_accepting_proposal_updates_profile_and_supersedes_run(self):
@@ -205,7 +205,7 @@ class RelaxationTests(DecisionGraphCase):
         self.assertEqual(read_relaxable_value(updated, "listing_constraints.price.amount"), OVER_BUDGET_AMOUNT)
         self.assertEqual(updated["field_sources"]["listing_constraints.price.amount"], "msg-accept-1")
         self.assertEqual(updated["confirmed_version"], 2)
-        # 旧 run 不拿旧候选集发推荐，新一轮搜索由新 run 负责。
+        # The old run does not publish recommendations using the old candidate set; the new round of search is handled by the new run.
         self.assertEqual(self.deps.recommendations.saved, {})
 
     async def test_natural_language_answer_is_interpreted_before_routing(self):
@@ -214,7 +214,7 @@ class RelaxationTests(DecisionGraphCase):
         final = await self.resume(
             {
                 "client_message_id": "msg-natural-accept",
-                "text": "好的，我接受提高预算",
+                "text": "Okay, I accept raising the budget",
             }
         )
         self.assertEqual(final["completion_reason"], "profile_updated")
@@ -225,11 +225,11 @@ class RelaxationTests(DecisionGraphCase):
         saved = self.deps.questions.answers[
             f"run-001:{question['question_id']}"
         ]
-        self.assertEqual(saved["answer_text"], "好的，我接受提高预算")
+        self.assertEqual(saved["answer_text"], "Okay, I accept raising the budget")
 
     async def test_raw_string_resume_is_interpreted(self):
         await self.run_graph(eligible=2, include_over_budget=True)
-        final = await self.resume("不接受调整，保持原样")
+        final = await self.resume("I do not accept the adjustment, keep it as is")
         self.assertEqual(final["completion_reason"], "user_declined")
         self.assertTrue(final["delivery_is_partial"])
 
@@ -274,12 +274,12 @@ class RelaxationTests(DecisionGraphCase):
                 "question_id": question["question_id"],
                 "expected_state_version": question["state_version"],
                 "action": "answer",
-                "answer": "算了，我想看看 Jurong East。",
+                "answer": "Never mind, I want to look at Jurong East.",
             }
         )
         self.assertEqual(final["completion_reason"], "handed_to_onboarding")
         self.assertEqual(final["next_run_request"]["reason_code"], "user_message")
-        # 本段不猜测新硬条件，档案保持原样。
+        # This stage does not guess new hard constraints; the profile remains unchanged.
         self.assertEqual(self.deps.profiles.current_version("mock-profile-001"), 1)
 
 
@@ -300,7 +300,7 @@ class StaleAnswerTests(DecisionGraphCase):
         self.assertEqual(rejected["last_issues"][-1]["code"], "STATE_CONFLICT")
         self.assertEqual(self.deps.profiles.current_version("mock-profile-001"), 1)
 
-        # 有效回答仍然可以被消费。
+        # A valid answer can still be consumed.
         final = await self.resume(
             {
                 "client_message_id": "msg-decline-2",
@@ -322,14 +322,14 @@ class StaleAnswerTests(DecisionGraphCase):
             "proposal_id": question["proposals"][0]["proposal_id"],
         }
         await self.resume(answer)
-        # 同一个问题再回答一次不应再改档案。
+        # Answering the same question again should not change the profile again.
         self.assertEqual(self.deps.profiles.current_version("mock-profile-001"), 2)
         self.assertFalse(self.deps.questions.mark_answered("run-001", question["question_id"]))
 
     async def test_requirement_change_during_wait_supersedes_the_run(self):
         result = await self.run_graph(eligible=2, include_over_budget=True)
         question = self.interrupted_question(result)
-        # 用户在别处改了需求：等待中的旧 run 不能再发布基于旧版本的结论。
+        # The user changed requirements elsewhere: a waiting old run must not publish conclusions based on the old version.
         bumped = copy.deepcopy(self.profile)
         bumped["version"] = 2
         self.deps.profiles.put(bumped)
@@ -400,7 +400,7 @@ class FailureTests(DecisionGraphCase):
                 "issues": [
                     {
                         "code": "MODEL_UNAVAILABLE",
-                        "message": "评价模型不可用",
+                        "message": "The evaluation model is unavailable",
                         "field_path": None,
                         "source": None,
                         "retryable": True,
@@ -432,9 +432,9 @@ class RepairTests(DecisionGraphCase):
                         "code": "UNSUPPORTED_CLAIM",
                         "listing_key": "propertyguru:mock-000901",
                         "field_path": "recommendation.ordered_items[0].reasons[0]",
-                        "message": "步行 5 分钟没有来源证据。",
+                        "message": "There is no source evidence for a 5-minute walk.",
                         "severity": "blocking",
-                        "suggested_fix": "删除该事实或补充证据。",
+                        "suggested_fix": "Delete this fact or add evidence.",
                     }
                 ],
             },
@@ -446,7 +446,7 @@ class RepairTests(DecisionGraphCase):
         result = await self.run_graph(eligible=3)
         self.assertEqual(result["repairs_used"], 1)
         self.assertEqual(len(self.deps.module_c.evaluate_calls), 2)
-        # 修复调用必须带上具体问题，否则模型无从改。
+        # The repair call must include the specific problem, otherwise the model has no way to fix it.
         self.assertIsNotNone(self.deps.module_c.evaluate_calls[1]["repair_context"])
         self.assertIsNone(self.deps.module_c.evaluate_calls[0]["repair_context"])
         self.assertEqual(result["completion_reason"], "published")
@@ -472,13 +472,13 @@ class RepairTests(DecisionGraphCase):
                             "listing_key": "propertyguru:does-not-exist",
                             "rank": 1,
                             "reasons": [
-                                {"kind": "fact", "text": "月租 3000。", "evidence_ids": ["nope"]}
+                                {"kind": "fact", "text": "Monthly rent 3000.", "evidence_ids": ["nope"]}
                             ],
                             "tradeoffs": [],
                             "unknowns": [],
                         }
                     ],
-                    "summary": "编造的推荐",
+                    "summary": "Fabricated recommendation",
                     "limitations": [],
                 },
                 "assessment": {
@@ -514,7 +514,7 @@ class RepairTests(DecisionGraphCase):
         self.deps.module_c.evaluations.extend([stale, copy.deepcopy(stale)])
         result = await self.run_graph(eligible=3)
         self.assertEqual(result["completion_reason"], "repair_exhausted")
-        # 审查由程序侧结构检查给出，没有必要再调模块 C 的审查。
+        # The review is provided by the program-side structural check; there is no need to call module C's review again.
         self.assertEqual(self.deps.module_c.review_calls, [])
 
 
@@ -528,8 +528,8 @@ class GuardTests(DecisionGraphCase):
                 "snapshot_id": snapshot["snapshot_id"],
                 "recommendation": {
                     "ordered_items": [],
-                    "summary": "本轮没有合格候选。",
-                    "limitations": ["仅覆盖本次查询"],
+                    "summary": "No qualified candidates this round.",
+                    "limitations": ["Only covers this query"],
                 },
                 "assessment": {
                     "constraint_findings": [],
@@ -549,7 +549,7 @@ class GuardTests(DecisionGraphCase):
                         "field": "listing_constraints.price.amount",
                         "old_value": 3500,
                         "proposed_value": 3000,
-                        "reason": "降低预算",
+                        "reason": "Lower the budget",
                         "evidence_listing_keys": [],
                         "requires_user_confirmation": True,
                     }
@@ -572,7 +572,7 @@ class GuardTests(DecisionGraphCase):
                         "field": "intent",
                         "old_value": "rent",
                         "proposed_value": "buy",
-                        "reason": "改成买房",
+                        "reason": "Change to buying a home",
                         "evidence_listing_keys": [],
                         "requires_user_confirmation": True,
                     }
@@ -593,7 +593,7 @@ class GuardTests(DecisionGraphCase):
                         "field": "listing_constraints.price.amount",
                         "old_value": 3000,
                         "proposed_value": 4000,
-                        "reason": "基于旧预算构造",
+                        "reason": "Constructed based on the old budget",
                         "evidence_listing_keys": [],
                         "requires_user_confirmation": True,
                     }

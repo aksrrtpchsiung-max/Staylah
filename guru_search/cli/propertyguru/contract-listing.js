@@ -34,7 +34,7 @@ function priceAmount(value) {
   if (direct !== null) return direct;
   const raw = text(value);
   if (!raw) return null;
-  // 不把范围、每平方英尺单价或小数截断成一个确定的挂牌金额。
+  // Do not truncate the range, price per square foot, or decimals into a single fixed listing amount.
   const match = raw.match(/^(?:S\$|SGD\s*|\$)?\s*(\d[\d,]*)(?:\.0+)?(?:\s*(?:\/\s*(?:mo(?:nth)?|week|wk)|per\s+(?:month|week)|pcm|pw))?$/i);
   return match ? integer(match[1]) : null;
 }
@@ -62,7 +62,7 @@ function normalizedDate(value) {
     if (month < 0) return null;
     result = `${listed[3]}-${String(month + 1).padStart(2, '0')}-${listed[1].padStart(2, '0')}`;
   }
-  // 不让日期解析器把无效的月底日期自动滚到下个月。
+  // Do not let the date parser automatically roll an invalid end-of-month date into the next month.
   const parsed = new Date(`${result}T00:00:00.000Z`);
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === result ? result : null;
 }
@@ -406,8 +406,8 @@ export function buildListingDetail(raw, { sourceId, sourceUrl, fetchedAt = new D
   for (const field of Object.keys(DETAIL_BOOLEAN_STATEMENTS)) {
     mapping[field.replace(/_/g, '')] = [`attributes.${field}`, value => yesNo(value) ?? detailBoolean(field, value)];
   }
-  // 真实 metatable 常只给图标名称。复用图标必须同时核对明确原文：
-  // document-with-lines-o 也表示 TOP / Listing ID，people-behind-o 也表示 Not tenanted。
+  // Real metatables often provide only the icon name. Reusing an icon must also verify the explicit source text:
+  // document-with-lines-o also indicates TOP / Listing ID, and people-behind-o also indicates Not tenanted.
   const iconMapping = {
     'furnished-o': [['attributes.furnishing', normalizeFurnishing]],
     'calendar-time-o': [['listed_date', value => /^Listed on\s+/i.test(text(value) || '') ? normalizedDate(value) : null]],

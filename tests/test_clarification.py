@@ -15,7 +15,7 @@ def question(*, proposal_count: int = 1) -> dict:
             "field": "listing_constraints.price.amount",
             "old_value": 3500,
             "proposed_value": 3500 + index,
-            "reason": "扩大匹配范围",
+            "reason": "expand the matching scope",
             "evidence_listing_keys": [],
             "requires_user_confirmation": True,
         }
@@ -23,7 +23,7 @@ def question(*, proposal_count: int = 1) -> dict:
     ]
     return {
         "question_id": "run-1:state-1:relax-test",
-        "text": "是否从 3500 调整到 3501？",
+        "text": "Should it be adjusted from 3500 to 3501?",
         "reason_code": "insufficient_candidates",
         "proposals": proposals,
         "allowed_actions": ["answer", "accept_proposal", "decline", "cancel"],
@@ -39,16 +39,16 @@ class ClarificationAgentTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_polish_keeps_only_text_and_requires_values(self):
         adapter = ScriptedClarificationAdapter(
-            polished_texts=["可以把预算从 3500 调整到 3501 吗？"]
+            polished_texts=["Can the budget be adjusted from 3500 to 3501?"]
         )
         original = question()
         polished = await self.make_agent(adapter).prepare_question(original)
-        self.assertEqual(polished["text"], "可以把预算从 3500 调整到 3501 吗？")
+        self.assertEqual(polished["text"], "Can the budget be adjusted from 3500 to 3501?")
         self.assertEqual(polished["proposals"], original["proposals"])
         self.assertEqual(polished["question_id"], original["question_id"])
 
     async def test_semantically_incomplete_polish_falls_back(self):
-        adapter = ScriptedClarificationAdapter(polished_texts=["要不要调整预算？"])
+        adapter = ScriptedClarificationAdapter(polished_texts=["Should the budget be adjusted?"])
         original = question()
         self.assertEqual(
             await self.make_agent(adapter).prepare_question(original),
@@ -64,7 +64,7 @@ class ClarificationAgentTests(unittest.IsolatedAsyncioTestCase):
             ]
         )
         parsed = await self.make_agent(adapter).parse_answer(
-            text="好的，我接受提高预算",
+            text="Okay, I accept the budget increase",
             question=question(),
             client_message_id="msg-1",
         )
@@ -80,7 +80,7 @@ class ClarificationAgentTests(unittest.IsolatedAsyncioTestCase):
             ]
         )
         parsed = await self.make_agent(adapter).parse_answer(
-            text="我再想想",
+            text="Let me think about it again",
             question=question(),
             client_message_id="msg-2",
         )
@@ -95,7 +95,7 @@ class ClarificationAgentTests(unittest.IsolatedAsyncioTestCase):
             ]
         )
         parsed = await self.make_agent(adapter).parse_answer(
-            text="好的，全部接受",
+            text="Okay, accept everything",
             question=question(proposal_count=2),
             client_message_id="msg-3",
         )
@@ -104,10 +104,10 @@ class ClarificationAgentTests(unittest.IsolatedAsyncioTestCase):
     async def test_explicit_cancel_and_decline_are_distinct(self):
         agent = self.make_agent()
         cancelled = await agent.parse_answer(
-            text="取消找房任务", question=question(), client_message_id="msg-4"
+            text="Cancel the house-hunting task", question=question(), client_message_id="msg-4"
         )
         declined = await agent.parse_answer(
-            text="不接受调整，保持原样",
+            text="Do not accept the adjustment, keep it as is",
             question=question(),
             client_message_id="msg-5",
         )
@@ -121,7 +121,7 @@ class ClarificationAgentTests(unittest.IsolatedAsyncioTestCase):
             ]
         )
         parsed = await self.make_agent(adapter).parse_answer(
-            text="好的，我接受提高预算",
+            text="Okay, I accept the budget increase",
             question=question(),
             client_message_id="msg-forged",
         )
@@ -137,10 +137,10 @@ class ClarificationAgentTests(unittest.IsolatedAsyncioTestCase):
         )
         agent = self.make_agent(adapter)
         cancelled = await agent.parse_answer(
-            text="我想换个地方", question=question(), client_message_id="msg-fake-cancel"
+            text="I want to change to a different place", question=question(), client_message_id="msg-fake-cancel"
         )
         declined = await agent.parse_answer(
-            text="再看看别的", question=question(), client_message_id="msg-fake-decline"
+            text="Let's look at something else", question=question(), client_message_id="msg-fake-decline"
         )
         self.assertEqual(cancelled["action"], "answer")
         self.assertEqual(declined["action"], "answer")
@@ -160,7 +160,7 @@ class ClarificationAgentTests(unittest.IsolatedAsyncioTestCase):
             text="   ", question=original, client_message_id="msg-empty"
         )
         accepted = await agent.parse_answer(
-            text="好的，我接受提高预算",
+            text="Okay, I accept the budget increase",
             question=original,
             client_message_id="msg-fallback",
         )
@@ -185,7 +185,7 @@ class DeepSeekAdapterTests(unittest.IsolatedAsyncioTestCase):
             def with_structured_output(self, schema):
                 self.calls.append(schema)
                 if schema is QuestionPolish:
-                    return FakeStructured({"text": "可以把预算从 3500 调整到 3501 吗？"})
+                    return FakeStructured({"text": "Can the budget be adjusted from 3500 to 3501?"})
                 return FakeStructured(
                     {"action": "accept_proposal", "proposal_id": "proposal-1"}
                 )
@@ -194,7 +194,7 @@ class DeepSeekAdapterTests(unittest.IsolatedAsyncioTestCase):
         text = await adapter.polish(question())
         self.assertIn("3500", text)
         with self.assertRaises(RuntimeError):
-            await adapter.interpret("好的", question())
+            await adapter.interpret("Okay", question())
 
     def test_from_env_requires_key(self):
         with patch.dict(os.environ, {}, clear=True):

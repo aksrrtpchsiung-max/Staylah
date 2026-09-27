@@ -1,4 +1,4 @@
-"""A→B→C 会话编排。"""
+"""A→B→C session orchestration."""
 
 from property_agent.orchestration.memory import InMemoryChatRepository
 from property_agent.orchestration.postgres import (

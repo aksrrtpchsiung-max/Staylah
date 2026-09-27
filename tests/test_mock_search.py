@@ -5,7 +5,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 
 from property_agent.decision import build_decision_graph, build_stub_deps, initial_state
-from property_agent.mock_search import (
+from tests.mock_search import (
     MockSearchRunner,
     first_attempt_from_fixture,
     load_search_fixture,
@@ -15,18 +15,18 @@ from tests.support import ELIGIBLE_KEYS, OVER_BUDGET_KEY, UNKNOWN_PRICE_KEY, bui
 
 
 class MockScreenTests(unittest.TestCase):
-    def test_search_success_keeps_known_eligible_and_rejects_over_budget(self):
+    def test_search_success_passes_b_candidates_without_rescreening(self):
         profile = load_profile()
         result = load_search_fixture("search-success")
         screened = screen_listings(result["data"]["items"], profile)
-        eligible = {item["listing_key"] for item in screened["eligible"]}
-        rejected = {item["listing_key"] for item in screened["rejected"]}
-        verify = {item["listing_key"] for item in screened["needs_verification"]}
-        self.assertTrue(set(ELIGIBLE_KEYS).issubset(eligible))
-        self.assertIn(OVER_BUDGET_KEY, rejected)
-        self.assertIn(UNKNOWN_PRICE_KEY, verify)
-        self.assertGreaterEqual(len(eligible), 3)
-        self.assertNotIn("propertyguru:mock-000912", eligible)
+        # C.screen is a compatibility handoff, not a second hard-filter stage.
+        expected = list(dict.fromkeys(item["listing_key"] for item in result["data"]["items"]))
+        self.assertEqual([item["listing_key"] for item in screened["eligible"]], expected)
+        self.assertIn(OVER_BUDGET_KEY, expected)
+        self.assertIn(UNKNOWN_PRICE_KEY, expected)
+        self.assertEqual(screened["rejected"], [])
+        self.assertEqual(screened["needs_verification"], [])
+        self.assertTrue(all(item["checks"] == [] for item in screened["eligible"]))
 
 
 class MockPipelineTests(unittest.IsolatedAsyncioTestCase):
@@ -56,7 +56,7 @@ class MockPipelineTests(unittest.IsolatedAsyncioTestCase):
             initial_state(
                 ctx=build_ctx("run-mock-research"),
                 profile=profile,
-                outcome=first_attempt_from_fixture("page-1", profile),
+                outcome=first_attempt_from_fixture("page-1", profile, item_limit=2),
             ),
             {"configurable": {"thread_id": "run-mock-research"}},
         )
@@ -72,6 +72,17 @@ class MockPipelineTests(unittest.IsolatedAsyncioTestCase):
         profile = copy.deepcopy(load_profile())
         deps = build_stub_deps(profile)
         deps.search_runner = MockSearchRunner()
+        # The modern C handoff no longer supplies rejected candidates to the
+        # legacy stub. Supply an explicit evaluation proposal to exercise the
+        # same ask/resume path without relying on removed filtering behavior.
+        from property_agent.decision.stubs import _default_evaluation
+        from property_agent.decision.policy import DEFAULT_POLICY
+        from tests.support import build_outcome
+        outcome = build_outcome(eligible=1, include_over_budget=True)
+        evaluation = _default_evaluation(profile, outcome["screen_result"],
+            outcome["listing_snapshot"], outcome["coverage"], DEFAULT_POLICY)
+        evaluation["snapshot_id"] = "mock-snapshot-attempt-001"
+        deps.module_c.evaluations.append({"status": "success", "data": evaluation})
         graph = build_decision_graph(deps).compile(checkpointer=InMemorySaver())
         interrupted = await graph.ainvoke(
             initial_state(
@@ -85,7 +96,7 @@ class MockPipelineTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertIn("__interrupt__", interrupted)
         final = await graph.ainvoke(
-            Command(resume={"client_message_id": "msg-1", "text": "好的，我接受提高预算"}),
+            Command(resume={"client_message_id": "msg-1", "text": "Okay, I accept the budget increase"}),
             {"configurable": {"thread_id": "run-mock-relax"}},
         )
         self.assertEqual(final["completion_reason"], "profile_updated")

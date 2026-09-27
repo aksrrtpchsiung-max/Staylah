@@ -1,12 +1,12 @@
-"""初始化业务迁移与 LangGraph checkpoint 表。"""
+"""Initialize business migration and LangGraph checkpoint tables."""
 from __future__ import annotations
 
 import asyncio
 import sys
 from pathlib import Path
 
-# 兼容 README 中的 `python scripts/init_postgres.py` 调用方式。直接运行脚本时，
-# Python 只把 scripts/ 放进模块搜索路径，需要显式加入仓库根目录。
+# Compatible with the `python scripts/init_postgres.py` invocation in the README. When running the script directly,
+# Python only puts scripts/ on the module search path, so the repository root directory must be added explicitly.
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 

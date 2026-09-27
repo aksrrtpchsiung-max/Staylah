@@ -21,7 +21,7 @@ LANGGRAPH_TABLES = {
 
 
 def include_object(object_, name, type_, reflected, compare_to):
-    """LangGraph saver 管理自己的表，Alembic 不得生成删除操作。"""
+    """LangGraph saver manages its own tables; Alembic must not generate delete operations."""
     if type_ == "table" and reflected and name in LANGGRAPH_TABLES:
         return False
     return True

@@ -1,4 +1,4 @@
-"""外层编排：A 确认 → B 履约 → C 决策，以及 clarification / next_run_request 闭环。"""
+"""Outer orchestration: A confirmation -> B fulfillment -> C decision, plus the clarification / next_run_request closed loop."""
 from __future__ import annotations
 
 import copy
@@ -12,7 +12,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from property_agent.decision import build_decision_graph, build_stub_deps
 from property_agent.orchestration import ConversationOrchestrator, InMemoryChatRepository
 from property_agent.results import CallTimer
-from requirement_understanding import (
+from property_agent.requirements import (
     DeepSeekRequirementInterpreter,
     InMemoryProfileRepository,
     build_requirement_graph,
@@ -25,7 +25,7 @@ from tests.test_requirement_understanding import (
     mock_deepseek_client,
 )
 
-REQUIREMENT = "两个人整租，住在nus学校附近，近公交站，有独立卫浴，一个月月租1800新以下"
+REQUIREMENT = "Two people renting a whole unit, living near NUS campus, close to a bus stop, with a private bathroom, monthly rent below 1800 SGD"
 
 
 def _ok(data: dict[str, Any], ctx: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -64,7 +64,7 @@ class FakeBSearchRunner:
         return item
 
     async def run_attempt(self, directive, profile, *, previous_attempts, ctx):
-        raise AssertionError("research 不应走到 FakeB.run_attempt")
+        raise AssertionError("research should not reach FakeB.run_attempt")
 
 
 class FailedDecisionGraph:
@@ -142,7 +142,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(first.phase, "a_dialogue")
         self.assertEqual(first.status, "awaiting_confirmation")
         confirmed = await orchestrator.handle_message(
-            "确认",
+            "confirm",
             conversation_id=conversation_id,
             user_id="user-orch",
             client_message_id=f"{conversation_id}:2",
@@ -160,7 +160,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result.phase, "published")
         self.assertEqual(len(fake_b.requests), 1)
-        self.assertEqual(result.recommendation["summary"].startswith("本次共 3 条"), True)
+        self.assertEqual(result.recommendation["summary"].startswith("A total of 3 qualified candidates"), True)
         self.assertIn("1.", result.assistant_response)
 
     async def test_duplicate_client_message_replays_without_updating_profile(self):
@@ -226,14 +226,14 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
             )
             with self.assertRaisesRegex(RuntimeError, "decision crashed"):
                 await orchestrator.handle_message(
-                    "确认",
+                    "confirm",
                     conversation_id="conversation-crash",
                     user_id="user-orch",
                     client_message_id="conversation-crash:2",
                 )
             with self.assertRaisesRegex(RuntimeError, "decision crashed"):
                 await orchestrator.handle_message(
-                    "确认",
+                    "confirm",
                     conversation_id="conversation-crash",
                     user_id="user-orch",
                     client_message_id="conversation-crash:3",
@@ -276,7 +276,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
             result = await self._confirm(orchestrator, "conversation-clarify")
             self.assertEqual(result.phase, "b_clarification")
             answered = await orchestrator.handle_message(
-                "地点是淡滨尼",
+                "The location is Tampines",
                 conversation_id="conversation-clarify",
                 user_id="user-orch",
                 client_message_id="conversation-clarify:3",
@@ -308,7 +308,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
             waiting = await self._confirm(orchestrator, "conversation-decline")
             self.assertEqual(waiting.phase, "waiting_user")
             closed = await orchestrator.handle_message(
-                "不接受调整，保持原样",
+                "Do not accept adjustments, keep it as is",
                 conversation_id="conversation-decline",
                 user_id="user-orch",
                 client_message_id="conversation-decline:3",
@@ -331,7 +331,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
             waiting = await self._confirm(orchestrator, "conversation-handoff")
             self.assertEqual(waiting.phase, "waiting_user")
             handed = await orchestrator.handle_message(
-                "我想改成淡滨尼附近",
+                "I want to change it to near Tampines",
                 conversation_id="conversation-handoff",
                 user_id="user-orch",
                 client_message_id="conversation-handoff:3",
@@ -356,7 +356,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
             waiting = await self._confirm(orchestrator, "conversation-relax")
             self.assertEqual(waiting.phase, "waiting_user")
             published = await orchestrator.handle_message(
-                "好的，我接受提高预算",
+                "Okay, I accept raising the budget",
                 conversation_id="conversation-relax",
                 user_id="user-orch",
                 client_message_id="conversation-relax:3",
@@ -374,7 +374,7 @@ class OrchestrationTests(unittest.IsolatedAsyncioTestCase):
 
 class RuntimeSettingsTests(unittest.TestCase):
     def test_runtime_toml_exposes_all_model_stacks(self):
-        from runtime_settings import load_runtime_settings
+        from property_agent.runtime.settings import load_runtime_settings
 
         settings = load_runtime_settings(reload=True)
         self.assertEqual(settings.deepseek.api_key_env, "DEEPSEEK_API_KEY")
@@ -385,7 +385,7 @@ class RuntimeSettingsTests(unittest.TestCase):
 
     def test_database_environment_is_resolved_into_settings(self):
         from property_agent.persistence.database import checkpoint_database_uri, database_url
-        from runtime_settings import load_runtime_settings
+        from property_agent.runtime.settings import load_runtime_settings
 
         settings = load_runtime_settings(
             environ={
@@ -403,7 +403,7 @@ class RuntimeSettingsTests(unittest.TestCase):
         )
 
     def test_installed_runtime_falls_back_when_toml_is_absent(self):
-        import runtime_settings
+        from property_agent.runtime import settings as runtime_settings
 
         missing = Path("/private/tmp/falcon-missing-runtime.toml")
         try:

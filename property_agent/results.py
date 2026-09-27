@@ -1,7 +1,7 @@
-"""Result 三态封装的构造与判定。
+"""Construction and determination of the Result three-state wrapper.
 
-契约规定：success 必有合法 data；partial 必有可用 data 和至少一条 issue；
-error 的 data=null 且至少一条 issue。这里把规则写成构造函数，避免各模块各自拼字典。
+The contract specifies: success must have valid data; partial must have usable data and at least one issue;
+error has data=null and at least one issue. Here the rules are written as constructors to avoid each module assembling dictionaries on its own.
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ def make_issue(
     retryable: bool | None = None,
     retry_after_seconds: int | None = None,
 ) -> Issue:
-    """retryable 只描述故障性质；调用方仍要自己检查已用额度。"""
+    """retryable only describes the nature of the failure; the caller must still check the quota already used on its own."""
     return {
         "code": code,  # type: ignore[typeddict-item]
         "message": message,
@@ -38,7 +38,7 @@ def make_issue(
 
 @dataclass
 class CallTimer:
-    """一次逻辑模块调用：技术重试复用同一个 call_id，因此 meta 也复用。"""
+    """A single logical module call: technical retries reuse the same call_id, so meta is reused as well."""
 
     ctx: RunContext
     started: float = field(default_factory=time.perf_counter)
@@ -51,26 +51,26 @@ class CallTimer:
         }
 
     def ok(self, data: Any, issues: Sequence[Issue] = ()) -> Result:
-        """success 允许带非致命提醒，但不允许带 data=None。"""
+        """success allows non-fatal reminders, but does not allow data=None."""
         if data is None:
-            raise ValueError("success 必须有 data")
+            raise ValueError("success must have data")
         return {"status": "success", "data": data, "issues": list(issues), "meta": self.meta()}
 
     def partial(self, data: Any, issues: Sequence[Issue]) -> Result:
         if data is None:
-            raise ValueError("partial 必须有可用 data")
+            raise ValueError("partial must have usable data")
         if not issues:
-            raise ValueError("partial 必须至少有一条 issue")
+            raise ValueError("partial must have at least one issue")
         return {"status": "partial", "data": data, "issues": list(issues), "meta": self.meta()}
 
     def error(self, *issues: Issue) -> Result:
         if not issues:
-            raise ValueError("error 必须至少有一条 issue")
+            raise ValueError("error must have at least one issue")
         return {"status": "error", "data": None, "issues": list(issues), "meta": self.meta()}
 
 
 def is_usable(result: Result) -> bool:
-    """success 和 partial 都带可用 data；error 不带。"""
+    """Both success and partial carry usable data; error does not."""
     return result["status"] in ("success", "partial") and result["data"] is not None
 
 

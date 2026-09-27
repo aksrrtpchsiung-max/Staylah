@@ -1,4 +1,4 @@
-"""数据库连接配置。业务 repository 使用短事务的同步 SQLAlchemy Session。"""
+"""Database connection configuration. Business repositories use synchronous SQLAlchemy Sessions with short transactions."""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -6,7 +6,7 @@ from collections.abc import Callable
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from runtime_settings import DatabaseSettings, load_runtime_settings
+from property_agent.runtime.settings import DatabaseSettings, load_runtime_settings
 
 DEFAULT_DATABASE_URL = (
     "postgresql+psycopg://property_agent:property_agent_dev"

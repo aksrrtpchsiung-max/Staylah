@@ -2,14 +2,3 @@ node_modules/
 .env
 *.log
 .DS_Store
-
-# User data — generated locally, never committed
-record/profile/*.md
-record/profile/**/*.md
-record/targets/*.md
-record/targets/**/*
-record/log.md
-
-# Keep directory structure
-!record/profile/.gitkeep
-!record/targets/.gitkeep

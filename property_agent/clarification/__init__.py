@@ -1,6 +1,6 @@
-"""追问文案与自然语言回答解析。
+"""Follow-up prompt text and natural language answer parsing.
 
-本包只负责用户交互边界，不实现 onboarding、搜索或业务路由。
+This package is only responsible for the user interaction boundary, and does not implement onboarding, search, or business routing.
 """
 
 from property_agent.clarification.boundaries import (

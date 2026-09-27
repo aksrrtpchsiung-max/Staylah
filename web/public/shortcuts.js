@@ -1,4 +1,4 @@
-// 保留用户手写内容，按添加顺序组合三种找房条件。
+// Preserve user-written content, combining the three house-hunting criteria in the order they were added.
 (() => {
   const input = document.querySelector("#input");
   const choices = [...document.querySelectorAll(".quick-choice")];

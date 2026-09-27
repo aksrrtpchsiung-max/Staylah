@@ -1,10 +1,10 @@
-"""本模块与外部的接缝：模块 C、模块 B、档案写入和持久化。
+"""The seam between this module and the outside: module C, module B, profile writing, and persistence.
 
-Protocol 只描述我们依赖的调用形状，实现由各自负责方提供。`evaluate` 和 `review`
-的签名与 contracts_v0 完全一致，C 完成后应当可以直接替换 stub。
+The Protocol only describes the call shapes we depend on; implementations are provided by their respective owners. `evaluate` and `review`
+signatures are exactly consistent with property_agent.contracts, and once C is complete the stub should be directly replaceable.
 
-AttemptOutcome 和 NextRunRequest 是**新增的内部交付对象**，不属于已冻结的公共契约；
-它们只在模块 A 内部和与运行控制层之间传递，接口评审确认后再决定是否公开。
+AttemptOutcome and NextRunRequest are **newly added internal delivery objects** and are not part of the frozen public contract;
+they are passed only within module A and between it and the run control layer, and whether to make them public will be decided after interface review.
 """
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ from property_agent.contracts import (
 
 
 class EvaluationModule(Protocol):
-    """模块 C：评价与审查。两个方法都不写业务库，也不自行决定下一步。"""
+    """Module C: evaluation and review. Neither method writes to the business database, nor decides the next step on its own."""
 
     async def evaluate(
         self,
@@ -57,9 +57,9 @@ class EvaluationModule(Protocol):
 
 
 class AttemptOutcome(TypedDict):
-    """一次搜索尝试的结果集合（内部对象）。
+    """The result set of one search attempt (internal object).
 
-    attempt_id 由共享运行控制层分配；模块 A 的决策段只消费，不自行生成或清零计数。
+    attempt_id is assigned by the shared run control layer; the decision section of module A only consumes it and does not generate it or reset the count on its own.
     """
 
     attempt_id: str
@@ -74,7 +74,7 @@ class AttemptOutcome(TypedDict):
 
 
 class SearchRunner(Protocol):
-    """模块 B 一侧：按保持硬条件的补搜指令执行下一次尝试。"""
+    """The module B side: execute the next attempt according to the supplementary search instruction that preserves the hard conditions."""
 
     async def run_attempt(
         self,
@@ -87,11 +87,11 @@ class SearchRunner(Protocol):
 
 
 class ProfileVersionConflict(Exception):
-    """档案已被别的操作改过；旧回答不能覆盖新需求。"""
+    """The profile has been modified by another operation; the old answer cannot overwrite the new requirement."""
 
 
 class ProfileWriter(Protocol):
-    """档案写入由模块 A 的档案服务负责；本段只在用户明确接受提案后调用。"""
+    """Profile writing is handled by module A's profile service; this section is called only after the user explicitly accepts the proposal."""
 
     def current_version(self, profile_id: str) -> int: ...
 
@@ -104,12 +104,12 @@ class ProfileWriter(Protocol):
         source_message_id: str,
         op_key: str,
     ) -> ConversationProfile:
-        """按 op_key 幂等；base_version 与当前版本不一致时抛 ProfileVersionConflict。"""
+        """Idempotent by op_key; raises ProfileVersionConflict when base_version does not match the current version."""
         ...
 
 
 class NextRunRequest(TypedDict):
-    """旧 run 被取代时交给运行控制层的新任务请求（内部对象）。"""
+    """The new task request handed to the run control layer when the old run is superseded (internal object)."""
 
     reason_code: str
     profile_id: str
@@ -123,7 +123,7 @@ class RecommendationRepository(Protocol):
     def save(
         self, run_id: str, recommendation: Recommendation, *, op_key: str
     ) -> tuple[str, bool]:
-        """返回 (final_result_id, 是否为重放)。重放不得重复插入推荐。"""
+        """Returns (final_result_id, whether it is a replay). A replay must not insert the recommendation again."""
         ...
 
 
@@ -141,7 +141,7 @@ class RunRepository(Protocol):
 
 class QuestionRepository(Protocol):
     def save_question(self, run_id: str, question: dict) -> dict:
-        """按 question_id 幂等保存；节点重跑不重复发问。"""
+        """Idempotently saved by question_id; rerunning a node does not ask the question again."""
         ...
 
     def mark_answered(
@@ -152,5 +152,5 @@ class QuestionRepository(Protocol):
         client_message_id: str | None = None,
         answer_text: str | None = None,
     ) -> bool:
-        """首次消费并保存回答返回 True；重复回答或旧问题返回 False。"""
+        """Returns True on the first consumption and save of the answer; returns False for a duplicate answer or an old question."""
         ...

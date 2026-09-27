@@ -1,4 +1,4 @@
-"""LLM 直接输出标准化需求链路的契约与 LangGraph 测试。"""
+"""Contract and LangGraph tests for the LLM directly outputting the standardized requirement pipeline."""
 
 import json
 import os
@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import httpx
 
-from requirement_understanding import (
+from property_agent.requirements import (
     DEFAULT_USER_ID,
     DeepSeekRequirementInterpreter,
     FALCON_SCOPE_MESSAGE,
@@ -15,47 +15,47 @@ from requirement_understanding import (
     InputGuardDecision,
     build_requirement_graph,
 )
-from requirement_understanding.workflow import validate_patch
-from requirement_understanding.housing_questions import HousingQuestionAnswer, HousingSearchResult
-from requirement_understanding.turn_router import TurnIntentDecision
+from property_agent.requirements.workflow import validate_patch
+from property_agent.requirements.housing_questions import HousingQuestionAnswer, HousingSearchResult
+from property_agent.requirements.turn_router import TurnIntentDecision
 
 
 class AlwaysHousingGuard:
-    """在测试中把非空输入判定为住房相关，避免额外模型调用。"""
+    """In tests, treat non-empty input as housing-related to avoid extra model calls."""
 
     def check(self, text: str, *, workflow_status: str) -> InputGuardDecision:
-        """返回可预测的输入范围判断。"""
+        """Return a predictable input scope judgment."""
 
         valid = bool(text.strip())
         return InputGuardDecision(valid=valid, housing_related=valid)
 
 
 class OutOfScopeGuard:
-    """在测试中固定返回业务范围外判断。"""
+    """In tests, always return an out-of-business-scope judgment."""
 
     def check(self, text: str, *, workflow_status: str) -> InputGuardDecision:
-        """保持输入结构有效但标记为非住房问题。"""
+        """Keep the input structure valid but mark it as a non-housing question."""
 
         return InputGuardDecision(valid=True, housing_related=False)
 
 
 class FailingProfileRepository:
-    """模拟数据库写入失败以验证统一 recover_error 路径。"""
+    """Simulate a database write failure to verify the unified recover_error path."""
 
     def save(self, profile: dict, *, user_id: str) -> None:
-        """固定抛出持久化异常。"""
+        """Always raise a persistence exception."""
 
         raise RuntimeError("database unavailable")
 
 
 class TestTurnIntentClassifier:
-    """为测试提供确定性 turn intent，避免增加模型调用。"""
+    """Provide a deterministic turn intent for tests to avoid extra model calls."""
 
     def classify(self, text: str, *, workflow_status: str) -> TurnIntentDecision:
-        """识别确认、住房问题和普通需求更新。"""
+        """Recognize confirmation, housing questions, and ordinary requirement updates."""
 
         normalized = text.strip().lower()
-        if normalized in {"确认", "confirm"}:
+        if normalized == "confirm":
             intent = "confirmation"
         elif normalized == "what is the average rental in singapore":
             intent = "housing_question"
@@ -71,10 +71,10 @@ class TestTurnIntentClassifier:
 
 
 class RecordingHousingQuestionAnswerer:
-    """记录住房问答调用并返回固定带来源答案。"""
+    """Record housing Q&A calls and return a fixed answer with sources."""
 
     def __init__(self) -> None:
-        """初始化调用记录。"""
+        """Initialize the call record."""
 
         self.calls: list[dict] = []
 
@@ -85,7 +85,7 @@ class RecordingHousingQuestionAnswerer:
         profile_context: dict | None,
         requires_fresh_data: bool,
     ) -> HousingQuestionAnswer:
-        """返回不会修改 profile 的固定答案。"""
+        """Return a fixed answer that does not modify the profile."""
 
         self.calls.append({
             "question": question,
@@ -104,13 +104,13 @@ class RecordingHousingQuestionAnswerer:
 
 
 def requested_sentence_output() -> dict:
-    """返回指定 NUS 租房句子的标准化模型输出 fixture。"""
+    """Return a standardized model output fixture for the specified NUS rental sentence."""
 
     return {
         "intent": {
             "value": "rent",
             "strength": "hard",
-            "source_text": "月租",
+            "source_text": "monthly rent",
         },
         "budget": {
             "currency": "SGD",
@@ -118,16 +118,16 @@ def requested_sentence_output() -> dict:
             "period": "month",
             "approximate": False,
             "strength": "hard",
-            "source_text": "一个月月租1800新以下",
+            "source_text": "monthly rent below 1800 SGD",
         },
         "rental_scope": None,
         "locations": [
             {
-                "raw_name": "nus学校",
+                "raw_name": "nus school",
                 "relation": "near",
                 "resolution_status": "unresolved",
                 "strength": "hard",
-                "source_text": "nus学校附近",
+                "source_text": "near nus school",
             }
         ],
         "bedrooms": None,
@@ -139,14 +139,14 @@ def requested_sentence_output() -> dict:
                 "value": True,
                 "priority": "high",
                 "strength": "hard",
-                "source_text": "近公交站",
+                "source_text": "near a bus stop",
             },
             {
                 "topic": "ensuite_bathroom",
                 "value": True,
                 "priority": "high",
                 "strength": "hard",
-                "source_text": "有独立卫浴",
+                "source_text": "has a private bathroom",
             },
         ],
         "unresolved_fields": ["rental_scope"],
@@ -154,28 +154,35 @@ def requested_sentence_output() -> dict:
 
 
 def complete_sentence_output() -> dict:
-    """返回补齐整租范围、可以进入确认节点的模型输出 fixture。"""
+    """Return a model output fixture that completes the whole-unit rental scope and can enter the confirmation node."""
 
     output = requested_sentence_output()
+    output["intent"]["source_text"] = "renting a whole unit"
+    output["locations"][0].update({
+        "raw_name": "NUS campus",
+        "source_text": "near NUS campus",
+    })
+    output["preferences"][0]["source_text"] = "close to a bus stop"
+    output["preferences"][1]["source_text"] = "with a private bathroom"
     output["user_context"] = [{
         "field": "household.occupant_count",
         "value": 2,
-        "source_text": "两个人",
+        "source_text": "Two people",
     }]
     output["rental_scope"] = {
         "value": "whole_unit",
         "strength": "hard",
-        "source_text": "整租",
+        "source_text": "renting a whole unit",
     }
     output["unresolved_fields"] = []
     return output
 
 
 def mock_deepseek_client(output: dict) -> httpx.Client:
-    """创建校验模型参数并返回指定 JSON 内容的本地 HTTP 客户端。"""
+    """Create a local HTTP client that validates model parameters and returns the specified JSON content."""
 
     def handler(request: httpx.Request) -> httpx.Response:
-        """模拟一次 DeepSeek Chat Completions JSON 响应。"""
+        """Simulate a DeepSeek Chat Completions JSON response."""
 
         payload = json.loads(request.content)
         assert payload["model"] == "deepseek-v4-flash"
@@ -201,10 +208,10 @@ def mock_deepseek_client(output: dict) -> httpx.Client:
 
 
 def mock_routed_deepseek_client(outputs: dict[str, dict]) -> httpx.Client:
-    """按用户原文为多轮 workflow 返回不同的结构化模型输出。"""
+    """Return different structured model outputs for the multi-turn workflow based on the user's original text."""
 
     def handler(request: httpx.Request) -> httpx.Response:
-        """从 schema prompt 中定位用户输入并返回匹配 fixture。"""
+        """Locate the user input from the schema prompt and return the matching fixture."""
 
         payload = json.loads(request.content)
         prompt = payload["messages"][1]["content"]
@@ -224,12 +231,12 @@ def mock_routed_deepseek_client(outputs: dict[str, dict]) -> httpx.Client:
 
 
 class RequirementUnderstandingTests(unittest.TestCase):
-    """验证直接结构化生成、来源核验、错误状态和 checkpoint。"""
+    """Verify direct structured generation, source verification, error states, and checkpoints."""
 
     def test_llm_directly_returns_normalized_requirement(self) -> None:
-        """指定句子应一次得到标准金额、地点关系和稳定偏好主题。"""
+        """The specified sentence should yield the standard amount, location relationships, and stable preference topics in one pass."""
 
-        text = "住在nus学校附近，近公交站，有独立卫浴，一个月月租1800新以下"
+        text = "living near nus school, near a bus stop, has a private bathroom, monthly rent below 1800 SGD"
         with mock_deepseek_client(requested_sentence_output()) as client:
             interpreter = DeepSeekRequirementInterpreter(api_key="test-only", client=client)
             result = interpreter.understand(text, message_id="msg-001")
@@ -238,7 +245,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(requirement.intent.value.value, "rent")
         self.assertEqual(requirement.budget.max_price, 1800)
         self.assertEqual(requirement.budget.period.value, "month")
-        self.assertEqual(requirement.locations[0].raw_name, "nus学校")
+        self.assertEqual(requirement.locations[0].raw_name, "nus school")
         self.assertEqual(requirement.locations[0].relation.value, "near")
         self.assertEqual(requirement.locations[0].resolution_status, "unresolved")
         self.assertEqual(
@@ -249,9 +256,9 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(result.issues, [])
 
     def test_graph_builds_profile_and_asks_for_missing_scope(self) -> None:
-        """完整图应生成 draft profile，并优先追问缺失的租赁范围。"""
+        """The full graph should generate a draft profile and prioritize asking about the missing rental scope."""
 
-        text = "住在nus学校附近，近公交站，有独立卫浴，一个月月租1800新以下"
+        text = "living near nus school, near a bus stop, has a private bathroom, monthly rent below 1800 SGD"
         with mock_deepseek_client(requested_sentence_output()) as client:
             interpreter = DeepSeekRequirementInterpreter(api_key="test-only", client=client)
             graph = build_requirement_graph(
@@ -277,12 +284,12 @@ class RequirementUnderstandingTests(unittest.TestCase):
         )
 
     def test_graph_uses_fixed_development_user_when_user_id_is_omitted(self) -> None:
-        """单用户开发入口未提供登录身份时应写入固定开发用户。"""
+        """When the single-user development entry point does not provide a login identity, a fixed development user should be written."""
 
         graph = build_requirement_graph(input_guard=OutOfScopeGuard())
         state = graph.invoke({
             "message_id": "msg-default-user",
-            "current_input": "帮我写一首歌",
+            "current_input": "help me write a song",
             "conversation_id": "conversation-default-user",
             "status": "new",
         })
@@ -290,7 +297,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(state["user_id"], DEFAULT_USER_ID)
 
     def test_in_memory_repository_rejects_a_different_current_user(self) -> None:
-        """内存与 SQL 实现都必须拒绝以另一用户身份保存 profile。"""
+        """Both the in-memory and SQL implementations must reject saving a profile as another user."""
 
         repository = InMemoryProfileRepository()
         with self.assertRaises(PermissionError):
@@ -300,11 +307,11 @@ class RequirementUnderstandingTests(unittest.TestCase):
             )
 
     def test_confirmation_persists_profile_and_builds_request(self) -> None:
-        """同一 thread_id 的确认应持久化版本并生成给 B 的请求。"""
+        """Confirmation for the same thread_id should persist a version and generate a request for B."""
 
         from langgraph.checkpoint.memory import InMemorySaver
 
-        text = "两个人整租，住在nus学校附近，近公交站，有独立卫浴，一个月月租1800新以下"
+        text = "Two people renting a whole unit, living near NUS campus, close to a bus stop, with a private bathroom, monthly rent below 1800 SGD"
         repository = InMemoryProfileRepository()
         with mock_deepseek_client(complete_sentence_output()) as client:
             interpreter = DeepSeekRequirementInterpreter(api_key="test-only", client=client)
@@ -324,7 +331,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
                 "conversation_id": "thread-test-001",
                 "status": "new",
             }, config)
-            state = graph.invoke({"message_id": "msg-004", "current_input": "确认"}, config)
+            state = graph.invoke({"message_id": "msg-004", "current_input": "confirm"}, config)
             checkpoint = graph.get_state(config)
 
         self.assertEqual(first["status"], "awaiting_confirmation")
@@ -337,11 +344,11 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertIsNotNone(repository.get("profile-thread-test-001"))
 
     def test_housing_question_is_read_only_while_confirmation_is_pending(self) -> None:
-        """住房市场问题应调用 A 搜索问答，并保持待确认 profile 的版本不变。"""
+        """Housing market questions should call A's search Q&A and keep the pending-confirmation profile version unchanged."""
 
         from langgraph.checkpoint.memory import InMemorySaver
 
-        text = "两个人整租，住在nus学校附近，近公交站，有独立卫浴，一个月月租1800新以下"
+        text = "Two people renting a whole unit, living near NUS campus, close to a bus stop, with a private bathroom, monthly rent below 1800 SGD"
         answerer = RecordingHousingQuestionAnswerer()
         with mock_deepseek_client(complete_sentence_output()) as client:
             graph = build_requirement_graph(
@@ -384,11 +391,11 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(len(answerer.calls), 1)
 
     def test_non_verbatim_source_is_dropped(self) -> None:
-        """LLM 改写的 source_text 不能成为标准需求的证据。"""
+        """An LLM-rewritten source_text cannot serve as evidence for a standard requirement."""
 
         output = requested_sentence_output()
-        output["preferences"][0]["source_text"] = "靠近公共汽车站"
-        text = "住在nus学校附近，近公交站，有独立卫浴，一个月月租1800新以下"
+        output["preferences"][0]["source_text"] = "close to a bus stop"
+        text = "living near nus school, near a bus stop, has a private bathroom, monthly rent below 1800 SGD"
         with mock_deepseek_client(output) as client:
             interpreter = DeepSeekRequirementInterpreter(api_key="test-only", client=client)
             result = interpreter.understand(text, message_id="msg-004")
@@ -400,12 +407,12 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(result.issues[0].code.value, "unsupported_source")
 
     def test_correction_directly_replaces_existing_budget_constraint(self) -> None:
-        """等待确认时的新预算应替换旧 constraint，并生成新的确认版本。"""
+        """A new budget while awaiting confirmation should replace the old constraint and generate a new confirmation version."""
 
         from langgraph.checkpoint.memory import InMemorySaver
 
-        first_text = "两个人整租，住在nus学校附近，近公交站，有独立卫浴，一个月月租1800新以下"
-        correction_text = "预算改成一个月月租2000新以下"
+        first_text = "Two people renting a whole unit, living near NUS campus, close to a bus stop, with a private bathroom, monthly rent below 1800 SGD"
+        correction_text = "change the budget to monthly rent below 2000 SGD"
         correction_output = {
             "intent": None,
             "budget": {
@@ -414,7 +421,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
                 "period": "month",
                 "approximate": False,
                 "strength": "hard",
-                "source_text": "一个月月租2000新以下",
+                "source_text": "monthly rent below 2000 SGD",
             },
             "rental_scope": None,
             "locations": [],
@@ -456,11 +463,11 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(state["confirmation"]["profile_version"], 2)
 
     def test_persistence_failure_is_recovered_without_b_request(self) -> None:
-        """confirmed profile 写入失败时应安全失败且不得生成 B 请求。"""
+        """When writing the confirmed profile fails, it should fail safely and must not generate a request for B."""
 
         from langgraph.checkpoint.memory import InMemorySaver
 
-        text = "两个人整租，住在nus学校附近，近公交站，有独立卫浴，一个月月租1800新以下"
+        text = "Two people renting a whole unit, living near NUS campus, close to a bus stop, with a private bathroom, monthly rent below 1800 SGD"
         with mock_deepseek_client(complete_sentence_output()) as client:
             graph = build_requirement_graph(
                 interpreter=DeepSeekRequirementInterpreter(api_key="test-only", client=client),
@@ -478,14 +485,14 @@ class RequirementUnderstandingTests(unittest.TestCase):
                 "conversation_id": "thread-persistence-error",
                 "status": "new",
             }, config)
-            state = graph.invoke({"message_id": "msg-013", "current_input": "确认"}, config)
+            state = graph.invoke({"message_id": "msg-013", "current_input": "confirm"}, config)
 
         self.assertEqual(state["status"], "failed")
         self.assertEqual(state["requirement_issues"][0]["code"], "persistence_error")
         self.assertNotIn("requirement_request", state)
 
     def test_missing_api_key_becomes_failed_graph_state(self) -> None:
-        """没有本地 API Key 时应返回安全失败状态而不是尝试网络调用。"""
+        """When there is no local API Key, it should return a safe failure state instead of attempting a network call."""
 
         with patch.dict(os.environ, {}, clear=True):
             graph = build_requirement_graph(
@@ -494,7 +501,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
             )
             state = graph.invoke({
                 "message_id": "msg-005",
-                "current_input": "月租1800",
+                "current_input": "monthly rent 1800",
                 "user_id": "user-001",
                 "conversation_id": "conversation-005",
                 "status": "new",
@@ -506,7 +513,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertNotIn("normalized_requirement", state)
 
     def test_second_turn_missing_hints_do_not_erase_accumulated_profile(self) -> None:
-        """第二轮只补充房型时，不应重新追问首轮已保存的意图、预算和地点。"""
+        """When the second round only supplements the room type, it should not re-ask about the intent, budget, and location already saved in the first round."""
 
         first_text = (
             "My girlfriend and I work at Clementi and Marina Bay with respect. "
@@ -655,13 +662,13 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(workplaces, {"Clementi", "Marina Bay"})
 
     def test_unmapped_preference_becomes_non_blocking_open_requirement(self) -> None:
-        """无法映射的住房偏好应进入 best-effort 兜底，并随确认请求交给 B。"""
+        """Housing preferences that cannot be mapped should enter a best-effort fallback and be handed to B with the confirmation request."""
 
         from langgraph.checkpoint.memory import InMemorySaver
 
         text = (
-            "两个人整租，住在nus学校附近，近公交站，有独立卫浴，"
-            "一个月月租1800新以下，附近有网球场"
+            "Two people renting a whole unit, living near NUS campus, close to a bus stop, with a private bathroom, "
+            "monthly rent below 1800 SGD, there is a tennis court nearby"
         )
         output = complete_sentence_output()
         output["preferences"].append({
@@ -669,7 +676,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
             "value": "nearby tennis court",
             "priority": "medium",
             "strength": "soft",
-            "source_text": "附近有网球场",
+            "source_text": "there is a tennis court nearby",
         })
         with mock_deepseek_client(output) as client:
             graph = build_requirement_graph(
@@ -694,7 +701,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
 
         open_requirements = draft["profile"]["open_data_requirements"]
         self.assertEqual(len(open_requirements), 1)
-        self.assertEqual(open_requirements[0]["description"], "附近有网球场")
+        self.assertEqual(open_requirements[0]["description"], "there is a tennis court nearby")
         self.assertEqual(open_requirements[0]["handling"], "best_effort")
         self.assertEqual(confirmed["status"], "ready_for_b")
         self.assertEqual(
@@ -704,7 +711,7 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(confirmed["requirement_request"]["schema_version"], "0.3-draft")
 
     def test_empty_input_returns_fixed_scope_message(self) -> None:
-        """空白用户输入应在模型调用前返回固定 Falcon 提示。"""
+        """Blank user input should return a fixed Falcon prompt before the model call."""
 
         graph = build_requirement_graph(input_guard=AlwaysHousingGuard())
         state = graph.invoke({
@@ -719,12 +726,12 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertEqual(state["assistant_response"], FALCON_SCOPE_MESSAGE)
 
     def test_unrelated_input_returns_exact_fixed_message(self) -> None:
-        """与找房无关的输入不得调用需求解析器或更新 profile。"""
+        """Inputs unrelated to house hunting must not invoke the requirement parser or update the profile."""
 
         graph = build_requirement_graph(input_guard=OutOfScopeGuard())
         state = graph.invoke({
             "message_id": "msg-007",
-            "current_input": "帮我写一首歌",
+            "current_input": "Help me write a song",
             "user_id": "user-001",
             "conversation_id": "conversation-007",
             "status": "new",
@@ -735,9 +742,9 @@ class RequirementUnderstandingTests(unittest.TestCase):
         self.assertNotIn("profile", state)
 
     def test_validate_patch_rejects_non_queryable_listing_field(self) -> None:
-        """patch 校验节点应拒绝用户需求不允许约束的 Listing 元数据。"""
+        """The patch validation node should reject Listing metadata that user requirements do not permit constraining."""
 
-        text = "我想指定抓取时间"
+        text = "I want to specify the scraping time"
         result = validate_patch({
             "message_id": "msg-008",
             "current_input": text,

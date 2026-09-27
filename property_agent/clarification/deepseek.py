@@ -1,4 +1,4 @@
-"""DeepSeek 的结构化追问 adapter。"""
+"""Structured follow-up question adapter for DeepSeek."""
 from __future__ import annotations
 
 import json
@@ -12,21 +12,21 @@ from langchain_deepseek import ChatDeepSeek
 from property_agent.clarification.models import AnswerInterpretation, QuestionPolish
 from property_agent.contracts import PendingQuestion
 
-_POLISH_SYSTEM = """你是房产助手的中文文案编辑。
-只润色给用户的追问，使其简洁、友好、无压迫感。
-必须保留每个调整项的新旧值，不得增加承诺、事实、房源或调整项。
-只返回规定的结构化结果。"""
+_POLISH_SYSTEM = """You are the English copy editor for the real estate assistant.
+Only polish the follow-up question shown to the user so that it is concise, friendly, and non-pressuring.
+You must preserve the old and new values of every adjustment item, and must not add promises, facts, listings, or adjustment items.
+Return only the specified structured result."""
 
-_INTERPRET_SYSTEM = """你只负责分类用户对当前追问的回答。
-action 只能是 answer、accept_proposal、decline、cancel。
-只有用户明确同意某一调整时才用 accept_proposal，并且 proposal_id 只能从输入中选择。
-拒绝当前调整用 decline；明确取消整个任务用 cancel；补充/修改需求、歧义表达用 answer。
-不得创造 proposal_id、question_id、用户身份或状态版本。只返回规定的结构化结果。"""
+_INTERPRET_SYSTEM = """You are only responsible for classifying the user's answer to the current follow-up question.
+action can only be answer, accept_proposal, decline, or cancel.
+Use accept_proposal only when the user explicitly agrees to a certain adjustment, and proposal_id can only be selected from the input.
+Use decline to reject the current adjustment; use cancel to explicitly cancel the entire task; use answer for supplementing/modifying requirements or ambiguous expressions.
+You must not create proposal_id, question_id, user identity, or state version. Return only the specified structured result."""
 
 
 @dataclass
 class DeepSeekClarificationAdapter:
-    """同时实现 QuestionPolisher 与 AnswerInterpreter。"""
+    """Implement both QuestionPolisher and AnswerInterpreter."""
 
     model: Any
     max_calls: int = 6
@@ -34,12 +34,12 @@ class DeepSeekClarificationAdapter:
 
     @classmethod
     def from_env(cls) -> "DeepSeekClarificationAdapter":
-        from runtime_settings import load_runtime_settings
+        from property_agent.runtime.settings import load_runtime_settings
 
         settings = load_runtime_settings().deepseek
         api_key = os.getenv(settings.api_key_env)
         if not api_key:
-            raise RuntimeError(f"{settings.api_key_env} 未配置")
+            raise RuntimeError(f"{settings.api_key_env} is not configured")
         model = ChatDeepSeek(
             model=settings.clarification_model,
             api_base=settings.base_url,
@@ -105,7 +105,7 @@ class DeepSeekClarificationAdapter:
 
     async def _invoke(self, schema: type[Any], messages: list[Any]) -> Any:
         if self.calls_used >= self.max_calls:
-            raise RuntimeError("追问模型调用已达上限")
+            raise RuntimeError("The follow-up model call has reached its limit")
         self.calls_used += 1
         structured = self.model.with_structured_output(schema)
         return await structured.ainvoke(messages)

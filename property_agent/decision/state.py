@@ -1,7 +1,7 @@
-"""决策段的编排状态，以及投影成 DecisionState 的规则。
+"""The orchestration state of the decision stage, and the rules for projecting it into DecisionState.
 
-DState 是内部设计，不属于公共契约。传给 `decide_next` 的只有投影后的只读视图：
-纯函数看不到房源快照、模型客户端和完整聊天。
+DState is an internal design and is not part of the public contract. Only the projected read-only view is passed to `decide_next`:
+Pure functions cannot see the listing snapshot, the model client, or the full chat.
 """
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ RunStatus = Literal["running", "waiting_user", "completed", "failed", "cancelled
 
 
 class PendingAnswer(TypedDict, total=False):
-    """网页恢复接口的载荷。accept_proposal 只传 proposal_id，新值从服务端读取。"""
+    """Payload for the web recovery interface. accept_proposal passes only proposal_id; the new value is read from the server."""
 
     client_message_id: str
     question_id: str
@@ -57,7 +57,7 @@ class DState(TypedDict, total=False):
     profile_version: int
     current_profile_version: int
 
-    # 上游一次搜索尝试的产物。
+    # The product of one upstream search attempt.
     attempt_id: str | None
     search_attempts_used: int
     search_status: str
@@ -69,13 +69,13 @@ class DState(TypedDict, total=False):
     requirement_coverage: RequirementCoverage | None
     previous_attempts: list[AttemptSummary]
 
-    # 模块 C 的产物与修复预算。
+    # The product of module C and the repair budget.
     evaluation: EvaluationResult | None
     review: ReviewResult | None
     repair_context: ReviewResult | None
     repairs_used: int
 
-    # 程序计数与清洗后的下一步材料。
+    # The program counter and the cleaned next-step materials.
     eligible_count: int
     search_directive: SearchDirective | None
     evaluation_next_action: str | None
@@ -101,7 +101,7 @@ class DState(TypedDict, total=False):
 
 
 def count_eligible(screen_result: ScreenResult | None) -> int:
-    """v0 字段名沿用 eligible；主流程中计数的是 B 移交候选的去重数量。"""
+    """The v0 field name continues to use eligible; in the main flow, what is counted is the deduplicated number of B handoff candidates."""
     if not screen_result:
         return 0
     return len({item["listing_key"] for item in screen_result.get("eligible", [])})
@@ -114,7 +114,7 @@ def eligible_keys(screen_result: ScreenResult | None) -> set[str]:
 
 
 def build_decision_state(state: DState) -> DecisionState:
-    """把编排状态投影成只读决策视图。字段一律显式取，避免把内部字段漏给纯函数。"""
+    """Project the orchestration state into a read-only decision view. All fields are explicitly fetched to avoid leaking internal fields to pure functions."""
     projected: dict[str, Any] = {
         "run_id": state["run_id"],
         "state_version": state["state_version"],

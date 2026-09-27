@@ -1,12 +1,12 @@
 [
-  {"id":"A01","ambiguity":"slight","prompt":"我想租淡滨尼附近的整套房，价钱这块先看看？","must_ask_about":["budget"],"note":"只缺明确预算；不能把‘先看看’当作无上限。"},
-  {"id":"A02","ambiguity":"slight","prompt":"想在裕廊东租房，最多每月 3500 新币，合适的帮我找找。","must_ask_about":["listing_scope"],"note":"没有说整套、房间还是床位。"},
-  {"id":"A03","ambiguity":"slight","prompt":"想租整套，预算每月 4200 以内，最好两房。地点我还没想好。","must_ask_about":["location"],"note":"地点/通勤目的地未指定。"},
-  {"id":"A04","ambiguity":"moderate","prompt":"想租一整套，能住下我和我对象就行，帮我看看。","must_ask_about":["budget","location"],"note":"租房和整套明确；预算、区域缺失。"},
-  {"id":"A05","ambiguity":"moderate","prompt":"我预算一个月 3000 左右，想租房，别太偏。","must_ask_about":["listing_scope","location"],"note":"‘别太偏’不是可执行的区域/通勤点；出租范围也缺失。"},
-  {"id":"A06","ambiguity":"moderate","prompt":"武吉士附近有没有 4000 新币以内适合我的？","must_ask_about":["intent","listing_scope"],"note":"金额周期、租还是买、整套还是房间都可能被误判；至少确认租售与范围。"},
-  {"id":"A07","ambiguity":"moderate","prompt":"我想租在诺维娜那边，别太贵，最好能做饭。","must_ask_about":["budget","listing_scope"],"note":"‘别太贵’没有数值，做饭偏好不能替代出租范围。"},
-  {"id":"A08","ambiguity":"severe","prompt":"最近可能搬家，帮我看看有什么合适的吧。","must_ask_about":["intent","budget","listing_scope","location"],"note":"四个核心条件都不明确，不应进入搜索。"},
-  {"id":"A09","ambiguity":"severe","prompt":"朋友让我帮忙找个住的地方，你先推荐几套？","must_ask_about":["intent","budget","listing_scope","location"],"note":"不能擅自推定朋友租还是买、预算、范围和地区。"},
-  {"id":"A10","ambiguity":"severe","prompt":"新加坡哪里比较适合住呀？如果有房源也可以发我看看。","must_ask_about":["intent","budget","listing_scope","location"],"note":"住房问答与找房请求混合；若开始推荐具体房源，先澄清核心条件。"}
+  {"id":"A01","ambiguity":"slight","prompt":"I want to rent a whole unit near Tampines, can we look at the price first?","must_ask_about":["budget"],"note":"Only the explicit budget is missing; 'look first' must not be treated as no upper limit."},
+  {"id":"A02","ambiguity":"slight","prompt":"I want to rent in Jurong East, at most 3500 SGD per month, help me find suitable ones.","must_ask_about":["listing_scope"],"note":"Did not say whole unit, room, or bed."},
+  {"id":"A03","ambiguity":"slight","prompt":"I want to rent a whole unit, budget within 4200 per month, preferably two bedrooms. I haven't decided on the location yet.","must_ask_about":["location"],"note":"Location/commute destination not specified."},
+  {"id":"A04","ambiguity":"moderate","prompt":"I want to rent a whole unit, just enough for me and my partner, help me take a look.","must_ask_about":["budget","location"],"note":"Renting and whole unit are clear; budget and area are missing."},
+  {"id":"A05","ambiguity":"moderate","prompt":"My budget is around 3000 a month, I want to rent, not too remote.","must_ask_about":["listing_scope","location"],"note":"'Not too remote' is not an actionable area/commute point; the rental scope is also missing."},
+  {"id":"A06","ambiguity":"moderate","prompt":"Is there anything near Bugis within 4000 SGD that suits me?","must_ask_about":["intent","listing_scope"],"note":"The amount period, rent or buy, and whole unit or room may all be misjudged; at least confirm rent versus sale and the scope."},
+  {"id":"A07","ambiguity":"moderate","prompt":"I want to rent in the Novena area, not too expensive, preferably able to cook.","must_ask_about":["budget","listing_scope"],"note":"'Not too expensive' has no numeric value, and the cooking preference cannot replace the rental scope."},
+  {"id":"A08","ambiguity":"severe","prompt":"I might move recently, help me see what suitable options there are.","must_ask_about":["intent","budget","listing_scope","location"],"note":"All four core conditions are unclear, so search should not begin."},
+  {"id":"A09","ambiguity":"severe","prompt":"A friend asked me to help find a place to live, can you recommend a few units first?","must_ask_about":["intent","budget","listing_scope","location"],"note":"Must not presume whether the friend is renting or buying, the budget, scope, or area."},
+  {"id":"A10","ambiguity":"severe","prompt":"Where in Singapore is relatively suitable to live? If there are listings, you can also send them for me to look at.","must_ask_about":["intent","budget","listing_scope","location"],"note":"Housing Q&A and a home-finding request are mixed; if specific listings start being recommended, clarify the core conditions first."}
 ]

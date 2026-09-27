@@ -1,4 +1,4 @@
-"""验证网页边界：确认版本、选择上下文、重试与 A/C 图集成。"""
+"""Verify web page boundaries: confirm version, select context, retry, and A/C diagram integration."""
 import unittest
 from dataclasses import dataclass
 from types import SimpleNamespace
@@ -140,7 +140,7 @@ class WebTests(unittest.IsolatedAsyncioTestCase):
     async def test_real_graph_confirmation_and_cards(self):
         from tests.test_orchestration import OrchestrationTests, FakeBSearchRunner, _decision_handoff, REQUIREMENT
         from tests.test_requirement_understanding import mock_deepseek_client, complete_sentence_output
-        from requirement_understanding import DeepSeekRequirementInterpreter
+        from property_agent.requirements import DeepSeekRequirementInterpreter
         fake_b=FakeBSearchRunner([lambda request,profile,ctx:_decision_handoff(profile,ctx,eligible=3)])
         with mock_deepseek_client(complete_sentence_output()) as client:
             runtime=OrchestrationTests()._build_orchestrator(DeepSeekRequirementInterpreter(api_key='test-only',client=client),fake_b)
@@ -233,7 +233,7 @@ class CancellationTests(unittest.IsolatedAsyncioTestCase):
 
 class ConfirmationCompletenessTests(unittest.TestCase):
     def test_payment_period_is_required_before_confirmation_and_clears(self):
-        from requirement_understanding.workflow import assess_completeness, select_clarification
+        from property_agent.requirements.workflow import assess_completeness, select_clarification
         from tests.support import load_profile
         profile = load_profile()
         profile['listing_constraints'] = [c for c in profile['listing_constraints'] if c['field_path'] != 'price.period']

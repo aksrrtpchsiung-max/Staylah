@@ -1,4 +1,4 @@
-"""默认 onboarding 交接对象；外部运行控制层可替换此实现。"""
+"""Default onboarding handoff object; the external runtime control layer may replace this implementation."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

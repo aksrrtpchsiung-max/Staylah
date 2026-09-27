@@ -1,7 +1,7 @@
-"""上游运行控制层可实现的持久化接口。
+"""Persistence interfaces that the upstream run control layer can implement.
 
-这些 Protocol 不改变冻结的公共函数契约。onboarding / 搜索团队可以按同样形状
-读写会话消息、档案和 run，不必依赖追问内部状态。
+These Protocols do not change the frozen public function contracts. The onboarding / search teams can follow the same shape
+to read and write session messages, profiles, and runs without depending on the internal state of follow-up questions.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from property_agent.favorites import ConversationFavorite
 
 class ChatRepository(Protocol):
     def ensure_conversation(self, conversation_id: str, *, user_id: str) -> None:
-        """幂等创建 conversation，并拒绝用户归属冲突。"""
+        """Idempotently create a conversation, and reject user ownership conflicts."""
         ...
 
     def append_message(
@@ -25,7 +25,7 @@ class ChatRepository(Protocol):
         message_id: str,
         client_message_id: str | None = None,
     ) -> ChatMessage:
-        """按 (conversation_id, client_message_id) 或 message_id 幂等写入。"""
+        """Idempotently write by (conversation_id, client_message_id) or message_id."""
         ...
 
     def list_messages(
@@ -35,13 +35,13 @@ class ChatRepository(Protocol):
         after: str | None = None,
         limit: int = 50,
     ) -> list[ChatMessage]:
-        """按时间顺序返回有限历史，供 onboard(messages=...) 使用。"""
+        """Return a bounded history in chronological order, for use by onboard(messages=...)."""
         ...
 
 
 class RunBootstrap(Protocol):
     def prepare_run(self, *, ctx: RunContext, profile: ConversationProfile) -> None:
-        """幂等创建 conversation、profile 与 agent_run；graph_thread_id 固定为 run_id。"""
+        """Idempotently create a conversation, profile, and agent_run; graph_thread_id is fixed to run_id."""
         ...
 
 
@@ -49,23 +49,23 @@ class ConversationFavoriteRepository(Protocol):
     def counts_by_conversation(
         self, conversation_ids: list[str], *, user_id: str
     ) -> dict[str, int]:
-        """批量返回当前用户各会话的收藏数量。"""
+        """Return the favorite counts for each session of the current user in a batch."""
         ...
 
     def add(
         self, conversation_id: str, *, user_id: str, listing_key: str
     ) -> ConversationFavorite:
-        """幂等收藏当前用户会话中的房源。"""
+        """Idempotently favorite a listing in the current user's session."""
         ...
 
     def remove(
         self, conversation_id: str, *, user_id: str, listing_key: str
     ) -> bool:
-        """取消收藏；不存在时返回 False。"""
+        """Remove a favorite; return False when it does not exist."""
         ...
 
     def list(
         self, conversation_id: str, *, user_id: str
     ) -> list[ConversationFavorite]:
-        """按收藏时间返回当前会话的收藏。"""
+        """Return the favorites of the current session ordered by favorite time."""
         ...

@@ -90,7 +90,7 @@ cli({
     if (kwargs['min-bedrooms']) {
       if (kwargs.bedrooms) throw new ArgumentError('bedrooms and min-bedrooms are mutually exclusive');
       const minimum = normalizePositiveInteger(kwargs['min-bedrooms'], null, 'min-bedrooms');
-      // 网站已核对：2、3、4、5+ 为独立多选项；5 表示 5+，不是正好五间。
+      // Site verified: 2, 3, 4, and 5+ are independent multi-select options; 5 means 5+, not exactly five rooms.
       for (let n = Math.min(minimum, 5); n <= 5; n++) params.append('bedrooms', String(n));
     }
     if (kwargs['bedroom-buckets']) {
@@ -200,7 +200,7 @@ cli({
           const nextDisabled = Boolean(document.querySelector(
             '[aria-label*="next" i][disabled], [aria-label*="next" i][aria-disabled="true"]',
           ));
-          // 只使用页面明确提供的终点，不用“少于 limit”推测已经查完。
+          // Only use endpoints explicitly provided by the page; do not infer that the search is complete from "fewer than limit".
           const totalPages = sourceData.pagination?.totalPages ?? sourceData.paginationData?.totalPages ?? null;
           const explicitlyEmpty = /\b(?:no (?:properties|listings|results) found|0 (?:properties|results) found)\b/i.test(document.body?.innerText || '')
             || sourceData.pagination?.totalResults === 0;

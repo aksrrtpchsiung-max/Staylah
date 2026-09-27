@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-import part_c
+from property_agent.evaluation import service as part_c
 from langgraph.checkpoint.memory import InMemorySaver
 
 from property_agent.decision import (
@@ -14,6 +14,7 @@ from property_agent.decision import (
 from property_agent.decision.stubs import ScriptedSearchRunner
 from property_agent.persistence.wiring import build_postgres_deps
 from tests.support import build_ctx, build_outcome, load_profile
+from tests.refactor_scenarios import UnavailableModel
 
 
 class AcceptingPartCModel:
@@ -84,8 +85,8 @@ class PartCIntegrationTests(unittest.IsolatedAsyncioTestCase):
         item = part_c._recommendation_item(listing, 1, [])
         texts = [claim["text"] for claim in item["reasons"]]
 
-        self.assertIn("来源显示该房源为单间出租。", texts)
-        self.assertFalse(any("0 间卧室" in text for text in texts))
+        self.assertIn("The source lists this property as a private room.", texts)
+        self.assertFalse(any("0 bedrooms" in text for text in texts))
 
     async def test_evaluation_prompt_describes_card_evidence_as_sufficient_without_detail_lookup(self):
         class CapturingEvaluationModel(part_c.DeepSeekEvaluationReviewModel):
@@ -146,8 +147,10 @@ class PartCIntegrationTests(unittest.IsolatedAsyncioTestCase):
             result["published_recommendation"]["limitations"],
         )
 
-    async def test_graph_publishes_with_deterministic_fallback_without_bedrock(self):
-        part_c.configure_evaluation_review_model(None)
+    async def test_graph_publishes_with_deterministic_fallback_without_model(self):
+        # None enables automatic model configuration; inject an explicit outage
+        # so this regression never depends on credentials or another test.
+        part_c.configure_evaluation_review_model(UnavailableModel())
         profile = load_profile()
         deps = build_stub_deps(profile)
         deps.module_c = PartCEvaluationModule()
@@ -163,12 +166,12 @@ class PartCIntegrationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result["completion_reason"], "published")
         self.assertIn(
-            "C 的模型评估不可用，本轮使用确定性规则完成排序与路线判断。",
+            "Model evaluation was unavailable; rules were used to rank candidates and determine the next step.",
             result["published_recommendation"]["limitations"],
         )
         self.assertEqual(result["last_issues"][0]["code"], "MODEL_UNAVAILABLE")
 
-    async def test_part_c_relaxation_uses_listing_constraint_path(self):
+    async def test_part_c_unsupported_relaxation_finishes_without_mutating_profile(self):
         profile = load_profile()
         deps = build_stub_deps(profile)
         deps.module_c = PartCEvaluationModule()
@@ -181,9 +184,14 @@ class PartCIntegrationTests(unittest.IsolatedAsyncioTestCase):
             ),
             {"configurable": {"thread_id": "run-part-c-relax"}},
         )
-        question = result["__interrupt__"][0].value["pending_question"]
-        self.assertEqual(question["proposals"][0]["field"], "listing_constraints.price.amount")
-        self.assertIn("本轮已有 2 套符合硬条件的房源，只是数量还偏少。", question["text"])
+        # Current C does not invent relaxation proposals. An unsupported model
+        # ask_user response falls back to finish when no next page is available.
+        self.assertNotIn("__interrupt__", result)
+        self.assertEqual(result["decision"]["action"], "finish")
+        self.assertEqual(result["evaluation"]["assessment"]["relaxation_proposals"], [])
+        self.assertEqual(deps.profiles.current_version(profile["profile_id"]), profile["version"])
+        self.assertIn("Model evaluation was unavailable; rules were used to rank candidates and determine the next step.",
+                      result["evaluation"]["recommendation"]["limitations"])
 
 
 if __name__ == "__main__":

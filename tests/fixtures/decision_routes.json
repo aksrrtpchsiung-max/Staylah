@@ -1,0 +1,485 @@
+{
+  "cases": [
+    {
+      "id": "decide_next.normal",
+      "function": "decide_next",
+      "category": "normal",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 1,
+          "cancelled": false,
+          "user_declined": false,
+          "deadline_exhausted": false,
+          "search_status": "success",
+          "search_attempts_used": 1,
+          "repairs_used": 0,
+          "eligible_count": 3,
+          "review": {
+            "passed": true,
+            "issues": []
+          },
+          "failure_code": null,
+          "search_directive": null,
+          "pending_question": null
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "action": "publish",
+          "reason_code": "enough_matches",
+          "search_directive": null,
+          "pending_question": null
+        }
+      },
+      "assertions": []
+    },
+    {
+      "id": "decide_next.boundary",
+      "function": "decide_next",
+      "category": "boundary",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 1,
+          "cancelled": false,
+          "user_declined": false,
+          "deadline_exhausted": false,
+          "search_status": "success",
+          "search_attempts_used": 3,
+          "repairs_used": 0,
+          "eligible_count": 2,
+          "review": {
+            "passed": true,
+            "issues": []
+          },
+          "failure_code": null,
+          "search_directive": null,
+          "pending_question": {
+            "question_id": "run-001:state-7:q-1",
+            "text": "Should the monthly rent cap be adjusted to SGD 3600?",
+            "reason_code": "insufficient_candidates",
+            "proposals": [
+              {
+                "proposal_id": "proposal-001",
+                "field": "hard_constraints.max_price",
+                "old_value": "3500.00",
+                "proposed_value": "3600.00",
+                "reason": "The L3 monthly rent of 3500.01 was excluded this time; raising it to 3600 may expand the current matching round, but a new query is still required.",
+                "evidence_listing_keys": [
+                  "L3"
+                ],
+                "requires_user_confirmation": true
+              }
+            ],
+            "allowed_actions": [
+              "accept_proposal",
+              "decline",
+              "answer",
+              "cancel"
+            ],
+            "base_profile_version": 1,
+            "state_version": 7
+          }
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "action": "ask_user",
+          "reason_code": "insufficient_candidates",
+          "search_directive": null,
+          "pending_question": {
+            "question_id": "run-001:state-7:q-1",
+            "text": "Should the monthly rent cap be adjusted to SGD 3600?",
+            "reason_code": "insufficient_candidates",
+            "proposals": [
+              {
+                "proposal_id": "proposal-001",
+                "field": "hard_constraints.max_price",
+                "old_value": "3500.00",
+                "proposed_value": "3600.00",
+                "reason": "The L3 monthly rent of 3500.01 was excluded this time; raising it to 3600 may expand the current matching round, but a new query is still required.",
+                "evidence_listing_keys": [
+                  "L3"
+                ],
+                "requires_user_confirmation": true
+              }
+            ],
+            "allowed_actions": [
+              "accept_proposal",
+              "decline",
+              "answer",
+              "cancel"
+            ],
+            "base_profile_version": 1,
+            "state_version": 7
+          }
+        }
+      },
+      "assertions": [
+        "The three search credits have been used up; only ask the user, and do not create a fourth search."
+      ]
+    },
+    {
+      "id": "decide_next.error",
+      "function": "decide_next",
+      "category": "error",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 1,
+          "cancelled": false,
+          "user_declined": false,
+          "deadline_exhausted": false,
+          "search_status": "success",
+          "search_attempts_used": 1,
+          "repairs_used": 0,
+          "eligible_count": -1,
+          "review": {
+            "passed": true,
+            "issues": []
+          },
+          "failure_code": null,
+          "search_directive": null,
+          "pending_question": null
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "raises": {
+          "type": "ContractViolation",
+          "code": "INVALID_STATE",
+          "field_path": "state.eligible_count"
+        }
+      },
+      "assertions": []
+    },
+    {
+      "id": "decide_next.research",
+      "function": "decide_next",
+      "category": "boundary",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 1,
+          "cancelled": false,
+          "user_declined": false,
+          "deadline_exhausted": false,
+          "search_status": "success",
+          "search_attempts_used": 1,
+          "repairs_used": 0,
+          "eligible_count": 2,
+          "review": {
+            "passed": true,
+            "issues": []
+          },
+          "failure_code": null,
+          "search_directive": {
+            "reason_code": "insufficient_candidates",
+            "strategy_changes": [
+              {
+                "kind": "next_page",
+                "query_id": "q-001",
+                "cursor": "page-2"
+              }
+            ],
+            "base_profile_version": 1,
+            "evidence_listing_keys": [
+              "L1",
+              "L2"
+            ]
+          },
+          "pending_question": null
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "action": "research",
+          "reason_code": "insufficient_candidates",
+          "search_directive": {
+            "reason_code": "insufficient_candidates",
+            "strategy_changes": [
+              {
+                "kind": "next_page",
+                "query_id": "q-001",
+                "cursor": "page-2"
+              }
+            ],
+            "base_profile_version": 1,
+            "evidence_listing_keys": [
+              "L1",
+              "L2"
+            ]
+          },
+          "pending_question": null
+        }
+      },
+      "assertions": []
+    },
+    {
+      "id": "decide_next.repair",
+      "function": "decide_next",
+      "category": "boundary",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 1,
+          "cancelled": false,
+          "user_declined": false,
+          "deadline_exhausted": false,
+          "search_status": "success",
+          "search_attempts_used": 1,
+          "repairs_used": 0,
+          "eligible_count": 3,
+          "review": {
+            "passed": false,
+            "issues": [
+              {
+                "code": "UNSUPPORTED_CLAIM",
+                "listing_key": "L1",
+                "field_path": "recommendation.ordered_items[0].reasons[1]",
+                "message": "There is no source evidence supporting a 5-minute walk.",
+                "severity": "blocking",
+                "suggested_fix": "Remove this fact, or supplement it with real route evidence and review it again."
+              }
+            ]
+          },
+          "failure_code": null,
+          "search_directive": null,
+          "pending_question": null
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "action": "repair",
+          "reason_code": "review_blocked",
+          "search_directive": null,
+          "pending_question": null
+        }
+      },
+      "assertions": []
+    },
+    {
+      "id": "decide_next.repair_exhausted",
+      "function": "decide_next",
+      "category": "boundary",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 1,
+          "cancelled": false,
+          "user_declined": false,
+          "deadline_exhausted": false,
+          "search_status": "success",
+          "search_attempts_used": 1,
+          "repairs_used": 1,
+          "eligible_count": 3,
+          "review": {
+            "passed": false,
+            "issues": [
+              {
+                "code": "UNSUPPORTED_CLAIM",
+                "listing_key": "L1",
+                "field_path": "recommendation.ordered_items[0].reasons[1]",
+                "message": "There is no source evidence supporting a 5-minute walk.",
+                "severity": "blocking",
+                "suggested_fix": "Remove this fact, or supplement it with real route evidence and review it again."
+              }
+            ]
+          },
+          "failure_code": null,
+          "search_directive": null,
+          "pending_question": null
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "action": "stop",
+          "reason_code": "repair_exhausted",
+          "search_directive": null,
+          "pending_question": null
+        }
+      },
+      "assertions": []
+    },
+    {
+      "id": "decide_next.source_failure",
+      "function": "decide_next",
+      "category": "boundary",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 1,
+          "cancelled": false,
+          "user_declined": false,
+          "deadline_exhausted": false,
+          "search_status": "error",
+          "search_attempts_used": 1,
+          "repairs_used": 0,
+          "eligible_count": 0,
+          "review": null,
+          "failure_code": "TIMEOUT",
+          "search_directive": null,
+          "pending_question": null
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "action": "stop",
+          "reason_code": "source_failure",
+          "search_directive": null,
+          "pending_question": null
+        }
+      },
+      "assertions": []
+    },
+    {
+      "id": "decide_next.stale",
+      "function": "decide_next",
+      "category": "boundary",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 2,
+          "cancelled": false,
+          "user_declined": false,
+          "deadline_exhausted": false,
+          "search_status": "success",
+          "search_attempts_used": 1,
+          "repairs_used": 0,
+          "eligible_count": 3,
+          "review": {
+            "passed": true,
+            "issues": []
+          },
+          "failure_code": null,
+          "search_directive": null,
+          "pending_question": null
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "action": "stop",
+          "reason_code": "profile_superseded",
+          "search_directive": null,
+          "pending_question": null
+        }
+      },
+      "assertions": []
+    },
+    {
+      "id": "decide_next.declined",
+      "function": "decide_next",
+      "category": "boundary",
+      "input": {
+        "state": {
+          "run_id": "run-001",
+          "state_version": 7,
+          "profile_version": 1,
+          "current_profile_version": 1,
+          "cancelled": false,
+          "user_declined": true,
+          "deadline_exhausted": false,
+          "search_status": "success",
+          "search_attempts_used": 1,
+          "repairs_used": 0,
+          "eligible_count": 2,
+          "review": {
+            "passed": true,
+            "issues": []
+          },
+          "failure_code": null,
+          "search_directive": null,
+          "pending_question": null
+        },
+        "policy": {
+          "min_matches": 3,
+          "display_limit": 10,
+          "max_search_attempts": 3,
+          "max_repairs": 1
+        }
+      },
+      "dependency_fixture": {},
+      "expected": {
+        "return": {
+          "action": "finish",
+          "reason_code": "user_declined",
+          "search_directive": null,
+          "pending_question": null
+        }
+      },
+      "assertions": []
+    }
+  ]
+}

@@ -17,7 +17,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 
 from property_agent.evaluation_trace import capture_trace, record_event, stage_span, stage_totals
-from runtime_settings import load_runtime_settings
+from property_agent.runtime.settings import load_runtime_settings
 
 
 HERE = Path(__file__).resolve().parent
@@ -92,25 +92,25 @@ def _summarize_full(trace: dict, turns: list[dict], wall_ms: float) -> dict:
 
 def _full_case_markdown(result: dict) -> str:
     case = result["case"]
-    lines = [f"# {case['id']} · {case['band']} 条件", "", f"用户输入：{case['prompt']}", ""]
+    lines = [f"# {case['id']} · {case['band']} conditions", "", f"User input: {case['prompt']}", ""]
     if result.get("error_type"):
-        return "\n".join([*lines, f"运行错误：{result['error_type']}", ""])
+        return "\n".join([*lines, f"Runtime error: {result['error_type']}", ""])
     for number, turn in enumerate(result.get("turns") or [], 1):
         lines.extend([
-            f"## 第 {number} 轮 · {turn.get('phase')} / {turn.get('status')}", "",
-            f"A/系统回复：{turn.get('assistant_response') or '[无回复]'}", "",
+            f"## Round {number} · {turn.get('phase')} / {turn.get('status')}", "",
+            f"A/System reply: {turn.get('assistant_response') or '[no reply]'}", "",
         ])
         if turn.get("clarification_questions"):
-            lines.extend(["追问：", ""])
+            lines.extend(["Follow-up questions:", ""])
             lines.extend(f"- {item.get('text', item)}" for item in turn["clarification_questions"])
             lines.append("")
     summary = result.get("summary") or {}
     lines.extend([
-        "## 结果数量", "",
-        f"B 原始房源（去重）：{summary.get('b_found_unique_count', 0)} 套", "",
-        f"B 交给 C 打分的候选（去重）：{summary.get('b_candidate_handoff_unique_count', 0)} 套", "",
-        "硬条件合格数：未由 C 复核，需人工核对 B 字段及证据。", "",
-        f"最终推荐：{summary.get('recommended_count', 0)} 套", "",
+        "## Result count", "",
+        f"B raw listings (deduplicated): {summary.get('b_found_unique_count', 0)} units", "",
+        f"B candidates handed to C for scoring (deduplicated): {summary.get('b_candidate_handoff_unique_count', 0)} units", "",
+        "Hard-requirement pass count: not reviewed by C; B fields and evidence require manual verification.", "",
+        f"Final recommendations: {summary.get('recommended_count', 0)} units", "",
     ])
     events = (result.get("trace") or {}).get("events") or []
     b_events = [event for event in events if event["kind"] == "b_search_result"]
@@ -122,8 +122,8 @@ def _full_case_markdown(result: dict) -> str:
         attempt_id = event["attempt_id"]
         candidates = handoff_by_attempt.get(attempt_id, {}).get("candidate_listings") or []
         lines.extend([
-            f"## B/C 候选 · {attempt_id}", "",
-            f"B 返回 {event['data']['count']} 套，交给 C retrieve {len(candidates)} 套；C 未执行 screen。", "",
+            f"## B/C candidates · {attempt_id}", "",
+            f"B returned {event['data']['count']} units, handed {len(candidates)} units to C retrieve; C did not execute screen.", "",
         ])
         for listing in candidates:
             price = listing.get("price") or {}
@@ -135,7 +135,7 @@ def _full_case_markdown(result: dict) -> str:
         lines.append("")
     final = [event["data"] for event in events if event["kind"] == "final_recommendation"]
     if final:
-        lines.extend(["## 最终推荐房源", ""])
+        lines.extend(["## Final recommended listings", ""])
         for item in final[-1]["ordered_listings"]:
             listing = item.get("listing") or {}
             lines.append(
@@ -145,10 +145,10 @@ def _full_case_markdown(result: dict) -> str:
         lines.append("")
     timings = summary.get("a_b_c_duration_ms") or {}
     lines.extend([
-        "## 用时", "",
-        f"A：{timings.get('A', 0)} ms；B：{timings.get('B', 0)} ms；"
-        f"C：{timings.get('C', 0)} ms；总墙钟：{summary.get('wall_duration_ms', 0)} ms。", "",
-        "完整房源字段、B 待核实项、C 评分与评估审查结果见同名 JSON。", "",
+        "## Time taken", "",
+        f"A: {timings.get('A', 0)} ms; B: {timings.get('B', 0)} ms; "
+        f"C: {timings.get('C', 0)} ms; total wall clock: {summary.get('wall_duration_ms', 0)} ms.", "",
+        "For complete listing fields, B items pending verification, and C scoring and evaluation review results, see the JSON file of the same name.", "",
     ])
     return "\n".join(lines)
 
@@ -201,7 +201,7 @@ async def _run_full(case: dict, orchestrator, run_tag: str) -> dict:
         # separately so the human reviewer can flag an incorrect interpretation.
         if first.status == "awaiting_confirmation":
             confirmed = await orchestrator.handle_message(
-                "确认", conversation_id=conversation_id,
+                "Confirm", conversation_id=conversation_id,
                 user_id="evaluation-user", client_message_id=f"{conversation_id}:002",
             )
             turns.append(asdict(confirmed))
@@ -263,12 +263,12 @@ async def run(
     print(f"Logging to {run_dir}", flush=True)
     if suite == "full" and not resume_dir:
         (run_dir / "progress.md").write_text(
-            "# F 完整流程评测进度\n\n每完成一个样例，立即写入同名 JSON/Markdown 并更新 summary.csv。\n\n",
+            "# F Full Pipeline Evaluation Progress\n\nEach time a sample is completed, immediately write the JSON/Markdown file of the same name and update summary.csv.\n\n",
             encoding="utf-8",
         )
     if resume_dir:
         with (run_dir / "progress.md").open("a", encoding="utf-8") as stream:
-            stream.write(f"\n从 {cases[0]['id']} 恢复评测；本次使用新的会话 ID，避免复用中断的状态。\n")
+            stream.write(f"\nResuming evaluation from {cases[0]['id']}; this run uses a new conversation ID to avoid reusing an interrupted state.\n")
     rows = []
     if resume_dir and (run_dir / "summary.csv").is_file():
         with (run_dir / "summary.csv").open("r", encoding="utf-8", newline="") as stream:
@@ -294,10 +294,10 @@ async def run(
             questions = observation.get("clarification_questions") or []
             transcript = (
                 f"## {case['id']} · {case['ambiguity']}\n\n"
-                f"用户：{case['prompt']}\n\n"
-                f"A 状态：{observation.get('status') or result.get('error_type', 'unknown')}\n\n"
-                f"A 回复：{observation.get('assistant_response') or '[无回复]'}\n\n"
-                f"追问：{json.dumps(questions, ensure_ascii=False)}\n\n"
+                f"User: {case['prompt']}\n\n"
+                f"A status: {observation.get('status') or result.get('error_type', 'unknown')}\n\n"
+                f"A reply: {observation.get('assistant_response') or '[no reply]'}\n\n"
+                f"Follow-up questions: {json.dumps(questions, ensure_ascii=False)}\n\n"
             )
             with (run_dir / "dialogue.md").open("a", encoding="utf-8") as stream:
                 stream.write(transcript)
@@ -305,12 +305,12 @@ async def run(
             (run_dir / f"{case['id']}.md").write_text(_full_case_markdown(result), encoding="utf-8")
             status = summary.get("final_phase") or result.get("error_type", "unknown")
             with (run_dir / "progress.md").open("a", encoding="utf-8") as stream:
-                stream.write(f"- {case['id']}：已完成，状态 `{status}`；详细结果见 `{case['id']}.md` / `{case['id']}.json`。\n")
+                stream.write(f"- {case['id']}: completed, status `{status}`; see `{case['id']}.md` / `{case['id']}.json` for detailed results.\n")
 
     if suite == "clarification":
         # Same A graph as the product; no PostgreSQL or B/C construction.
         from langgraph.checkpoint.memory import InMemorySaver
-        from requirement_understanding.graph import build_requirement_graph
+        from property_agent.requirements.graph import build_requirement_graph
 
         a_graph = build_requirement_graph(checkpointer=InMemorySaver())
         for case in cases:
@@ -327,7 +327,7 @@ async def run(
         async with postgres_conversation_runtime(settings=settings) as orchestrator:
             for case in cases:
                 with (run_dir / "progress.md").open("a", encoding="utf-8") as stream:
-                    stream.write(f"- {case['id']}：开始运行。\n")
+                    stream.write(f"- {case['id']}: starting run.\n")
                 print(f"{case['id']}: running", flush=True)
                 try:
                     result = await _run_full(case, orchestrator, run_tag)

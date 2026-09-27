@@ -1,4 +1,4 @@
-"""把其他团队实现与 PostgreSQL/追问 Agent 组装成 decision 依赖。"""
+"""Assemble other teams' implementations with the PostgreSQL/follow-up Agent into decision dependencies."""
 from __future__ import annotations
 
 import os
@@ -49,7 +49,7 @@ def build_postgres_deps(
 
 
 def _clarification_adapter(*, use_deepseek: bool):
-    from runtime_settings import load_runtime_settings
+    from property_agent.runtime.settings import load_runtime_settings
 
     key_env = load_runtime_settings().deepseek.api_key_env
     if use_deepseek and os.getenv(key_env):

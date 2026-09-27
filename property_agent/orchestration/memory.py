@@ -1,4 +1,4 @@
-"""测试和本地无库调试使用的会话/聊天内存实现。"""
+"""Session/chat memory implementation used for testing and local debugging without a database."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,7 +9,7 @@ from property_agent.contracts import ChatMessage
 
 @dataclass
 class InMemoryChatRepository:
-    """按 conversation 隔离的内存聊天记录，形状与 SqlChatRepository 一致。"""
+    """In-memory chat records isolated by conversation, with a shape consistent with SqlChatRepository."""
 
     conversations: dict[str, str] = field(default_factory=dict)
     titles: dict[str, str] = field(default_factory=dict)
@@ -23,7 +23,7 @@ class InMemoryChatRepository:
             self.messages.setdefault(conversation_id, [])
             return
         if existing != user_id:
-            raise PermissionError("conversation 不属于当前用户")
+            raise PermissionError("conversation does not belong to the current user")
 
     def append_message(
         self,
@@ -40,7 +40,7 @@ class InMemoryChatRepository:
         message: ChatMessage = {"message_id": message_id, "role": role, "text": content}  # type: ignore[typeddict-item]
         if stored is not None:
             if stored != message:
-                raise ValueError("相同 message_id 对应了不同内容")
+                raise ValueError("the same message_id corresponds to different content")
             return stored
         self.by_id[message_id] = message
         self.messages.setdefault(conversation_id, []).append(message)
