@@ -1,4 +1,4 @@
-"""按补搜指令回放下一页 mock SearchResult。"""
+"""Replay the next page of mock SearchResult according to the supplementary search instruction."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -10,7 +10,7 @@ from property_agent.results import CallTimer, make_issue
 
 @dataclass
 class MockSearchRunner:
-    """实现 SearchRunner：next_page.cursor 映射到固定夹具。"""
+    """Implement SearchRunner: map next_page.cursor to a fixed fixture."""
 
     pages: dict[str, str] = field(
         default_factory=lambda: {"mock-page-2": "page-2", "page-2": "page-2"}
@@ -38,7 +38,7 @@ class MockSearchRunner:
                 return timer.error(
                     make_issue(
                         "SOURCE_UNAVAILABLE",
-                        f"没有为 cursor={change.get('cursor')!r} 准备 mock 结果。",
+                        f"No mock result prepared for cursor={change.get('cursor')!r}.",
                         source="mock_search",
                     )
                 )
@@ -52,7 +52,7 @@ class MockSearchRunner:
         return timer.error(
             make_issue(
                 "NO_NEW_QUERY",
-                "本次补搜指令没有可回放的下一页。",
+                "There is no replayable next page for this supplementary search instruction.",
                 source="mock_search",
             )
         )

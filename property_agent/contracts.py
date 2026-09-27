@@ -9,7 +9,7 @@ T = TypeVar('T')
 
 
 class ContractViolation(ValueError):
-    """纯函数的契约错误；code 为 INVALID_INPUT 或 INVALID_STATE。"""
+    """Contract error for a pure function; code is INVALID_INPUT or INVALID_STATE."""
     def __init__(self, code: str, field_path: str, message: str) -> None:
         self.code = code
         self.field_path = field_path
@@ -46,7 +46,7 @@ class Result(TypedDict, Generic[T]):
 class RunContext(TypedDict):
     user_id: str
     run_id: str
-    conversation_id: str  # MVP 中与 LangGraph thread_id 使用同一值
+    conversation_id: str  # In the MVP, uses the same value as the LangGraph thread_id
     attempt_id: str | None
     trace_id: str
     call_id: str
@@ -66,7 +66,7 @@ class ChatMessage(TypedDict):
 
 
 class SourceReference(TypedDict):
-    """记录结构化字段所依据的逐字用户原文。"""
+    """Records the verbatim user original text on which the structured fields are based."""
     message_id: str
     text: str
     start: int
@@ -89,7 +89,7 @@ QueryableListingField = Literal[
 
 
 class ProfileFact(TypedDict):
-    """保存本 conversation 中与找房有关、但不属于房源事实的用户背景。"""
+    """Stores user background related to house hunting in this conversation but not constituting listing facts."""
     field: Literal['household.occupant_count', 'household.has_children',
                    'household.planning_children', 'occupant.workplace',
                    'occupant.school']
@@ -98,7 +98,7 @@ class ProfileFact(TypedDict):
 
 
 class ListingConstraint(TypedDict):
-    """表达用户对可查询 Listing 字段的期望，不伪造真实房源。"""
+    """Expresses the user's expectations for queryable Listing fields, without fabricating real listings."""
     constraint_id: str
     field_path: QueryableListingField
     operator: Literal['eq', 'neq', 'lt', 'lte', 'gt', 'gte', 'between',
@@ -110,7 +110,7 @@ class ListingConstraint(TypedDict):
 
 
 class DerivedDataRequirement(TypedDict):
-    """表达需要 B 通过数据库、地图或工具获取的派生数据。"""
+    """Expresses derived data that B needs to obtain through databases, maps, or tools."""
     requirement_id: str
     category: Literal['commute', 'nearby_amenity', 'environment', 'accessibility']
     target: str | None
@@ -125,7 +125,7 @@ class DerivedDataRequirement(TypedDict):
 
 
 class OpenDataRequirement(TypedDict):
-    """保存非阻塞需求；即使 strength=hard，handling 也禁止 B 用它阻断核心结果。"""
+    """Stores non-blocking requirements; even when strength=hard, handling forbids B from using it to block core results."""
     requirement_id: str
     description: str
     handling: Literal['best_effort']
@@ -135,19 +135,19 @@ class OpenDataRequirement(TypedDict):
 
 
 class HardConstraints(TypedDict):
-    """保存 B 内部 SearchPlan 使用的已解析过滤条件。"""
+    """Stores the parsed filter conditions used by B's internal SearchPlan."""
     currency: str
     max_price: int | None
     price_period: Literal['month', 'week', 'total'] | None
     rental_scope: Literal['whole_unit', 'room'] | None
-    locations: list[str]  # 规范化地点 ID；空数组表示用户明确不限地区
+    locations: list[str]  # Normalized location IDs; an empty array means the user explicitly does not restrict the area
     min_bedrooms: int | None
 
 
 class ConversationProfile(TypedDict):
-    """保存一个 conversation 独立拥有、可确认和恢复的找房需求画像。"""
+    """Stores a house-hunting requirement profile independently owned by one conversation, which can be confirmed and restored."""
     profile_id: str
-    user_id: str  # 仅用于归属和权限，不表示跨 conversation 的长期用户画像
+    user_id: str  # Used only for ownership and permissions; does not represent a long-term user profile across conversations
     conversation_id: str
     version: int
     confirmed_version: int | None
@@ -158,7 +158,7 @@ class ConversationProfile(TypedDict):
     derived_data_requirements: list[DerivedDataRequirement]
     open_data_requirements: list[OpenDataRequirement]
     unresolved: list[str]
-    field_sources: dict[str, str]  # 字段路径 -> 用户消息 ID
+    field_sources: dict[str, str]  # Field path -> user message ID
     created_at: str
     updated_at: str
     last_user_message_at: str
@@ -172,7 +172,7 @@ ProfilePatchField = Literal[
 
 
 class ProfileChange(TypedDict):
-    """描述 LLM 提议、尚未提交到 ConversationProfile 的单项修改。"""
+    """Describes a single modification proposed by the LLM but not yet committed to the ConversationProfile."""
     operation: Literal['set', 'append', 'remove']
     field: ProfilePatchField
     value: JsonValue
@@ -180,13 +180,13 @@ class ProfileChange(TypedDict):
 
 
 class Clarification(TypedDict):
-    """描述需要由 A 向用户提出的结构化澄清问题。"""
+    """Describes a structured clarification question that A needs to ask the user."""
     field: str
     text: str
 
 
 class RequirementConfirmation(TypedDict):
-    """保存等待用户确认的需求摘要及其绑定版本。"""
+    """Stores the requirement summary awaiting user confirmation and its bound version."""
     confirmation_id: str
     profile_id: str
     profile_version: int
@@ -195,7 +195,7 @@ class RequirementConfirmation(TypedDict):
 
 
 class OnboardResult(TypedDict):
-    """返回候选 patch、草稿画像以及下一步澄清或确认动作。"""
+    """Returns candidate patches, the draft profile, and the next clarification or confirmation action."""
     base_profile_version: int
     profile_patch: list[ProfileChange]
     draft_profile: ConversationProfile
@@ -206,7 +206,7 @@ class OnboardResult(TypedDict):
 
 
 class ConfirmationReply(TypedDict):
-    """表示用户对指定需求版本的确认、修改或取消。"""
+    """Represents the user's confirmation, modification, or cancellation of the specified requirement version."""
     confirmation_id: str
     message_id: str
     action: Literal['confirm', 'correct', 'cancel']
@@ -214,7 +214,7 @@ class ConfirmationReply(TypedDict):
 
 
 class ConfirmationResult(TypedDict):
-    """返回确认后的画像，或需要再次确认的修订草稿。"""
+    """Returns the confirmed profile, or a revised draft that needs confirmation again."""
     profile: ConversationProfile
     ready_for_handoff: bool
     confirmation: RequirementConfirmation | None
@@ -222,7 +222,7 @@ class ConfirmationResult(TypedDict):
 
 
 class RequirementRequest(TypedDict):
-    """定义 A 在用户确认后发送给 B 的唯一公开请求。"""
+    """Defines the only public request that A sends to B after user confirmation."""
     request_id: str
     schema_version: Literal['0.3-draft']
     conversation_id: str
@@ -289,7 +289,7 @@ class SearchPlan(TypedDict):
     intent: Literal['rent', 'buy']
     required_filters: HardConstraints
     queries: list[SearchQuery]
-    page_limit: int  # 整个 search 调用的总页数上限
+    page_limit: int  # Upper limit on the total number of pages for the entire search call
     candidate_limit: int
     source_mode: Literal['mock', 'live']
     reason: str
@@ -380,7 +380,7 @@ class SearchResult(TypedDict):
 
 
 class RequirementCoverage(TypedDict):
-    """说明 B 对 A 所提交数据需求的覆盖情况。"""
+    """Describes B's coverage of the data requirements submitted by A."""
     fulfilled_requirement_ids: list[str]
     unsupported_requirement_ids: list[str]
     unverified_requirement_ids: list[str]
@@ -388,7 +388,7 @@ class RequirementCoverage(TypedDict):
 
 
 class RequirementFulfillment(TypedDict):
-    """定义 B 的统一响应；跳过开放需求不得阻止返回已匹配房源。"""
+    """Defines B's unified response; skipping open requirements must not prevent returning already matched listings."""
     request_id: str
     profile_version: int
     status: Literal['completed', 'partial', 'needs_clarification']
@@ -474,8 +474,8 @@ class Assessment(TypedDict):
     constraint_findings: list[str]
     search_directive: SearchDirective | None
     relaxation_proposals: list[RelaxationProposal]
-    # C 的 evaluate 由模型基于 screen/retrieve 决定的建议路线。实际执行前仍会由
-    # review 和 decide_next 做状态、次数和用户意愿的边界检查。
+    # C's evaluate is the suggested route decided by the model based on screen/retrieve. Before actual execution, it will still be
+    # checked by review and decide_next for boundaries on state, counts, and user intent.
     next_action: Literal['publish', 'research', 'ask_user', 'finish']
     next_reason_code: str
 
@@ -535,7 +535,7 @@ class DecisionState(TypedDict):
     failure_code: str | None
     search_directive: SearchDirective | None
     pending_question: PendingQuestion | None
-    # 编排层从 EvaluationResult.assessment 复制而来；None 表示旧调用方尚未提供。
+    # Copied by the orchestration layer from EvaluationResult.assessment; None means the old caller has not yet provided it.
     evaluation_next_action: Literal['publish', 'research', 'ask_user', 'finish'] | None
     evaluation_next_reason_code: str | None
 

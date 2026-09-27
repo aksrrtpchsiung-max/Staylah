@@ -19,7 +19,7 @@ async def review(
     policy: RoutingPolicy,
     ctx: RunContext,
 ) -> Result[ReviewResult]:
-    """执行本地 contract 审查；模型可用时再叠加独立语义复核。"""
+    """Perform a local contract review; when a model is available, layer on an independent semantic re-check."""
     started = perf_counter()
     try:
         _validate_profile(profile)
@@ -50,7 +50,7 @@ async def review(
             )
 
         reference_time = _parse_timestamp(ctx.get("deadline_at")) or datetime.now().astimezone()
-        # review 直接修正可确定的问题，不再把草稿退回 evaluate。
+        # review directly fixes issues that can be determined, and no longer sends the draft back to evaluate.
         existing_items = list(items)
         items[:] = [item for item in existing_items if item["listing_key"] in listings]
         for missing_index, item in enumerate(existing_items):

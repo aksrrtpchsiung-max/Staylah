@@ -1,4 +1,4 @@
-"""A-side 输入守卫、需求解析、确认、持久化与 B 请求构造 LangGraph。"""
+"""A-side input guard, requirement parsing, confirmation, persistence, and B request construction LangGraph."""
 
 from collections.abc import Callable
 from functools import partial
@@ -16,13 +16,13 @@ def make_classify_turn_intent_node(
     classifier: TurnIntentClassifier | None = None,
     renderer: ResponseRenderer | None = None,
 ) -> Callable[[RequirementGraphState], dict[str, Any]]:
-    """创建不修改 profile 的 conversation-aware 意图路由节点。"""
+    """Create a conversation-aware intent routing node that does not modify the profile."""
 
     implementation = classifier or DeepSeekTurnIntentClassifier()
     response_renderer = renderer or ResponseRenderer()
 
     def classify_turn_intent(state: RequirementGraphState) -> dict[str, Any]:
-        """把消息路由到需求更新、确认、住房问答或房源 handoff。"""
+        """Route messages to requirement update, confirmation, housing Q&A, or listing handoff."""
 
         try:
             decision = implementation.classify(
@@ -75,12 +75,12 @@ def make_classify_turn_intent_node(
 def make_answer_housing_question_node(
     answerer: HousingQuestionAnswerer | None = None,
 ) -> Callable[[RequirementGraphState], dict[str, Any]]:
-    """创建只读住房问答节点，禁止生成 profile patch。"""
+    """Create a read-only housing Q&A node that forbids generating profile patches."""
 
     implementation = answerer or DeepSeekHousingQuestionAnswerer()
 
     def answer_housing_question(state: RequirementGraphState) -> dict[str, Any]:
-        """调用 A 自有网页搜索工具并保持现有 workflow 状态和 profile version。"""
+        """Call A's own web search tool and preserve the existing workflow state and profile version."""
 
         decision = state.get("turn_intent") or {}
         try:
@@ -112,12 +112,12 @@ def make_answer_housing_question_node(
 def make_understand_requirement_node(
     interpreter: RequirementInterpreter | None = None,
 ) -> Callable[[RequirementGraphState], dict[str, Any]]:
-    """创建一次 LLM 调用并生成 profile patch 的需求解析节点。"""
+    """Create a requirement parsing node that makes one LLM call and generates a profile patch."""
 
     implementation = interpreter or DeepSeekRequirementInterpreter()
 
     def understand_requirement(state: RequirementGraphState) -> dict[str, Any]:
-        """生成标准需求与候选 patch，失败时交给统一错误恢复节点。"""
+        """Generate standard requirements and candidate patches; on failure, hand off to the unified error recovery node."""
 
         try:
             result = implementation.understand(
@@ -143,7 +143,7 @@ def make_understand_requirement_node(
 
 
 def _failure(code: IssueCode, field: str, message: str) -> dict[str, Any]:
-    """生成不含密钥和堆栈信息的统一失败路由。"""
+    """Generate unified failure routing that contains no secrets or stack trace information."""
 
     return {
         "requirement_issues": [{"code": code.value, "field": field, "message": message}],
@@ -153,7 +153,7 @@ def _failure(code: IssueCode, field: str, message: str) -> dict[str, Any]:
 
 
 def _route(state: RequirementGraphState) -> str:
-    """读取节点写入的显式 workflow_route 供条件边选择。"""
+    """Read the explicit workflow_route written by the node for conditional edge selection."""
 
     return state.get("workflow_route", "recover_error")
 
@@ -169,7 +169,7 @@ def build_requirement_graph(
     checkpointer: Any = None,
     clock: Callable[[], str] = utc_now,
 ) -> Any:
-    """装配 A-side 完整需求闭环；只构造 B 请求，不调用或处理 B。"""
+    """Assemble the complete A-side requirement loop; only construct B requests, do not call or handle B."""
 
     try:
         from langgraph.graph import END, START, StateGraph

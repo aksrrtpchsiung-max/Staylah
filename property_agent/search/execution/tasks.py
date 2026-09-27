@@ -1,4 +1,4 @@
-"""3a 的内部执行数据；不扩展 property_agent.contracts 的公开接口。"""
+"""Internal execution data for 3a; does not extend the public interface of property_agent.contracts."""
 from typing import Literal, TypedDict
 
 from property_agent.contracts import Evidence, Issue, JsonValue, Listing
@@ -132,7 +132,7 @@ class PlaceFact(TypedDict):
 
 class PlaceMatches(TypedDict):
     items: list[PlaceFact]
-    complete: bool  # 数据源响应是否完整，不保证现实世界设施无遗漏
+    complete: bool  # Whether the data source response is complete; does not guarantee that real-world facilities are exhaustive
     source_url: str
     observed_at: str
 

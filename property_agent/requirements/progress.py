@@ -8,7 +8,7 @@ from .response_renderer import ResponseRenderer
 
 
 def route_workflow(state: RequirementGraphState) -> dict[str, Any]:
-    """根据已有 profile 状态把消息路由到确认处理或需求解析。"""
+    """Route the message to confirmation handling or requirement parsing based on the existing profile state."""
 
     profile = state.get("profile") or {}
     if profile.get("status") == "pending_confirmation" and state.get("confirmation"):
@@ -17,7 +17,7 @@ def route_workflow(state: RequirementGraphState) -> dict[str, Any]:
 
 
 def assess_completeness(state: RequirementGraphState) -> dict[str, Any]:
-    """在合并后计算阻塞确认的缺失字段并选择后续分支。"""
+    """After merging, compute the missing fields for blocking confirmation and select the subsequent branch."""
 
     profile = copy.deepcopy(state["profile"])
     missing: set[str] = set()
@@ -34,7 +34,7 @@ def assess_completeness(state: RequirementGraphState) -> dict[str, Any]:
     )
     if not has_location:
         missing.add("derived_data_requirements.location")
-    # 与 B 共用核心过滤检查；缺少周期/币种必须在确认前澄清。
+    # Shares the core filter check with B; missing period/currency must be clarified before confirmation.
     if profile.get("intent") is not None:
         from property_agent.domain.requirements import normalize_requirements
         missing.update(q["field"] for q in normalize_requirements({**profile, "unresolved": []})["clarification_questions"])
@@ -49,7 +49,7 @@ def select_clarification(
     *,
     renderer: ResponseRenderer | None = None,
 ) -> dict[str, Any]:
-    """按业务优先级选择最多三个问题，避免一次向用户追问全部字段。"""
+    """Select at most three questions by business priority to avoid asking the user for all fields at once."""
 
     response_renderer = renderer or ResponseRenderer()
     questions = {
@@ -93,7 +93,7 @@ def recover_error(
     *,
     renderer: ResponseRenderer | None = None,
 ) -> dict[str, Any]:
-    """把节点失败收敛成不泄露密钥、堆栈和内部对象的安全响应。"""
+    """Converge node failures into a safe response that does not leak keys, stack traces, or internal objects."""
 
     response_renderer = renderer or ResponseRenderer()
     return {

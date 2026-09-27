@@ -1,36 +1,36 @@
-# Falcon 评测方案（尚未执行数据集）
+# Falcon Evaluation Plan (datasets not yet executed)
 
-## 数据集
+## Datasets
 
-- `data/clarification_10.json`：A01–A10；轻度 3、中度 4、重度 3。只装配并调用 A graph 一次，使用独立的内存 checkpoint，**不会构建或调用 B、C，也不需要 PostgreSQL**。`must_ask_about` 是预期缺失的主题，不要求 A 第一轮问完所有主题；A 当前一轮最多问三个问题。
-- `data/full_pipeline_20.json`：F01–F20；3–5 条条件 5 个案例、5–10 条条件 10 个案例、超过 10 条条件 5 个案例。`filters` 是由原文人工标注的条件；租售、区域、出租范围和价格也计入条件数。带 `(soft)` 的是偏好，不应按硬条件淘汰。部分偏好可能没有可靠的结构化字段，允许标记“未知”，不能凭空补齐。
+- `data/clarification_10.json`: A01–A10; 3 mild, 4 moderate, 3 severe. Only assemble and invoke the A graph once, using an independent in-memory checkpoint; **B and C will not be built or invoked, and PostgreSQL is not required**. `must_ask_about` is the expected missing topic; A is not required to ask about all topics in the first round; A can ask at most three questions per round.
+- `data/full_pipeline_20.json`: F01–F20; 5 cases with 3–5 conditions, 10 cases with 5–10 conditions, and 5 cases with more than 10 conditions. `filters` are conditions manually annotated from the original text; rent/sale, area, rental range, and price also count toward the condition count. Items marked `(soft)` are preferences and should not be eliminated as hard conditions. Some preferences may not have reliable structured fields; marking them as "unknown" is allowed, but they must not be filled in out of thin air.
 
-两个数据集都只是用户请求和人工标注，没有虚构房源。每个样例使用独立 conversation ID，防止历史对话串样。
+Both datasets contain only user requests and manual annotations, with no fabricated listings. Each sample uses an independent conversation ID to prevent cross-contamination between historical conversations.
 
-## 日后执行（本次未执行）
+## Future Execution (not executed this time)
 
-运行 A 数据集只需要 A 使用的 DeepSeek key；完整流程数据集还需要 PostgreSQL、B 的浏览器桥接、C 的网关 key，以及仓库根目录 `.env` / `runtime.toml` 都已按项目本来的方式配置。完整流程评测强制 `source_mode=live`，不会用模拟房源。
+Running the A dataset only requires the DeepSeek key used by A; the full pipeline dataset also requires PostgreSQL, B's browser bridge, C's gateway key, and that `.env` / `runtime.toml` in the repository root are configured in the project's original way. The full pipeline evaluation forces `source_mode=live` and will not use simulated listings.
 
 ```bash
 cd /Users/junboxia/Documents/ChatGPT/hackathon/evaluation
 .venv/bin/python -m evaluation_suite.runner --suite clarification
 .venv/bin/python -m evaluation_suite.runner --suite full
-# 只运行单个案例：--case A01 或 --case F01
-# 从 F03 接续，并保留同一结果目录里已完成的 F01/F02：
+# Run only a single case: --case A01 or --case F01
+# Resume from F03 while preserving completed F01/F02 in the same results directory:
 .venv/bin/python -m evaluation_suite.runner --suite full --start-at F03 \
   --resume-dir evaluation_runs/EvalF-full-20260922T134407Z-a48c4679
 ```
 
-完整流程数据集在 A 给出确认摘要后，会自动发送“确认”，让该案例进入 B/C；**这只是测试流程自动化，不表示 A 的理解正确**。日志保存 A 的 profile 供人工检查。如果 A 要求额外澄清、B 回问、C 等待用户接受放宽条件，runner 会记录并停止该案例，不会代替用户编造答案或接受放宽条件。
+After A provides a confirmation summary, the full pipeline dataset automatically sends "confirm" to move the case into B/C; **this is only test process automation and does not mean A's understanding is correct**. The log saves A's profile for manual inspection. If A requests additional clarification, B asks back, or C waits for the user to accept relaxed conditions, the runner will record and stop that case, and will not fabricate answers on the user's behalf or accept relaxed conditions.
 
-日志默认放在被 Git 忽略的 `evaluation_runs/` 下：A 每例一份 JSON，另有 `dialogue.md` 与 `summary.csv`；完整流程使用 `EvalF-full-<timestamp>/`，每完成一例便立即写入 `Fxx.json`、`Fxx.md`，更新 `summary.csv` 与 `progress.md`，可边跑边查看。JSON 含用户请求、A 状态与档案；完整流程日志另含每次 B 搜索的完整 Listing/coverage、交给 C 的候选、retrieve 分数、evaluate/review、最终推荐对应的完整 Listing、各节点耗时和最终状态。C 不再执行硬条件 screen，B 候选数不等于人工确认合格数。日志可能含真实房源描述或个人资料，勿直接上传 GitHub；不会读取或记录 `.env` 的密钥值。
+Logs are placed by default under the Git-ignored `evaluation_runs/`: one JSON per A case, plus `dialogue.md` and `summary.csv`; the full pipeline uses `EvalF-full-<timestamp>/`, and upon completing each case it immediately writes `Fxx.json` and `Fxx.md`, updates `summary.csv` and `progress.md`, so it can be monitored while running. The JSON contains the user request, A state, and profile; full pipeline logs additionally contain the complete Listing/coverage of each B search, the candidates handed to C, retrieve scores, evaluate/review, the complete Listing corresponding to the final recommendation, the time spent at each node, and the final status. C no longer performs a hard-condition screen, and the number of B candidates does not equal the number manually confirmed as eligible. Logs may contain real listing descriptions or personal data; do not upload them directly to GitHub; secret values from `.env` will not be read or logged.
 
-## 五项指标与判定标准
+## Five Metrics and Judgment Criteria
 
-1. **A 需求理解／追问成功率**（只用 A01–A10）：首轮应处于 `awaiting_clarification`，`clarification_questions` 非空，且未生成 B handoff；人工核对所问主题是否与 `must_ask_about` 中至少一个真正缺失条件有关，是否乱猜、漏掉阻塞条件。合格案例数 / 10。因为这 10 例全部应被追问，它只能衡量“该追问时是否追问”，不能检测“不该追问时误追问”的假阳性；若要总体准确率，后续需补充明确请求的负例。
-2. **合格房源召回率**（只用 F01–F20）：日志保留 B 原始房源与交给 C 的候选，按 `listing_key` 去重，同时保留每次 attempt 的详情。真正召回率 = `|搜索得到且经人工确认合格的房源 ∩ 独立参考合格全集| / |独立参考合格全集|`。参考全集需人工或独立搜索在相同时间窗/来源/查询预算下建立；C 不再筛选后，`eligible_found_unique_count` 留空，必须人工核对 B 候选后才可计算，**不能把 B 候选数冒充合格数或召回率**。原始 B 数量、待核实项、失败来源和截断标记需一起报告。
-3. **最终推荐准确率**（只用 F01–F20）：人工逐套判定最终推荐是否符合所有硬条件，并记录证据/未知项。`正确推荐套数 / 实际推荐套数`；无推荐时记 N/A，不当作 100%。同时检查推荐是否都来自该次 B 快照；C 不再独立确认硬条件。
-4. **推荐／排序质量**（只用 F01–F20）：把每例 C 最终推荐与同次 B 的候选并排看。人工先判断候选是否满足硬条件，再给合格候选 0–3 分（0=不宜推荐、1=勉强、2=合适、3=非常合适），考虑软偏好、证据、新鲜度、价格和未知风险，再计算 `nDCG@K`（K=推荐数，最多 display_limit）；也可记录“明显更好的合格房源被漏排/低排”的原因。候选不足或完全同分时标记 N/A 或并列，不强造差异。
-5. **时间**（只用 F01–F20）：A=需求解析与确认两次 A graph 调用之和；B=首搜/补搜的查询准备、计划及实际 B 搜索；C=retrieve、evaluate、review、decide_next 调用之和。按案例报告毫秒、全体中位数与 P90；`wall_duration_ms` 另列，包含编排、持久化及日志开销，不等于 A+B+C。若等待真人回答/放宽条件，该等待时间不算模型/搜索处理耗时；案例会停在等待状态。
+1. **A Requirement Understanding / Follow-up Success Rate** (only A01–A10): The first round should be in `awaiting_clarification`, `clarification_questions` should be non-empty, and no B handoff should be generated; manually check whether the topics asked are related to at least one genuinely missing condition in `must_ask_about`, and whether there is random guessing or omission of blocking conditions. Number of eligible cases / 10. Because all 10 cases should be followed up on, this can only measure "whether follow-up occurs when it should," and cannot detect false positives where follow-up occurs when it should not; if overall accuracy is needed, negative examples with explicit requests must be added later.
+2. **Eligible Listing Recall Rate** (only F01–F20): The logs retain B's raw listings and the candidates handed to C, deduplicated by `listing_key`, while also retaining the details of each attempt. True recall rate = `|listings found by search and manually confirmed eligible ∩ independent reference eligible full set| / |independent reference eligible full set|`. The reference full set must be established manually or through independent search under the same time window/source/query budget; since C no longer filters, `eligible_found_unique_count` is left blank, and it can only be calculated after manually verifying B's candidates; **the number of B candidates must not be passed off as the eligible count or recall rate**. The raw B count, items pending verification, failed sources, and truncation markers must be reported together.
+3. **Final Recommendation Accuracy** (only F01–F20): Manually judge each final recommendation for whether it meets all hard conditions, and record evidence/unknown items. `number of correct recommendations / number of actual recommendations`; when there is no recommendation, record N/A and do not treat it as 100%. Also check whether all recommendations come from that B snapshot; C no longer independently confirms hard conditions.
+4. **Recommendation / Ranking Quality** (only F01–F20): Compare each case's final C recommendation side by side with the candidates from the same B run. First manually judge whether the candidates meet the hard conditions, then score eligible candidates from 0–3 (0=not suitable for recommendation, 1=barely, 2=suitable, 3=very suitable), considering soft preferences, evidence, freshness, price, and unknown risks, and then calculate `nDCG@K` (K=number of recommendations, at most display_limit); you may also record the reasons why "clearly better eligible listings were missed or ranked low." When candidates are insufficient or all scores are tied, mark N/A or tied, and do not manufacture differences.
+5. **Time** (only F01–F20): A=the sum of the two A graph calls for requirement parsing and confirmation; B=query preparation, planning, and actual B searches for the initial search/follow-up search; C=the sum of retrieve, evaluate, review, and decide_next calls. Report milliseconds per case, the overall median, and P90; `wall_duration_ms` is listed separately and includes orchestration, persistence, and logging overhead, and is not equal to A+B+C. If waiting for a human answer or relaxed conditions, that waiting time does not count as model/search processing time; the case will stop in a waiting state.
 
-附加报告 **端到端完成率**：`phase=published` 且有最终推荐的案例数 / 20。需要同时列出因 A 追问、B 澄清、C 等待放宽、来源故障或无合格房源而未发布的数量，不能将失败与合理无房源混为一类。搜索覆盖受网站可用性、实时上下架和本项目 `candidate_limit` / 页面上限影响，评测时必须固定配置并记录运行时间。
+Additional report **End-to-End Completion Rate**: number of cases with `phase=published` and a final recommendation / 20. It is necessary to also list the number not published due to A follow-up, B clarification, C waiting for relaxation, source failure, or no eligible listings, and failures must not be lumped together with reasonable no-listing outcomes. Search coverage is affected by website availability, real-time listing and delisting, and this project's `candidate_limit` / page upper limits; during evaluation, the configuration must be fixed and the run time recorded.

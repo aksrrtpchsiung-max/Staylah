@@ -1,4 +1,4 @@
-"""使用受控意图分类把用户消息路由到需求、确认、住房问答或范围外分支。"""
+"""Use controlled intent classification to route user messages to requirements, confirmation, housing Q&A, or out-of-scope branches."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ TurnIntent = Literal[
 
 
 class TurnIntentDecision(StrictModel):
-    """保存单轮消息的主意图和是否允许修改 profile。"""
+    """Store the primary intent of a single-turn message and whether profile modification is allowed."""
 
     intent: TurnIntent = Field(description="Primary intent of the current user message.")
     requires_fresh_data: bool = Field(
@@ -35,10 +35,10 @@ class TurnIntentDecision(StrictModel):
 
 
 class TurnIntentClassifier(Protocol):
-    """定义 conversation-aware 单轮意图分类接口。"""
+    """Define a conversation-aware single-turn intent classification interface."""
 
     def classify(self, text: str, *, workflow_status: str) -> TurnIntentDecision:
-        """返回路由意图，不解析或修改任何 profile 字段。"""
+        """Return the routing intent without parsing or modifying any profile fields."""
 
 
 TURN_CLASSIFIER_PROMPT = """Classify the current user message for Falcon, a Singapore housing assistant.
@@ -57,7 +57,7 @@ mutates_profile is true only for requirement_update or listing_request when the 
 
 
 class DeepSeekTurnIntentClassifier:
-    """使用 DeepSeek JSON Output 进行受控的单轮路由分类。"""
+    """Use DeepSeek JSON Output for controlled single-turn routing classification."""
 
     def __init__(
         self,
@@ -66,23 +66,23 @@ class DeepSeekTurnIntentClassifier:
         api_key: str | None = None,
         client: Any | None = None,
     ) -> None:
-        """注入模型配置、可选进程内密钥和测试 HTTP 客户端。"""
+        """Inject model configuration, optional in-process key, and test HTTP client."""
 
         self._config = config or DeepSeekParserConfig.from_runtime()
         self._api_key = api_key
         self._client = client
 
     def classify(self, text: str, *, workflow_status: str) -> TurnIntentDecision:
-        """结合当前 workflow 状态返回严格路由结果。"""
+        """Return a strict routing result combined with the current workflow state."""
 
-        normalized = text.strip().lower().rstrip("。.!！")
-        if normalized in {"yes", "y", "confirm", "confirmed", "是", "是的", "确认", "正确", "没问题"}:
+        normalized = text.strip().lower().rstrip(".!")
+        if normalized in {"yes", "y", "confirm", "confirmed", "yes indeed", "correct", "no problem"}:
             return TurnIntentDecision(
                 intent="confirmation",
                 requires_fresh_data=False,
                 mutates_profile=False,
             )
-        if normalized in {"cancel", "取消", "不找了", "结束", "停止"}:
+        if normalized in {"cancel", "not looking anymore", "end", "stop"}:
             return TurnIntentDecision(
                 intent="cancellation",
                 requires_fresh_data=False,

@@ -1,4 +1,4 @@
-"""执行已经通过管理层检查的任务；3a 和 3b 共用同一调用上下文。"""
+"""Execute tasks that have already passed management review; 3a and 3b share the same call context."""
 from copy import deepcopy
 
 from property_agent.contracts import ContractViolation
@@ -30,7 +30,7 @@ class Dispatcher:
                 query = next(q for q in plan['queries'] if q['query_id'] == task['query_id'])
                 capability = self.listings.get(query['source'])
                 if capability is None:
-                    raise ProviderError(issue('SOURCE_UNAVAILABLE', '未注册该房源来源', source=query['source']))
+                    raise ProviderError(issue('SOURCE_UNAVAILABLE', 'This listing source is not registered', source=query['source']))
                 result = await capability.search_page(plan, task['query_id'], ctx=ctx, cursor=task['cursor'],
                     constraints=(state.get('requirement_request') or {}).get('listing_constraints'))
                 self.history.save_page(plan, task['query_id'], task['cursor'], result)
@@ -53,23 +53,23 @@ class Dispatcher:
                     return await self.travel.investigate(listing, location, requirement,
                         request.get('user_context', []), ctx=ctx)
                 return await self.amenities.investigate_requirement(listing, location, requirement, ctx=ctx)
-            raise ProviderError(issue('INVALID_STATE', '未知内部任务类型', source=None))
+            raise ProviderError(issue('INVALID_STATE', 'Unknown internal task type', source=None))
         except ProviderError as exc:
             problem = exc.issue
         except ContractViolation as exc:
             problem = issue(exc.code, str(exc), field_path=exc.field_path, source=None)
         except Exception:
-            # 未预料的插件异常也不能让本轮已经取得的房源全部丢失。
-            problem = issue('INTERNAL_ERROR', '执行能力发生未处理错误', source=None)
+            # Unexpected plugin exceptions must not cause all listings already obtained in this round to be lost.
+            problem = issue('INTERNAL_ERROR', 'Unhandled error occurred in execution capability', source=None)
         return dict(status='error', data=None, issues=[problem],
                     meta=dict(trace_id=ctx['trace_id'], call_id=ctx['call_id'], duration_ms=0))
 
 
 def investigation_requirements(request):
-    """派生需求原样传递；只有工作/学校背景时补做默认通勤概览（无阈值）。"""
+    """Derived requirements are passed through as-is; only when there is work/school background, a default commute overview is added (no threshold)."""
     requirements = deepcopy(request.get('derived_data_requirements', []))
     has_commute = any(r['category'] == 'commute' for r in requirements)
-    # 已有通勤需求时由其 target 和 user_context 配对，避免背景条目重复出行任务。
+    # When commute requirements already exist, they are paired by their target and user_context, avoiding duplicate trip tasks from background entries.
     if not has_commute:
         for index, fact in enumerate(request.get('user_context', [])):
             if fact['field'] in ('occupant.workplace', 'occupant.school') and isinstance(fact['value'], str) and fact['value'].strip():

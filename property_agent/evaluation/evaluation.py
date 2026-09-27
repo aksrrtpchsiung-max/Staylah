@@ -21,10 +21,10 @@ async def evaluate(
     policy: RoutingPolicy,
     ctx: RunContext,
 ) -> Result[EvaluationResult]:
-    """从最多 12 个已评分候选中选前 10 个，并由 LLM总结和建议下一步。
+    """Select the top 10 from at most 12 scored candidates, and have the LLM summarize and suggest the next step.
 
-    v0 的 ``screen_result.eligible`` 在主流程中承载 B 候选键，不代表 C 已复核硬条件。
-    候选选择严格采用 ``retrieve`` 的分数顺序；LLM 不参与改序或增删。
+    The ``screen_result.eligible`` of v0 carries the B candidate key in the main flow; it does not mean that C has rechecked the hard conditions.
+    Candidate selection strictly follows the score order of ``retrieve``; the LLM does not participate in reordering, adding, or removing.
     """
     started = perf_counter()
     try:
@@ -58,7 +58,7 @@ async def evaluate(
             preference_score, _ = _soft_preference_score(listing, profile["listing_constraints"])
             ranked.append((candidate["retrieval_rank"], preference_score, listing))
 
-        # 先把动作所需的可验证事实准备好；模型只能在此基础上选择，不能自行编造指令。
+        # First prepare the verifiable facts required by the action; the model can only choose on this basis and cannot fabricate instructions on its own.
         enough_candidates = len(screen_result["eligible"]) >= policy["min_matches"]
         directive = _make_directive(
             profile,
@@ -74,7 +74,7 @@ async def evaluate(
                 decision = await model.evaluate(
                     profile, retrieval, screen_result, list(listings_by_key.values()), coverage, policy
                 )
-                # 模型的路线建议必须能由实际数据和 policy 支撑，否则采用安全的降级路线。
+                # The model's route suggestion must be supported by actual data and policy; otherwise, adopt a safe fallback route.
                 if (
                     (decision.next_action == "publish" and not enough_candidates)
                     or (decision.next_action == "research" and directive is None)
@@ -82,7 +82,7 @@ async def evaluate(
                 ):
                     raise EvaluationReviewModelError("DeepSeek evaluation proposed an unsupported next action")
             except Exception:
-                # 注入实现也可能抛出 SDK/网络异常；保留可解释的降级结果而不是让流程中断。
+                # The injection implementation may also throw SDK/network exceptions; retain an explainable fallback result instead of interrupting the flow.
                 used_fallback = True
                 unavailable_reason = "DeepSeek evaluation failed validation; used deterministic fallback"
 

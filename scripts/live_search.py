@@ -1,4 +1,4 @@
-"""四个真实搜索用例，直接运行本文件即可依次调用并打印返回值。"""
+"""Four real search use cases; running this file directly will call them in order and print the return values."""
 
 import asyncio
 from datetime import datetime, timedelta, timezone
@@ -9,8 +9,8 @@ from property_agent.search.api import search as api_search
 from property_agent.contracts import SearchPlan
 
 
-# 完整的 SearchPlan 示例：字段与 property_agent/contracts.py 一致，可直接复制修改。
-# page_limit 是整个 search 的页数上限，candidate_limit 是整个调用的候选上限。
+# Complete SearchPlan example: fields match property_agent/contracts.py and can be copied and modified directly.
+# page_limit is the page count limit for the entire search, and candidate_limit is the candidate limit for the entire call.
 search_plan_1: SearchPlan = {
     "plan_id": "plan-tampines-whole",
     "profile_version": 1,
@@ -30,7 +30,7 @@ search_plan_1: SearchPlan = {
     "page_limit": 4,
     "candidate_limit": 12,
     "source_mode": "live",
-    "reason": "在 Tampines 找整套出租，月租不超过 SGD 4000，至少两个卧室。",
+    "reason": "Find a whole-unit rental in Tampines, monthly rent no more than SGD 4000, at least two bedrooms.",
 }
 
 search_plan_2: SearchPlan = {
@@ -52,7 +52,7 @@ search_plan_2: SearchPlan = {
     "page_limit": 4,
     "candidate_limit": 12,
     "source_mode": "live",
-    "reason": "在 Clementi 找单间出租，月租不超过 SGD 1500，不限制整套房屋的卧室总数。",
+    "reason": "Find a room rental in Clementi, monthly rent no more than SGD 1500, with no restriction on the total number of bedrooms in the whole unit.",
 }
 
 search_plan_3: SearchPlan = {
@@ -74,7 +74,7 @@ search_plan_3: SearchPlan = {
     "page_limit": 4,
     "candidate_limit": 12,
     "source_mode": "live",
-    "reason": "在 Punggol 找适合家庭的整套出租，月租不超过 SGD 4500，至少三个卧室。",
+    "reason": "Find a family-friendly whole-unit rental in Punggol, monthly rent no more than SGD 4500, at least three bedrooms.",
 }
 
 search_plan_4: SearchPlan = {
@@ -96,12 +96,12 @@ search_plan_4: SearchPlan = {
     "page_limit": 4,
     "candidate_limit": 12,
     "source_mode": "live",
-    "reason": "在 Bishan 找出售房源，总价不超过 SGD 1200000，至少两个卧室；租赁范围不适用。",
+    "reason": "Find properties for sale in Bishan, total price no more than SGD 1200000, at least two bedrooms; rental scope does not apply.",
 }
 
 
 def search(plan):
-    # api.search 是异步函数且契约要求 ctx；这里只自动补齐，main 只需传计划。
+    # api.search is an asynchronous function and the contract requires ctx; here it is only filled in automatically, and main only needs to pass the plan.
     identity = uuid4().hex
     ctx = {
         "user_id": "test-search",

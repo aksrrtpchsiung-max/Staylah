@@ -19,7 +19,7 @@ _auto_evaluation_review_model: EvaluationReviewModel | None = None
 
 
 def configure_keyword_matcher(matcher: KeywordMatcher | None) -> None:
-    """由应用启动代码注入匹配器；传入 None 可关闭已注入的匹配器。"""
+    """Injected by the application startup code to provide the matcher; pass None to disable an already injected matcher."""
     global _keyword_matcher
     _keyword_matcher = matcher
 
@@ -27,14 +27,14 @@ def configure_keyword_matcher(matcher: KeywordMatcher | None) -> None:
 def configure_deepseek_keyword_matcher(
     *, base_url: str | None = None, model_id: str | None = None, client: Any | None = None
 ) -> DeepSeekKeywordMatcher:
-    """创建并注入 DeepSeek 匹配器；密钥从环境变量读取。"""
+    """Create and inject the DeepSeek matcher; the key is read from an environment variable."""
     matcher = DeepSeekKeywordMatcher(base_url=base_url, model_id=model_id, client=client)
     configure_keyword_matcher(matcher)
     return matcher
 
 
 def configure_evaluation_review_model(model: EvaluationReviewModel | None) -> None:
-    """由应用启动代码注入 evaluate/review 使用的模型；传入 None 清除注入值。"""
+    """Injected by the application startup code to provide the model used by evaluate/review; pass None to clear the injected value."""
     global _evaluation_review_model
     _evaluation_review_model = model
 
@@ -42,14 +42,14 @@ def configure_evaluation_review_model(model: EvaluationReviewModel | None) -> No
 def configure_deepseek_evaluation_review_model(
     *, base_url: str | None = None, model_id: str | None = None, client: Any | None = None
 ) -> DeepSeekEvaluationReviewModel:
-    """创建并注入 DeepSeek 评估／审查模型；密钥从环境变量读取。"""
+    """Create and inject the DeepSeek evaluation/review model; the key is read from an environment variable."""
     model = DeepSeekEvaluationReviewModel(base_url=base_url, model_id=model_id, client=client)
     configure_evaluation_review_model(model)
     return model
 
 
 def _resolve_keyword_matcher() -> tuple[KeywordMatcher | None, str | None]:
-    """优先使用应用注入的匹配器；DeepSeek 环境变量齐全时自动创建。"""
+    """Prefer the matcher injected by the application; create one automatically when the DeepSeek environment variables are complete."""
     global _auto_deepseek_matcher
     if _keyword_matcher is not None:
         return _keyword_matcher, None
@@ -63,7 +63,7 @@ def _resolve_keyword_matcher() -> tuple[KeywordMatcher | None, str | None]:
 
 
 def _resolve_evaluation_review_model() -> tuple[EvaluationReviewModel | None, str | None]:
-    """优先使用应用注入的模型；DeepSeek 环境变量齐全时自动创建。"""
+    """Prefer the model injected by the application; create one automatically when the DeepSeek environment variables are complete."""
     global _auto_evaluation_review_model
     if _evaluation_review_model is not None:
         return _evaluation_review_model, None

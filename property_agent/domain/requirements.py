@@ -1,8 +1,8 @@
-"""B 内部的需求校验与过滤投影；不重建 A 拥有的 ConversationProfile。
+"""Requirement validation and filtered projection internal to B; does not rebuild the ConversationProfile owned by A.
 
-RequirementRequest 是 A 在确认指定版本后提交的交接凭证。B 校验会话、版本和
-确认时间，但没有用户确认记录库，不能据此声称独立验证过 A 的确认操作。
-原始约束始终保留；SearchPlan 的六项过滤仅是可表达的必要条件，并非全部需求。
+RequirementRequest is the handoff credential submitted by A after confirming the specified version. B validates the conversation, version, and
+confirmation time, but has no user confirmation record store, so it cannot claim to have independently verified A's confirmation operation.
+The original constraints are always retained; the six filters of the SearchPlan are only expressible necessary conditions, not the full set of requirements.
 """
 from __future__ import annotations
 
@@ -20,32 +20,32 @@ from property_agent.contracts import ContractViolation, HardConstraints, Clarifi
 from property_agent.domain.validation import fail, timestamp, validate_context, validate_type
 
 
-# 本地检索词表；只解释名字，不证明房源位于某个行政区。
+# Local search term table; only explains names, does not prove the listing is located in a certain administrative district.
 _LOCATION_NAMES = {
-    'TAMPINES': ('Tampines', '淡滨尼'),
-    'CLEMENTI': ('Clementi', '金文泰'),
-    'PUNGGOL': ('Punggol', '榜鹅'),
-    'BEDOK': ('Bedok', '勿洛'),
-    'BISHAN': ('Bishan', '碧山'),
-    'JURONG_EAST': ('Jurong East', '裕廊东'),
-    'JURONG_WEST': ('Jurong West', '裕廊西'),
-    'SENGKANG': ('Sengkang', '盛港'),
-    'WOODLANDS': ('Woodlands', '兀兰'),
-    'TOA_PAYOH': ('Toa Payoh', '大巴窑'),
-    'ANG_MO_KIO': ('Ang Mo Kio', '宏茂桥'),
-    'HOUGANG': ('Hougang', '后港'),
-    'SERANGOON': ('Serangoon', '实龙岗'),
-    'PASIR_RIS': ('Pasir Ris', '巴西立'),
-    'BUKIT_BATOK': ('Bukit Batok', '武吉巴督'),
-    'QUEENSTOWN': ('Queenstown', '女皇镇'),
-    'SINGAPORE': ('Singapore', '新加坡'),
+    'TAMPINES': ('Tampines',),
+    'CLEMENTI': ('Clementi',),
+    'PUNGGOL': ('Punggol',),
+    'BEDOK': ('Bedok',),
+    'BISHAN': ('Bishan',),
+    'JURONG_EAST': ('Jurong East',),
+    'JURONG_WEST': ('Jurong West',),
+    'SENGKANG': ('Sengkang',),
+    'WOODLANDS': ('Woodlands',),
+    'TOA_PAYOH': ('Toa Payoh',),
+    'ANG_MO_KIO': ('Ang Mo Kio',),
+    'HOUGANG': ('Hougang',),
+    'SERANGOON': ('Serangoon',),
+    'PASIR_RIS': ('Pasir Ris',),
+    'BUKIT_BATOK': ('Bukit Batok',),
+    'QUEENSTOWN': ('Queenstown',),
+    'SINGAPORE': ('Singapore',),
 }
 _LOCATION_LOOKUP = {name.casefold().replace('_', ' '): key
                     for key, names in _LOCATION_NAMES.items() for name in (key, *names)}
 
 
 class PlanningRequirements(TypedDict):
-    """仅存在于 B 的显式投影，不包含伪造的画像状态、时间或确认历史。"""
+    """Exists only as an explicit projection in B, and does not contain fabricated profile state, time, or confirmation history."""
     profile_id: str
     version: int
     intent: str
@@ -62,9 +62,9 @@ def location_entity(name: str) -> contracts.Entity:
     name = ' '.join(name.split())
     canonical = _LOCATION_LOOKUP.get(name.casefold().replace('_', ' '))
     if canonical is None:
-        # A may retain both names from user text, e.g. 淡滨尼（Tampines）.
+        # A may retain both names from user text, e.g. Tampines (Tampines).
         # Accept this only when both complete names identify the same known area.
-        bilingual = re.fullmatch(r'(.+?)\s*\(([^()]+)\)', name.replace('（', '(').replace('）', ')'))
+        bilingual = re.fullmatch(r'(.+?)\s*\(([^()]+)\)', name)
         if bilingual:
             identities = [_LOCATION_LOOKUP.get(part.strip().casefold().replace('_', ' '))
                           for part in bilingual.groups()]
@@ -76,10 +76,10 @@ def location_entity(name: str) -> contracts.Entity:
 
 def _validate_source(source, path):
     if not source['message_id'].strip() or not source['text'].strip():
-        fail(path, '原文及来源消息 ID 不能为空')
-    # start/end 是原消息中的偏移；source.text 可以只是摘录，不能拿摘录长度校验终点。
+        fail(path, 'The original text and source message ID cannot be empty')
+    # start/end are offsets in the original message; source.text may be only an excerpt, so the excerpt length cannot be used to validate the end point.
     if source['start'] < 0 or source['end'] <= source['start']:
-        fail(path, '原文起止位置必须是非负、递增的范围')
+        fail(path, 'The original text start and end positions must be a non-negative, increasing range')
 
 
 def _listing_field_schema(field):
@@ -96,33 +96,33 @@ def _validate_constraint(constraint, path):
                         'attributes.bathrooms', 'attributes.lease_years'}
     comparable = numeric or field == 'listed_date'
     if operator in ('lt', 'lte', 'gt', 'gte', 'between') and not comparable:
-        fail(path + '.operator', '此字段不支持大小或区间比较')
+        fail(path + '.operator', 'This field does not support size or range comparisons')
     if operator == 'contains' and field not in {'attributes.unit_layout', 'price.currency'}:
-        fail(path + '.operator', '此字段不支持文本包含比较')
+        fail(path + '.operator', 'This field does not support text containment comparisons')
     if operator in ('between', 'in'):
         if type(value) is not list or not value or (operator == 'between' and len(value) != 2):
-            fail(path + '.value', 'in 需要非空数组，between 需要两个有序端点')
+            fail(path + '.value', 'in requires a non-empty array, between requires two ordered endpoints')
         values = value
     else:
         values = [value]
     for item in values:
         if numeric:
-            # Listing 是整数；用户阈值仍允许有限小数，例如面积 > 999.5。
+            # Listing is an integer; user thresholds still allow finite decimals, e.g. area > 999.5.
             if type(item) not in (int, float) or not math.isfinite(item):
-                fail(path + '.value', '数值比较需要有限数字')
+                fail(path + '.value', 'Numeric comparison requires a finite number')
         else:
             validate_type(schema, item, path + '.value')
         if item is None or (type(item) is str and not item.strip()):
-            fail(path + '.value', '期望值不能为空；未知需求请由 A 澄清')
+            fail(path + '.value', 'The expected value cannot be empty; unknown requirements should be clarified by A')
         if numeric and item < 0:
-            fail(path + '.value', '数量和金额不能为负数')
+            fail(path + '.value', 'Quantity and amount cannot be negative')
         if field == 'listed_date':
             try:
                 date.fromisoformat(item)
             except ValueError:
-                fail(path + '.value', '日期条件必须使用 ISO 日期')
+                fail(path + '.value', 'Date conditions must use ISO dates')
     if operator == 'between' and value[0] > value[1]:
-        fail(path + '.value', '区间下界不能大于上界')
+        fail(path + '.value', 'The lower bound of the range cannot be greater than the upper bound')
 
 
 def _validate_requirements(value):
@@ -134,28 +134,28 @@ def _validate_requirements(value):
             path = f'{field}[{index}]'
             key = requirement[id_key]
             if not key.strip() or key in ids:
-                fail(path + '.' + id_key, '需求 ID 不能为空，且本请求内必须唯一')
+                fail(path + '.' + id_key, 'The requirement ID cannot be empty and must be unique within this request')
             ids.add(key)
             _validate_source(requirement['source'], path + '.source')
             if field == 'listing_constraints':
                 _validate_constraint(requirement, path)
             elif field == 'derived_data_requirements':
                 if not requirement['metric'].strip():
-                    fail(path + '.metric', '数据指标不能为空')
+                    fail(path + '.metric', 'The data metric cannot be empty')
                 for name in ('target', 'unit'):
                     if requirement[name] is not None and not requirement[name].strip():
-                        fail(path + '.' + name, '不能是空字符串')
+                        fail(path + '.' + name, 'Cannot be an empty string')
                 operator, target = requirement['operator'], requirement['value']
                 if operator == 'between' and (
                     type(target) is not list or len(target) != 2
                     or any(type(x) not in (int, float) for x in target)
                     or target[0] > target[1]
                 ):
-                    fail(path + '.value', '派生数据区间必须包含两个递增数值')
+                    fail(path + '.value', 'A derived data range must contain two increasing numeric values')
                 if operator in ('lte', 'gte') and type(target) not in (int, float):
-                    fail(path + '.value', '派生数据大小比较需要数值')
+                    fail(path + '.value', 'Derived data size comparison requires a numeric value')
             elif not requirement['description'].strip():
-                fail(path + '.description', '开放需求描述不能为空')
+                fail(path + '.description', 'The open requirement description cannot be empty')
     for index, fact in enumerate(value['user_context']):
         _validate_source(fact['source'], f'user_context[{index}].source')
 
@@ -165,35 +165,35 @@ def validate_requirement_request(request: contracts.RequirementRequest, ctx: con
     validate_type(contracts.RequirementRequest, request, 'request')
     for key in ('request_id', 'conversation_id', 'profile_id'):
         if not request[key].strip():
-            fail('request.' + key, '不能为空')
+            fail('request.' + key, 'Cannot be empty')
     if request['conversation_id'] != ctx['conversation_id']:
-        raise ContractViolation('STATE_CONFLICT', 'request.conversation_id', '请求与执行会话不一致')
+        raise ContractViolation('STATE_CONFLICT', 'request.conversation_id', 'The request and execution conversation are inconsistent')
     if request['profile_version'] < 0:
-        fail('request.profile_version', '版本不能为负数')
+        fail('request.profile_version', 'The version cannot be negative')
     if request['profile_version'] == 0:
-        raise ContractViolation('INVALID_STATE', 'request.profile_version', '初始草稿版本不能交给 B 执行')
+        raise ContractViolation('INVALID_STATE', 'request.profile_version', 'The initial draft version cannot be handed to B for execution')
     timestamp(request['confirmed_at'], 'request.confirmed_at')
     _validate_requirements(request)
     if any(not field.strip() for field in request['unresolved_fields']):
-        fail('request.unresolved_fields', '待澄清字段不能为空字符串')
+        fail('request.unresolved_fields', 'Fields pending clarification cannot be empty strings')
 
 
 def validate_conversation_profile(profile: contracts.ConversationProfile, ctx: contracts.RunContext) -> None:
     validate_context(ctx)
     validate_type(contracts.ConversationProfile, profile, 'profile')
     if not profile['profile_id'].strip():
-        fail('profile.profile_id', '不能为空')
+        fail('profile.profile_id', 'Cannot be empty')
     if profile['version'] < 0:
-        fail('profile.version', '版本不能为负数')
+        fail('profile.version', 'The version cannot be negative')
     if profile['conversation_id'] != ctx['conversation_id'] or profile['user_id'] != ctx['user_id']:
-        raise ContractViolation('STATE_CONFLICT', 'profile', '画像与执行上下文的用户或会话不一致')
+        raise ContractViolation('STATE_CONFLICT', 'profile', 'The profile is inconsistent with the user or conversation of the execution context')
     if (profile['confirmed_version'] != profile['version'] or profile['version'] == 0
             or profile['status'] not in ('confirmed', 'idle') or profile['confirmed_at'] is None):
-        raise ContractViolation('INVALID_STATE', 'profile.confirmed_version', '只能使用当前已确认版本的画像')
+        raise ContractViolation('INVALID_STATE', 'profile.confirmed_version', 'Only the currently confirmed version of the profile may be used')
     for field in ('created_at', 'updated_at', 'last_user_message_at', 'confirmed_at'):
         timestamp(profile[field], 'profile.' + field)
     if profile['intent'] is None:
-        fail('profile.intent', '已确认画像必须有租房或买房意图')
+        fail('profile.intent', 'A confirmed profile must have a rent or buy intent')
     _validate_requirements(profile)
 
 
@@ -249,13 +249,13 @@ def _bounds(constraints, field, questions):
 
 
 def source_currency_candidates(text: str) -> set[str]:
-    """只返回原文显式出现的币种，空集合与多个候选必须由调用者区分。"""
+    """Returns only currencies explicitly present in the original text; the caller must distinguish an empty set from multiple candidates."""
     names = set()
     for currency, pattern in (
-        ('SGD', r'\bSGD\b|(?<![A-Za-z])S\$|新币|新元|新加坡元'),
-        ('USD', r'\bUSD\b|(?<![A-Za-z])US\$|美元'),
-        ('CNY', r'\bCNY\b|\bRMB\b|人民币'),
-        ('MYR', r'\bMYR\b|马币|令吉'),
+        ('SGD', r'\bSGD\b|(?<![A-Za-z])S\$|\bSingapore\s+dollars?\b'),
+        ('USD', r'\bUSD\b|(?<![A-Za-z])US\$|\bUS\s+dollars?\b'),
+        ('CNY', r'\bCNY\b|\bRMB\b|\b(?:renminbi|Chinese\s+yuan|yuan)\b'),
+        ('MYR', r'\bMYR\b|\b(?:Malaysian\s+ringgit|ringgit)\b'),
     ):
         if re.search(pattern, text, re.I):
             names.add(currency)
@@ -268,11 +268,11 @@ def _source_currency(text):
 
 
 def source_period_candidates(text: str) -> set[str]:
-    """识别用户原文的计价周期，不默认将未知租金解释为月租。"""
+    """Identifies the pricing period in the user's original text, and does not by default interpret unknown rent as monthly rent."""
     values = {period for period, pattern in (
-        ('month', r'月租|每月|一个月|per\s+month|monthly|\bpsf\s*/\s*month\b|\bpcm\b|/\s*month'),
-        ('week', r'周租|每周|per\s+week|weekly|/\s*week'),
-        ('total', r'总价|总额|total\s+price|purchase\s+price'),
+        ('month', r'\b(?:monthly(?:\s+rent)?|per\s+month|one\s+month|pcm)\b|\bpsf\s*/\s*month\b|/\s*month'),
+        ('week', r'\b(?:weekly(?:\s+rent)?|per\s+week)\b|/\s*week'),
+        ('total', r'\b(?:total\s+(?:price|amount)|purchase\s+price)\b'),
     ) if re.search(pattern, text, re.I)}
     return values
 
@@ -283,10 +283,10 @@ def _source_period(text):
 
 
 def normalize_requirements(value: contracts.ConversationProfile | contracts.RequirementRequest) -> PlanningRequirements:
-    """投影可交给现有来源的必要过滤，其余完整条件由外层服务继续执行/报告。
+    """Project the necessary filtering that can be delegated to existing sources; the remaining full conditions continue to be executed/reported by the outer service.
 
-    不对软条件、开放需求或通勤目标施加检索硬过滤；日期/布尔值/不等式等未进入
-    六字段过滤的约束仍原样留在 listing_constraints 中。
+    Do not impose hard retrieval filtering on soft conditions, open requirements, or commute targets.
+    Date, boolean, inequality, and other constraints outside the six filter fields remain in listing_constraints unchanged.
     """
     questions = []
     hard = [item for item in value['listing_constraints'] if item['strength'] == 'hard']
@@ -309,7 +309,7 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
         _clarify(questions, 'listing_constraints.price.currency', 'Which currency is your budget in?')
     if price_conditions and period is None:
         if intent == 'buy':
-            # 购买金额对应一次总价；租房不能擅自假设月租或周租。
+            # The purchase amount corresponds to a one-time total price; for rentals, do not arbitrarily assume monthly or weekly rent.
             period = 'total'
         else:
             _clarify(questions, 'listing_constraints.price.period', 'Is your rental budget per month or per week?')
@@ -317,7 +317,7 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
     minimum, _ = _bounds(hard, 'bedrooms', questions)
     scope = _single_value(hard, 'attributes.listing_scope', questions)
     if scope == 'bedspace':
-        # SearchPlan 老过滤结构只有整套/单间；保留原约束交由后续处理，不偷换为 room。
+        # The old SearchPlan filter structure only has whole-unit/single-room; keep the original constraints for subsequent processing, do not covertly change to room.
         scope = None
     locations = []
     for index, requirement in enumerate(value['derived_data_requirements']):
@@ -332,7 +332,7 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
         if target is None:
             _clarify(questions, f'derived_data_requirements[{index}].target', 'Which area would you like to live in?')
             continue
-        if target.strip().casefold() in ('裕廊', 'jurong'):
+        if target.strip().casefold() == 'jurong':
             _clarify(questions, f'derived_data_requirements[{index}].target', 'Do you mean Jurong East, Jurong West, or either?')
             continue
         entity = location_entity(target)
@@ -340,7 +340,7 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
         if key not in locations:
             locations.append(key)
     unresolved = value.get('unresolved_fields', value.get('unresolved', []))
-    # 未解决的开放/派生偏好不会阻断核心检索。未知字段不自行升级为硬条件。
+    # Unresolved open/derived preferences will not block core retrieval. Unknown fields are not self-upgraded to hard conditions.
     for field in unresolved:
         root = field.split(':', 1)[0]
         if root == 'intent' or root.startswith(('listing_constraints.price.', 'listing_constraints.transaction_type')):
@@ -354,7 +354,7 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
         listing_constraints=deepcopy(value['listing_constraints']),
         derived_data_requirements=deepcopy(value['derived_data_requirements']),
         open_data_requirements=deepcopy(value['open_data_requirements']), unresolved=list(unresolved),
-        # 无预算时 SGD 仅是内部来源金额口径；缺少预算单位已在上方返回澄清。
+        # When there is no budget, SGD is merely the internal source amount denomination; a missing budget unit has already returned a clarification above.
         required_filters=dict(currency=currency or 'SGD', max_price=max(0, maximum) if maximum is not None else None,
             price_period=period, rental_scope=scope, locations=locations,
             min_bedrooms=minimum if any(item['field_path'] == 'bedrooms' for item in hard) else None),
@@ -362,8 +362,8 @@ def normalize_requirements(value: contracts.ConversationProfile | contracts.Requ
 
 
 if __name__ == '__main__':
-    # 使用与真实端到端检索完全相同的三组 A→B 业务输入，只验证实际解析返回。
-    # 不导入接口文档中的虚构房源，不构造 Provider 或模型的预设输出。
+    # Use exactly the same three sets of A→B business inputs as the real end-to-end retrieval, verifying only the actual parsing return.
+    # Do not import fictional listings from the interface documentation, and do not construct preset outputs of the Provider or model.
     from datetime import datetime, timedelta, timezone
     import json
     from scripts.live_requirements import INPUTS
@@ -375,11 +375,11 @@ if __name__ == '__main__':
         original = deepcopy(request)
         validate_requirement_request(request, ctx)
         actual = normalize_requirements(request)
-        assert request == original, '解析不能修改 A 的请求'
+        assert request == original, "Parsing must not modify A's request"
         assert not actual['clarification_questions'], actual['clarification_questions']
         assert actual['listing_constraints'] == request['listing_constraints']
         assert actual['derived_data_requirements'] == request['derived_data_requirements']
         assert actual['open_data_requirements'] == request['open_data_requirements']
         print(json.dumps(dict(input=request, actual_output=actual), ensure_ascii=False))
     assert len(INPUTS) >= 3
-    print(f'需求解析实际输入输出验证通过 {len(INPUTS)}/{len(INPUTS)}')
+    print(f'Requirement parsing actual input/output verification passed {len(INPUTS)}/{len(INPUTS)}')

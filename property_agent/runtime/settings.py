@@ -1,4 +1,4 @@
-"""集中读取 runtime.toml；密钥只从环境变量或 .env 注入。"""
+"""Centralized loading of runtime.toml; secrets are injected only from environment variables or .env."""
 from __future__ import annotations
 
 from property_agent.runtime.paths import PROJECT_ROOT
@@ -14,8 +14,8 @@ from dotenv import dotenv_values
 DEFAULT_RUNTIME_FILE = PROJECT_ROOT / "runtime.toml"
 DEFAULT_ENV_FILE = PROJECT_ROOT / ".env"
 
-# wheel 安装不会把根目录的 runtime.toml 放到 py-module 旁边。这里保留同一套
-# 非密钥默认值作为安装包回退；源码运行时仍优先读取可编辑的 runtime.toml。
+# A wheel install does not place the root-level runtime.toml next to the py-module. Here we keep the same set of
+# non-secret defaults as the package fallback; when running from source, the editable runtime.toml is still read first.
 DEFAULT_RUNTIME_TOML = """
 [deepseek]
 base_url = "https://api.deepseek.com"
@@ -53,7 +53,7 @@ _CACHE: RuntimeSettings | None = None
 
 
 class RuntimeConfigurationError(ValueError):
-    """运行时配置缺失或非法；错误信息不包含密钥。"""
+    """Runtime configuration is missing or invalid; error messages do not contain secrets."""
 
 
 @dataclass(frozen=True)
@@ -117,7 +117,7 @@ def load_runtime_settings(
     env_file: str | Path | None = DEFAULT_ENV_FILE,
     reload: bool = False,
 ) -> RuntimeSettings:
-    """读取 runtime.toml；进程环境优先于 .env，再覆盖文件中的非密钥默认值。"""
+    """Load runtime.toml; the process environment takes precedence over .env, then overrides the non-secret defaults in the file."""
     global _CACHE
     runtime_path = Path(path) if path is not None else DEFAULT_RUNTIME_FILE
     if (
@@ -133,7 +133,7 @@ def load_runtime_settings(
     elif path is None:
         data = loads(DEFAULT_RUNTIME_TOML)
     else:
-        raise RuntimeConfigurationError(f"找不到运行时配置：{runtime_path}")
+        raise RuntimeConfigurationError(f"Runtime configuration not found: {runtime_path}")
     merged = _merged_environ(env_file=env_file, environ=environ)
     settings = RuntimeSettings(
         deepseek=_deepseek(data.get("deepseek") or {}, merged),
@@ -152,7 +152,7 @@ def secret_environ(
     *,
     environ: Mapping[str, str] | None = None,
 ) -> dict[str, str]:
-    """返回已合并的进程环境，供需要 os.getenv 的既有客户端使用。"""
+    """Return the merged process environment for existing clients that need os.getenv."""
     return _merged_environ(env_file=env_file, environ=environ)
 
 
@@ -294,7 +294,7 @@ def _search(raw: dict[str, Any], environ: Mapping[str, str]) -> SearchSettings:
 def _run(raw: dict[str, Any], environ: Mapping[str, str]) -> RunSettings:
     source_mode = str(_override(raw, environ, "SOURCE_MODE", "source_mode", "live"))
     if source_mode not in {"live", "mock"}:
-        raise RuntimeConfigurationError("run.source_mode 只能是 live 或 mock")
+        raise RuntimeConfigurationError("run.source_mode can only be live or mock")
     return RunSettings(
         deadline_seconds=int(
             _override(raw, environ, "RUN_DEADLINE_SECONDS", "deadline_seconds", 300)

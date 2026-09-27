@@ -1,4 +1,4 @@
-"""外部服务协议。依赖在构造时注入，业务参数不携带连接。"""
+"""External service protocol. Dependencies are injected at construction time; business parameters do not carry connections."""
 from typing import Literal, Protocol
 
 from property_agent.contracts import HardConstraints, Issue, Listing, ListingConstraint, RunContext, SearchQuery

@@ -6,7 +6,7 @@ from typing import Any
 
 
 def _profile_summary(profile: dict[str, Any]) -> str:
-    """把 confirmed 候选字段转换为简洁且可核对的英文摘要。"""
+    """Convert the confirmed candidate fields into a concise and verifiable English summary."""
 
     parts = ["Rent" if profile.get("intent") == "rent" else "Buy"]
     constraints = profile.get("listing_constraints", [])

@@ -27,7 +27,7 @@ class Handler(SimpleHTTPRequestHandler):
             pass
 
     def do_POST(self):
-        # 本地开发入口：拒绝跨源网页写入，无外部绑定或 CORS。
+        # Local development entry point: reject cross-origin web writes, no external binding or CORS.
         origin = self.headers.get('Origin')
         request_host = self.headers.get('Host')
         same_host_origins = {f'http://{request_host}', f'https://{request_host}'}

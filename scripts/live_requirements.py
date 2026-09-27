@@ -1,4 +1,4 @@
-"""四组固定的 A→B 请求：调用公开入口并打印原始返回。"""
+"""Four fixed A→B requests: call the public entry point and print the raw return."""
 
 import asyncio
 from datetime import datetime, timedelta, timezone
@@ -26,7 +26,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -40,7 +40,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -54,7 +54,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -68,7 +68,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -82,7 +82,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -96,7 +96,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -110,7 +110,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -124,7 +124,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -134,7 +134,7 @@ request_1: RequirementRequest = {
         {
             'requirement_id': 'tampines_condo_rent-area',
             'category': 'accessibility',
-            'target': '淡滨尼',
+            'target': 'Tampines',
             'metric': 'residential_area',
             'operator': 'eq',
             'value': True,
@@ -143,7 +143,7 @@ request_1: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-tampines_condo_rent',
-                'text': '我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。',
+                'text': 'I want to rent an entire condominium in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.',
                 'start': 0,
                 'end': 55,
             },
@@ -173,7 +173,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -187,7 +187,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -201,7 +201,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -215,7 +215,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -229,7 +229,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -243,7 +243,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -257,7 +257,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -271,7 +271,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -285,7 +285,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -295,7 +295,7 @@ request_2: RequirementRequest = {
         {
             'requirement_id': 'clementi_common_room-area',
             'category': 'accessibility',
-            'target': '金文泰',
+            'target': 'Clementi',
             'metric': 'residential_area',
             'operator': 'eq',
             'value': True,
@@ -304,7 +304,7 @@ request_2: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-clementi_common_room',
-                'text': '我要在金文泰（Clementi）租一间组屋普通房，不是整套，月租不超过 SGD 1300，须包含水电和 Wi-Fi。',
+                'text': 'I want to rent a common room in an HDB flat in Clementi, not the whole unit, with monthly rent not exceeding SGD 1300, and utilities and Wi-Fi must be included.',
                 'start': 0,
                 'end': 58,
             },
@@ -334,7 +334,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -348,7 +348,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -362,7 +362,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -376,7 +376,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -390,7 +390,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -404,7 +404,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -418,7 +418,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -432,7 +432,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -446,7 +446,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -456,7 +456,7 @@ request_3: RequirementRequest = {
         {
             'requirement_id': 'punggol_family_rent-area',
             'category': 'accessibility',
-            'target': '榜鹅',
+            'target': 'Punggol',
             'metric': 'residential_area',
             'operator': 'eq',
             'value': True,
@@ -465,7 +465,7 @@ request_3: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-punggol_family_rent',
-                'text': '我要在榜鹅（Punggol）整租组屋，月租不超过 SGD 4200，至少三个卧室、两个卫生间，面积至少 1000 平方英尺。',
+                'text': 'I want to rent an entire HDB flat in Punggol, with monthly rent not exceeding SGD 4200, at least three bedrooms and two bathrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 62,
             },
@@ -495,7 +495,7 @@ request_4: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-bishan_hdb_buy',
-                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'text': 'I want to buy an HDB flat in Bishan, with a total price not exceeding SGD 1000000, at least three bedrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 58,
             },
@@ -509,7 +509,7 @@ request_4: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-bishan_hdb_buy',
-                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'text': 'I want to buy an HDB flat in Bishan, with a total price not exceeding SGD 1000000, at least three bedrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 58,
             },
@@ -523,7 +523,7 @@ request_4: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-bishan_hdb_buy',
-                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'text': 'I want to buy an HDB flat in Bishan, with a total price not exceeding SGD 1000000, at least three bedrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 58,
             },
@@ -537,7 +537,7 @@ request_4: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-bishan_hdb_buy',
-                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'text': 'I want to buy an HDB flat in Bishan, with a total price not exceeding SGD 1000000, at least three bedrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 58,
             },
@@ -551,7 +551,7 @@ request_4: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-bishan_hdb_buy',
-                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'text': 'I want to buy an HDB flat in Bishan, with a total price not exceeding SGD 1000000, at least three bedrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 58,
             },
@@ -565,7 +565,7 @@ request_4: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-bishan_hdb_buy',
-                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'text': 'I want to buy an HDB flat in Bishan, with a total price not exceeding SGD 1000000, at least three bedrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 58,
             },
@@ -579,7 +579,7 @@ request_4: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-bishan_hdb_buy',
-                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'text': 'I want to buy an HDB flat in Bishan, with a total price not exceeding SGD 1000000, at least three bedrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 58,
             },
@@ -589,7 +589,7 @@ request_4: RequirementRequest = {
         {
             'requirement_id': 'bishan_hdb_buy-area',
             'category': 'accessibility',
-            'target': '碧山',
+            'target': 'Bishan',
             'metric': 'residential_area',
             'operator': 'eq',
             'value': True,
@@ -598,7 +598,7 @@ request_4: RequirementRequest = {
             'priority': 'high',
             'source': {
                 'message_id': 'msg-bishan_hdb_buy',
-                'text': '我要在碧山（Bishan）购买组屋，总价不超过 SGD 1000000，至少三个卧室，面积至少 1000 平方英尺。',
+                'text': 'I want to buy an HDB flat in Bishan, with a total price not exceeding SGD 1000000, at least three bedrooms, and an area of at least 1000 square feet.',
                 'start': 0,
                 'end': 58,
             },

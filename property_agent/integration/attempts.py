@@ -15,7 +15,7 @@ from property_agent.integration.boundaries import BCTransition, RetrieveFunction
 def _copy_error(result: Result, timer: CallTimer) -> Result:
     issues = copy.deepcopy(result.get("issues") or [])
     if not issues:
-        issues = [make_issue("INTERNAL_ERROR", "上游返回 error 但没有说明原因")]
+        issues = [make_issue("INTERNAL_ERROR", "upstream returned an error but did not explain the reason")]
     return timer.error(*issues)
 
 
@@ -26,11 +26,11 @@ def _failed_attempt(
     *,
     plan: SearchPlan | None = None,
 ) -> Result:
-    """把一次已发生的补搜失败保存成可 checkpoint 的 attempt outcome。"""
+    """Save a completed supplementary search failure as a checkpointable attempt outcome."""
 
     problems = copy.deepcopy(list(issues))
     if not problems:
-        problems = [make_issue("INTERNAL_ERROR", "补搜失败但没有说明原因")]
+        problems = [make_issue("INTERNAL_ERROR", "supplementary search failed but did not explain the reason")]
     attempt_id = ctx["attempt_id"]
     if attempt_id is None:
         return timer.error(*problems)
@@ -59,7 +59,7 @@ def _failed_attempt(
 
 
 def _requirement_request(profile: ConversationProfile) -> RequirementRequest:
-    """从本 run 固定的 confirmed profile 重建 B 调查所需的最小请求。"""
+    """Rebuild the minimal request needed for investigation B from the confirmed profile fixed for this run."""
 
     if (
         profile["status"] != "confirmed"
@@ -68,7 +68,7 @@ def _requirement_request(profile: ConversationProfile) -> RequirementRequest:
         or profile["intent"] is None
     ):
         raise ContractViolation(
-            "INVALID_STATE", "profile", "补搜只能使用当前已经确认的 profile"
+            "INVALID_STATE", "profile", "supplementary search can only use the currently confirmed profile"
         )
     return {
         "request_id": (
@@ -91,7 +91,7 @@ def _requirement_request(profile: ConversationProfile) -> RequirementRequest:
 
 
 class BCAttemptAdapter:
-    """把 B 返回的候选直接交给 C.retrieve，并构造 Decision attempt。"""
+    """Hand the candidates returned by B directly to C.retrieve, and construct a Decision attempt."""
 
     def __init__(
         self,
@@ -102,7 +102,7 @@ class BCAttemptAdapter:
         if top_k <= 0:
             raise ValueError("top_k must be positive")
         self._retrieve = retrieve
-        # B → C 最多移交 12 套；retrieve 只负责给这批候选打分和排序。
+        # B -> C hands over at most 12 sets; retrieve is only responsible for scoring and ranking this batch of candidates.
         self._top_k = min(top_k, part_c.MAX_EVALUATION_CANDIDATES)
 
     async def adapt(
@@ -116,7 +116,7 @@ class BCAttemptAdapter:
         requirement_coverage: RequirementCoverage | None = None,
         additional_issues: Sequence[Issue] = (),
     ) -> Result:
-        """把一次 B 搜索和 C 的检索结果封装为单次 attempt。"""
+        """Wrap one B search and C's retrieval results as a single attempt."""
 
         timer = CallTimer(ctx)
         if not is_usable(search_result):
@@ -131,11 +131,11 @@ class BCAttemptAdapter:
                 raise ContractViolation(
                     "STATE_CONFLICT",
                     "profile_version",
-                    "B、C 与 profile 必须使用同一版本",
+                    "B, C, and profile must use the same version",
                 )
             if data["plan_id"] != plan["plan_id"]:
                 raise ContractViolation(
-                    "STATE_CONFLICT", "search_result.plan_id", "搜索结果不属于当前计划"
+                    "STATE_CONFLICT", "search_result.plan_id", "search result does not belong to the current plan"
                 )
 
             searched_listings = copy.deepcopy(data["items"])
@@ -145,8 +145,8 @@ class BCAttemptAdapter:
                 "count": len(searched_listings),
                 "listings": searched_listings,
             }, attempt_id=plan["attempt_id"])
-            # 正常配置下 B 已受 candidate_limit=12 约束。这里再做一次边界保护，
-            # 避免测试替身或自定义 SearchService 把 12 套以上送进 retrieve 的 LLM。
+            # Under normal configuration B is already constrained by candidate_limit=12. Here we add another boundary protection,
+            # to prevent test doubles or custom SearchService from sending more than 12 sets into retrieve's LLM.
             listings: list[dict[str, Any]] = []
             seen_listing_keys: set[str] = set()
             for listing in searched_listings:
@@ -157,8 +157,8 @@ class BCAttemptAdapter:
                 listings.append(listing)
                 if len(listings) == self._top_k:
                     break
-            # v0 contract 仍要求 ScreenResult。这里仅保留 B 的候选身份，不运行
-            # C.screen，也不把空 checks 解释为 C 已验证硬条件。
+            # The v0 contract still requires ScreenResult. Here we only preserve B's candidate identity, without running
+            # C.screen, and we do not interpret empty checks as C having verified hard conditions.
             candidate_keys = [item["listing_key"] for item in listings]
             screened: ScreenResult = {
                 "profile_version": profile["version"],
@@ -219,7 +219,7 @@ class BCAttemptAdapter:
             return timer.error(
                 make_issue(
                     "INVALID_OUTPUT",
-                    f"B→C 产物无法转换：{type(exc).__name__}",
+                    f"B->C artifact cannot be converted: {type(exc).__name__}",
                     source="bc_adapter",
                 )
             )
@@ -234,7 +234,7 @@ class BCAttemptAdapter:
         search_result: Result | None,
         ctx: RunContext,
     ) -> Result:
-        """把 B 的公开履约响应路由到 A 澄清或 C/Decision。"""
+        """Route B's public fulfillment response to A for clarification or to C/Decision."""
 
         timer = CallTimer(ctx)
         if not is_usable(fulfillment):
@@ -256,7 +256,7 @@ class BCAttemptAdapter:
             return timer.error(
                 make_issue(
                     "INVALID_STATE",
-                    "B 已完成履约，但缺少 query、plan 或原始 search result",
+                    "B has completed fulfillment, but is missing query, plan, or the original search result",
                     field_path="fulfillment",
                     source="bc_adapter",
                 )

@@ -1,4 +1,4 @@
-"""3c：从住宅出发调查五类设施，半径明确；步行条件复用 3d。"""
+"""3c: Investigate five amenity categories from a home within an explicit radius; reuse 3d for walking constraints."""
 import asyncio
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -23,27 +23,27 @@ from property_agent.search.providers.base import ProviderError, issue
 CATEGORIES = ('mrt', 'bus', 'supermarket', 'school', 'park')
 DEFAULT_RADIUS_M = 1500
 CATEGORY_PATTERNS = {
-    'mrt': r'地铁|轨道|\bmrt\b|\blrt\b|metro|subway',
-    'bus': r'公交|巴士|bus',
-    'supermarket': r'超市|supermarket|grocery|fairprice|sheng.siong|cold.storage',
-    'school': r'学校|小学|中学|大学|幼儿园|school|college|university|kindergarten',
-    'park': r'公园|park|garden',
+    'mrt': r'\b(?:rail|railway|mrt|lrt|metro|subway)\b',
+    'bus': r'\b(?:public\s+bus|bus)\b',
+    'supermarket': r'\b(?:supermarket|grocery|fairprice|sheng\s+siong|cold\s+storage)\b',
+    'school': r'\b(?:primary\s+school|secondary\s+school|school|college|university|kindergarten)\b',
+    'park': r'\b(?:park|garden)\b',
 }
 GENERIC_TARGETS = {
-    'mrt': {'mrt', 'lrt', 'mrt station', 'mrt stations', 'metro', 'subway', '地铁', '地铁站'},
-    'bus': {'bus', 'bus stop', 'bus stops', '公交', '公交站', '巴士站'},
-    'supermarket': {'supermarket', 'supermarkets', 'grocery', '超市'},
-    'school': {'school', 'schools', '学校'},
-    'park': {'park', 'parks', '公园'},
+    'mrt': {'mrt', 'lrt', 'mrt station', 'mrt stations', 'metro', 'subway', 'rail station'},
+    'bus': {'bus', 'bus stop', 'bus stops', 'public bus'},
+    'supermarket': {'supermarket', 'supermarkets', 'grocery', 'grocery store'},
+    'school': {'school', 'schools', 'primary school', 'secondary school'},
+    'park': {'park', 'parks', 'garden'},
 }
 
 
 def matches_target(place, requirement):
     target = (requirement['target'] or '').strip().lower()
-    target = re.sub(r'^(?:附近的?|周围的?|最近的?|nearby\s+|nearest\s+|closest\s+)', '', target)
+    target = re.sub(r'^(?:nearby\s+|nearest\s+|closest\s+|surrounding\s+)', '', target)
     if not target or target in GENERIC_TARGETS[place['category']]:
         return True
-    # 具体品牌或校名不能被任意同类设施替代；未匹配别名时留下待核实。
+    # A specific brand or school name cannot be replaced by any amenity of the same category; leave unmatched aliases unresolved.
     return target in place['name'].lower()
 
 
@@ -53,20 +53,20 @@ def categories_for(requirement):
 
 
 def supports_requirement(requirement):
-    """只承诺可解释的指标；其他派生类别继续报告 unsupported。"""
+    """Support only interpretable metrics; continue reporting other derived categories as unsupported."""
     if requirement['category'] == 'commute':
         return metric_kind(requirement) is not None
     if requirement['category'] == 'nearby_amenity':
         return bool(categories_for(requirement)) and (metric_kind(requirement) is not None or
-            requirement['metric'].lower() in ('nearby', 'exists', 'existence', 'count', 'amenities', '附近', '数量', '存在'))
+            requirement['metric'].lower() in ('nearby', 'exists', 'existence', 'count', 'amenities'))
     return False
 
 
 def point_location(place):
-    """设施查询已经给出点坐标；保留中心点口径，不把它称作校门或公园入口。"""
+    """Amenity queries provide point coordinates; retain the centroid convention without calling it a school gate or park entrance."""
     value = dict(latitude=place['latitude'], longitude=place['longitude'], coordinate_kind=place['coordinate_kind'])
     evidence = make_evidence('amenity_location', value, url=place['source_url'], observed=place['observed_at'],
-                             excerpt=place['name'] + '：设施数据源点位；不代表入口')
+                             excerpt=place['name'] + ': amenity source point; it does not represent an entrance')
     return dict(status='resolved', standard_address=place['name'], latitude=place['latitude'], longitude=place['longitude'],
                 precision='point', candidates=[], evidence=[evidence], gaps=[])
 
@@ -84,17 +84,17 @@ class AmenitiesCapability:
             validate_context(ctx)
             validate_type(AmenityRequest, request, 'amenity_request')
             if not 1 <= request['radius_m'] < 5000 or not request['categories'] or len(set(request['categories'])) != len(request['categories']):
-                fail('amenity_request', '需要不重复类别及 1–4999 米查询半径')
+                fail('amenity_request', 'Distinct categories and a search radius of 1–4999 metres are required')
             if self.provider is None:
-                raise ProviderError(issue('SOURCE_UNAVAILABLE', '未配置设施来源', source='neighborhood'))
+                raise ProviderError(issue('SOURCE_UNAVAILABLE', 'No amenity source is configured', source='neighborhood'))
             if self.provider.source_mode != ctx['source_mode']:
-                fail('ctx.source_mode', '设施来源模式不一致')
+                fail('ctx.source_mode', 'Amenity source mode does not match')
             origin = request['origin_location']
             if origin is None:
                 response = await self.location.locate(request['origin'], ctx=ctx)
                 origin = response['data']; problems.extend(response['issues'])
             if not resolved_location(origin):
-                raise ProviderError(issue('RETRIEVAL_DEGRADED', '住宅尚未精确定位，无法核实周边设施', source='neighborhood'))
+                raise ProviderError(issue('RETRIEVAL_DEGRADED', 'The home has not been geolocated precisely enough to verify nearby amenities', source='neighborhood'))
             for category in request['categories']:
                 try:
                     remaining_seconds(ctx)
@@ -104,7 +104,7 @@ class AmenitiesCapability:
                         matches = deepcopy(self._cache[key])
                     else:
                         if self.calls >= self.max_calls:
-                            raise ProviderError(issue('BUDGET_EXHAUSTED', '设施查询额度已用完', source='neighborhood'))
+                            raise ProviderError(issue('BUDGET_EXHAUSTED', 'The amenity query budget is exhausted', source='neighborhood'))
                         self.calls += 1
                         async with asyncio.timeout(remaining_seconds(ctx)):
                             matches = await self.provider.nearby(origin, category, request['radius_m'], ctx=ctx)
@@ -112,29 +112,29 @@ class AmenitiesCapability:
                             validate_type(PlaceMatches, matches, 'places')
                             if any(p['category'] != category or not p['source_url'] or
                                    not 0 <= p['straight_line_distance_m'] <= request['radius_m'] for p in matches['items']):
-                                fail('places', '设施类别、距离或来源不合法')
+                                fail('places', 'Amenity category, distance, or source is invalid')
                         except ContractViolation as exc:
                             raise ProviderError(issue('INVALID_OUTPUT', str(exc), source='neighborhood')) from exc
                         if matches['complete']:
                             self._cache[key] = deepcopy(matches)
-                    # OSM/OneMap 自身的稳定 ID 去重；不按名称合并不同分店或站点。
+                    # Deduplicate by stable OSM/OneMap IDs; do not merge separate branches or stops by name.
                     items = list({p['place_id']: p for p in matches['items']}.values())
                     places.extend(items)
                     if matches['complete']:
                         completed.append(category)
                     else:
                         gaps.append('amenities:' + category + ':incomplete_source')
-                        problems.append(issue('RETRIEVAL_DEGRADED', '设施响应不完整：' + category, source='neighborhood'))
+                        problems.append(issue('RETRIEVAL_DEGRADED', 'Incomplete amenity response: ' + category, source='neighborhood'))
                     payload = dict(category=category, origin={k: origin[k] for k in ('standard_address', 'latitude', 'longitude')},
                         radius_m=request['radius_m'], distance_basis='straight_line_to_source_point',
                         source_response_complete=matches['complete'], coverage_scope='mapped_facilities_only',
                         source_mode=ctx['source_mode'], places=items,
-                        limitations=['数据源可能遗漏设施；空结果不证明现实中不存在', '点位或区域中心不保证是实际入口'])
+                        limitations=['The data source may omit amenities; an empty result does not prove none exist', 'A point or area centroid is not guaranteed to be the actual entrance'])
                     evidence.append(make_evidence('nearby_amenity.' + category, payload, url=matches['source_url'],
-                        observed=matches['observed_at'], excerpt=f"{category}：住宅周围 {request['radius_m']} 米直线半径，"
-                        f"取得 {len(items)} 个来源点位；未将直线距离解释为步行距离"))
+                        observed=matches['observed_at'], excerpt=f"{category}: within a {request['radius_m']}-metre straight-line radius of the home, "
+                        f"the source returned {len(items)} points; straight-line distance was not treated as walking distance"))
                 except (ProviderError, TimeoutError) as exc:
-                    problem = exc.issue if isinstance(exc, ProviderError) else issue('TIMEOUT', '设施查询达到截止时间', source='neighborhood', retryable=True)
+                    problem = exc.issue if isinstance(exc, ProviderError) else issue('TIMEOUT', 'The amenity query reached its deadline', source='neighborhood', retryable=True)
                     problems.append(problem); gaps.append('amenities:' + category + ':' + problem['code'])
             data = dict(places=places, completed_categories=completed, radius_m=request['radius_m'], evidence=evidence, gaps=gaps)
             validate_type(AmenityResult, data, 'amenity_result')
@@ -154,7 +154,7 @@ class AmenitiesCapability:
         threshold = settings.get('threshold', value)
         unit = (requirement['unit'] or '').lower()
         radius = settings.get('radius_m', DEFAULT_RADIUS_M)
-        # 明确直线/步行距离的上界决定候选检索范围；不扩大用户约束本身。
+        # An explicit straight-line or walking upper bound determines candidate retrieval range without relaxing the user constraint itself.
         if kind == 'distance' and requirement['operator'] in ('lte', 'between') and unit in DISTANCE_UNITS:
             maximum = threshold[-1] if isinstance(threshold, list) else threshold
             if type(maximum) in (int, float) and maximum > 0:
@@ -170,16 +170,16 @@ class AmenitiesCapability:
         if radius_exceeded:
             gaps.append('amenities:requested_radius_outside_supported_range')
         observations = []
-        route_needed = kind == 'time' or kind == 'distance' and not re.search(r'straight|直线', metric + ' ' + requirement['source']['text'], re.I)
+        route_needed = kind == 'time' or kind == 'distance' and not re.search(r'straight|straight-line', metric + ' ' + requirement['source']['text'], re.I)
         for category in categories:
             candidates = [p for p in data['places'] if p['category'] == category and matches_target(p, requirement)]
             actual = None
             if route_needed:
-                # 配套出行从家出发，缺省步行；3d 的通勤默认方式不套用到配套步行。
+                # Amenity trips start from home and default to walking; the 3d commute default does not apply to amenity walking.
                 modes, transit, departure, time_kind, assumptions, option_gaps = commute_options(requirement)
-                if any(a.startswith('未指定方式') for a in assumptions):
+                if any(a.startswith('Travel mode not specified') for a in assumptions):
                     modes = ['walk']
-                    assumptions = [a for a in assumptions if not a.startswith('未指定方式')] + ['配套距离/时间未指定方式：步行']
+                    assumptions = [a for a in assumptions if not a.startswith('Travel mode not specified')] + ['Amenity distance/time travel mode not specified: walking']
                 if option_gaps or len(modes) != 1 or time_kind != 'departure':
                     gaps.extend(option_gaps or ['amenities:travel_options_need_clarification'])
                     observations.append(dict(category=category, actual=None, unit=requirement['unit'], check='unknown'))
@@ -201,15 +201,15 @@ class AmenitiesCapability:
                     actual = min(r[field] for r in routes) / divisor
             elif kind == 'distance' and candidates and unit in DISTANCE_UNITS:
                 actual = min(p['straight_line_distance_m'] for p in candidates) / DISTANCE_UNITS[unit]
-            elif metric in ('exists', 'existence', 'nearby', 'amenities', '附近', '存在'):
+            elif metric in ('exists', 'existence', 'nearby', 'amenities'):
                 actual = True if candidates else None
-            elif metric in ('count', '数量'):
+            elif metric in ('count',):
                 actual = len(candidates)
             check = compare_measurement(requirement, actual)
-            # 可用点位/路线可以证明存在一个满足上界的候选；有限地图覆盖不能证明不存在。
+            # An available point or route can prove that a candidate meets the upper bound; limited map coverage cannot prove absence.
             witnessed = check == 'pass' and (requirement['operator'] == 'lte' and kind in ('time', 'distance')
                 or requirement['operator'] in ('eq', 'preferred') and actual is True
-                or requirement['operator'] == 'gte' and metric in ('count', '数量'))
+                or requirement['operator'] == 'gte' and metric in ('count',))
             if not witnessed:
                 check = 'unknown'
                 gaps.append('amenities:' + category + ':requirement_not_proven')
@@ -225,9 +225,9 @@ class AmenitiesCapability:
             evidence.append(make_evidence('derived_requirement.' + requirement['requirement_id'],
                 dict(requirement_id=requirement['requirement_id'], investigation_status=status, check=check,
                      observations=observations), url=first['source_url'], observed=first['observed_at'],
-                excerpt='周边设施与所需路线已核实；' + check))
+                excerpt='Nearby amenities and required routes were verified; ' + check))
         elif not problems:
-            problems.append(issue('RETRIEVAL_DEGRADED', '配套需求尚未取得充分证据', source='neighborhood'))
+            problems.append(issue('RETRIEVAL_DEGRADED', 'The amenity requirement does not yet have sufficient evidence', source='neighborhood'))
         return _wrap(dict(evidence=evidence, gaps=gaps, investigation_status=status, check=check), problems, ctx, started)
 
 
@@ -239,15 +239,15 @@ if __name__ == '__main__':
     from property_agent.search.capabilities.travel import TravelCapability
     from property_agent.domain.validation import validate_result_envelope
 
-    parser = argparse.ArgumentParser(description='至少三组真实 2→3c 输入输出；五类设施均调用真实来源')
-    parser.add_argument('--input', type=Path, required=True, help='数组：{request: AmenityRequest, ctx}')
+    parser = argparse.ArgumentParser(description='At least three real 2→3c input/output cases; all five amenity categories use real sources')
+    parser.add_argument('--input', type=Path, required=True, help='Array: {request: AmenityRequest, ctx}')
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
 
     async def main():
         records = json.loads(args.input.read_text())
         if not isinstance(records, list) or len(records) < 3:
-            parser.error('需要至少三组真实业务输入')
+            parser.error('At least three real business inputs are required')
         p = OneMapProvider.from_env(); location = LocationCapability(p)
         capability = AmenitiesCapability(NeighborhoodProvider(p), location, TravelCapability(p, location))
         outputs = []
@@ -256,7 +256,7 @@ if __name__ == '__main__':
             before = deepcopy(record)
             result = await capability.investigate(record['request'], ctx=record['ctx'])
             attempts = [deepcopy(result)]
-            # 与模块 2 相同的有界重试；保留第一次真实失败，不能把故障隐藏为一次成功。
+            # Use the same bounded retry as module 2; retain the first real failure rather than hiding it behind a successful retry.
             if any(p['retryable'] for p in result['issues']):
                 delay = max((p['retry_after_seconds'] or 0 for p in result['issues']), default=0)
                 if delay < remaining_seconds(record['ctx']):
@@ -265,7 +265,7 @@ if __name__ == '__main__':
                     result = await capability.investigate(record['request'], ctx=record['ctx'])
                     attempts.append(deepcopy(result))
             validate_result_envelope(result, AmenityResult, record['ctx'])
-            assert before == record, '不得修改模块 2 的输入'
+            assert before == record, 'Module 2 input must not be modified'
             verified = result['status'] == 'success' and set(result['data']['completed_categories']) == set(CATEGORIES)
             if verified:
                 assert len(result['data']['evidence']) == 5

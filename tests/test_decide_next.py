@@ -1,7 +1,7 @@
-"""decide_next 的契约用例回归。
+"""Contract test regression for decide_next.
 
-前 9 个用例直接读 tests/fixtures/decision_routes.json，避免手抄评审稿。
-其余用例覆盖评审稿"补充约束"一节里没有配 JSON 样例的规则。
+The first 9 cases read tests/fixtures/decision_routes.json directly, avoiding manual transcription of the review draft.
+The remaining cases cover rules in the "additional constraints" section of the review draft that have no accompanying JSON samples.
 """
 import copy
 import json
@@ -20,12 +20,12 @@ def load_cases() -> dict[str, dict]:
 
 
 class ContractCaseTests(unittest.TestCase):
-    """评审稿的 9 个用例逐条执行；期望值不改写，发现分歧要回到评审稿而不是改实现。"""
+    """Execute the 9 cases from the review draft one by one; do not rewrite the expected values, and when disagreements arise, go back to the review draft rather than changing the implementation."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.cases = load_cases()
-        assert len(cls.cases) == 9, f"用例数量变化：{sorted(cls.cases)}"
+        assert len(cls.cases) == 9, f"Number of cases changed: {sorted(cls.cases)}"
 
     def test_every_contract_case(self):
         for case_id, case in self.cases.items():
@@ -44,7 +44,7 @@ class ContractCaseTests(unittest.TestCase):
                     self.assertEqual(decide_next(state, policy), expected["return"])
 
     def test_inputs_are_not_mutated(self):
-        """DecisionState 是只读视图；纯函数不得就地改写调用方的对象。"""
+        """DecisionState is a read-only view; pure functions must not modify the caller's object in place."""
         for case_id, case in self.cases.items():
             if "raises" in case["expected"]:
                 continue
@@ -56,7 +56,7 @@ class ContractCaseTests(unittest.TestCase):
 
 
 def base_state(**overrides) -> dict:
-    """一个可发布的健康状态，各测试只改自己关心的字段。"""
+    """A publishable health state; each test only modifies the fields it cares about."""
     state = {
         "run_id": "run-001",
         "state_version": 7,
@@ -92,7 +92,7 @@ def directive(**overrides) -> dict:
 def question(**overrides) -> dict:
     payload = {
         "question_id": "run-001:state-7:q-1",
-        "text": "是否将月租上限调整为 SGD 3600？",
+        "text": "Should the monthly rent cap be adjusted to SGD 3600?",
         "reason_code": "insufficient_candidates",
         "proposals": [
             {
@@ -100,7 +100,7 @@ def question(**overrides) -> dict:
                 "field": "listing_constraints.price.amount",
                 "old_value": 3500,
                 "proposed_value": 3600,
-                "reason": "本次被排除的候选月租 3501。",
+                "reason": "The candidate monthly rent of 3501 excluded this time.",
                 "evidence_listing_keys": ["L3"],
                 "requires_user_confirmation": True,
             }
@@ -121,9 +121,9 @@ def blocking_review() -> dict:
                 "code": "UNSUPPORTED_CLAIM",
                 "listing_key": "L1",
                 "field_path": "recommendation.ordered_items[0].reasons[1]",
-                "message": "没有支持步行 5 分钟的来源证据。",
+                "message": "There is no source evidence supporting a 5-minute walk.",
                 "severity": "blocking",
-                "suggested_fix": "删除该事实或补充证据。",
+                "suggested_fix": "Delete this fact or add supporting evidence.",
             }
         ],
     }
@@ -140,7 +140,7 @@ class RoutingPriorityTests(unittest.TestCase):
         self.assertEqual(decision["reason_code"], "profile_superseded")
 
     def test_source_failure_beats_insufficient_candidates(self):
-        """来源全失败时不能拿"只找到 0 套"去建议用户提高预算。"""
+        """When all sources fail, do not use "only 0 listings found" to suggest the user increase their budget."""
         state = base_state(
             search_status="error",
             eligible_count=0,
@@ -164,7 +164,7 @@ class RoutingPriorityTests(unittest.TestCase):
         self.assertEqual(decide_next(state, DEFAULT_POLICY)["action"], "repair")
 
     def test_research_preferred_over_asking_for_relaxation(self):
-        """没有 C 偏好时，先用保持硬条件的方法补搜，再考虑让用户让步。"""
+        """When there is no C preference, first supplement the search using a method that preserves the hard constraints, then consider asking the user to compromise."""
         state = base_state(
             eligible_count=1, search_directive=directive(), pending_question=question()
         )
@@ -186,7 +186,7 @@ class RoutingPriorityTests(unittest.TestCase):
         self.assertIsNone(decision["search_directive"])
 
     def test_evaluation_can_skip_publish_to_ask_when_c_requests_it(self):
-        """听 C：够数时若 evaluate 建议 ask_user 且问题已备好，就先问用户。"""
+        """Listen to C: when there are enough results, if evaluate suggests ask_user and the question is ready, ask the user first."""
         state = base_state(
             evaluation_next_action="ask_user",
             evaluation_next_reason_code="relaxation_available",
@@ -197,7 +197,7 @@ class RoutingPriorityTests(unittest.TestCase):
         self.assertEqual(decision["reason_code"], "relaxation_available")
 
     def test_evaluation_can_finish_even_when_research_remains(self):
-        """听 C：evaluate 建议 finish 时不再强制补搜。"""
+        """Listen to C: when evaluate suggests finish, do not force additional searching."""
         state = base_state(
             eligible_count=1,
             search_directive=directive(),
@@ -248,7 +248,7 @@ class BudgetTests(unittest.TestCase):
         self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "deadline_exhausted"))
 
     def test_deadline_stops_even_with_enough_matches(self):
-        """C 把截止时间当作硬停止，即使已经有足量合法结果。"""
+        """C treats the deadline as a hard stop, even if there are already enough valid results."""
         decision = decide_next(base_state(deadline_exhausted=True), DEFAULT_POLICY)
         self.assertEqual((decision["action"], decision["reason_code"]), ("stop", "deadline_exhausted"))
 
@@ -261,7 +261,7 @@ class BudgetTests(unittest.TestCase):
 
 class StaleDirectiveTests(unittest.TestCase):
     def test_directive_from_another_profile_version_is_still_used_by_c(self):
-        """C 的 decide_next 不检查 directive 的档案版本；图侧仍会在 prepare_decision 丢掉过期指令。"""
+        """C's decide_next does not check the directive's profile version; the graph side will still discard expired directives in prepare_decision."""
         state = base_state(
             eligible_count=1,
             search_directive=directive(base_profile_version=0),

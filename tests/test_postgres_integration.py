@@ -157,13 +157,13 @@ class PostgresRepositoryTests(unittest.TestCase):
             "field": "listing_constraints.price.amount",
             "old_value": 3500,
             "proposed_value": 3600,
-            "reason": "扩大匹配",
+            "reason": "expand match",
             "evidence_listing_keys": [],
             "requires_user_confirmation": True,
         }
         question = {
             "question_id": f"{self.ctx['run_id']}:q1",
-            "text": "是否把预算从 3500 调整到 3600？",
+            "text": "Should the budget be adjusted from 3500 to 3600?",
             "reason_code": "insufficient_candidates",
             "proposals": [proposal],
             "allowed_actions": [
@@ -183,7 +183,7 @@ class PostgresRepositoryTests(unittest.TestCase):
                 self.ctx["run_id"],
                 question["question_id"],
                 client_message_id="client-answer-1",
-                answer_text="接受",
+                answer_text="accept",
             )
         )
         self.assertTrue(
@@ -191,7 +191,7 @@ class PostgresRepositoryTests(unittest.TestCase):
                 self.ctx["run_id"],
                 question["question_id"],
                 client_message_id="client-answer-1",
-                answer_text="接受",
+                answer_text="accept",
             )
         )
         self.assertFalse(
@@ -199,7 +199,7 @@ class PostgresRepositoryTests(unittest.TestCase):
                 self.ctx["run_id"],
                 question["question_id"],
                 client_message_id="different-answer",
-                answer_text="拒绝",
+                answer_text="reject",
             )
         )
 
@@ -222,7 +222,7 @@ class PostgresRepositoryTests(unittest.TestCase):
         self.assertEqual(first["version"], 2)
 
         recommendations = SqlRecommendationRepository(self.sessions)
-        body = {"ordered_items": [], "summary": "没有结果", "limitations": []}
+        body = {"ordered_items": [], "summary": "no results", "limitations": []}
         saved = recommendations.save(
             self.ctx["run_id"], body, op_key="recommendation-op-1"
         )
@@ -247,7 +247,7 @@ class PostgresRepositoryTests(unittest.TestCase):
             "field": "listing_constraints.price.amount",
             "old_value": 3500,
             "proposed_value": 3600,
-            "reason": "扩大匹配",
+            "reason": "expand match",
             "evidence_listing_keys": [],
             "requires_user_confirmation": True,
         }
@@ -272,14 +272,14 @@ class PostgresRepositoryTests(unittest.TestCase):
         first = chat.append_message(
             self.ctx["conversation_id"],
             role="user",
-            content="预算可以到 3600",
+            content="the budget can go up to 3600",
             message_id="chat-msg-1",
             client_message_id="chat-client-1",
         )
         replay = chat.append_message(
             self.ctx["conversation_id"],
             role="user",
-            content="预算可以到 3600",
+            content="the budget can go up to 3600",
             message_id="chat-msg-1",
             client_message_id="chat-client-1",
         )
@@ -429,7 +429,7 @@ class PostgresCheckpointRecoveryTests(unittest.IsolatedAsyncioTestCase):
                 Command(
                     resume={
                         "client_message_id": f"answer-{self.ctx['run_id']}",
-                        "text": "不接受调整，保持原样",
+                        "text": "do not accept adjustments, keep as is",
                     }
                 ),
                 config,
@@ -502,7 +502,7 @@ class PostgresCheckpointRecoveryTests(unittest.IsolatedAsyncioTestCase):
                 Command(
                     resume={
                         "client_message_id": f"ok-{self.ctx['run_id']}",
-                        "text": "不接受调整，保持原样",
+                        "text": "do not accept adjustments, keep as is",
                     }
                 ),
                 config,

@@ -12,7 +12,7 @@ from property_agent.integration.boundaries import FulfillmentService, Planner, S
 
 
 class BSearchRunner:
-    """无 run 内存状态的正式补搜实现；历史完全由 Decision state 传入。"""
+    """Formal supplementary search implementation without run memory state; history is passed in entirely via Decision state."""
 
     def __init__(
         self,
@@ -75,7 +75,7 @@ class BSearchRunner:
         *,
         ctx: RunContext,
     ) -> Result:
-        """执行首次 A→B 履约并生成可作为 Decision 初始输入的转换结果。"""
+        """Execute the first A→B fulfillment and generate the conversion result that can serve as the initial input to Decision."""
 
         attempt_ctx = self._attempt_context(ctx, [])
         timer = CallTimer(attempt_ctx)
@@ -86,7 +86,7 @@ class BSearchRunner:
                 or request["conversation_id"] != profile["conversation_id"]
             ):
                 raise ContractViolation(
-                    "STATE_CONFLICT", "request", "A 请求与 confirmed profile 不一致"
+                    "STATE_CONFLICT", "request", "A request is inconsistent with confirmed profile"
                 )
             service = (
                 self._fulfillment_factory or self._default_fulfillment
@@ -98,7 +98,7 @@ class BSearchRunner:
                 return timer.error(
                     make_issue(
                         "INVALID_OUTPUT",
-                        "B fulfillment state 缺少 result",
+                        "B fulfillment state is missing result",
                         source="b_search_runner",
                     )
                 )
@@ -123,7 +123,7 @@ class BSearchRunner:
             return timer.error(
                 make_issue(
                     "INTERNAL_ERROR",
-                    f"首次搜索适配失败：{type(exc).__name__}",
+                    f"Initial search adaptation failed: {type(exc).__name__}",
                     source="b_search_runner",
                 )
             )
@@ -203,7 +203,7 @@ class BSearchRunner:
                 return timer.error(
                     make_issue(
                         "INVALID_STATE",
-                        "B 补搜仍需澄清，必须返回 A："
+                        "B supplementary search still requires clarification, must return to A:"
                         + "; ".join(item["text"] for item in questions),
                         field_path="fulfillment.clarification_questions",
                         source="b_search_runner",
@@ -249,7 +249,7 @@ class BSearchRunner:
                 attempt_ctx,
                 [make_issue(
                     "INTERNAL_ERROR",
-                    f"补搜适配失败：{type(exc).__name__}",
+                    f"Supplementary search adaptation failed: {type(exc).__name__}",
                     source="b_search_runner",
                 )],
                 plan=plan,

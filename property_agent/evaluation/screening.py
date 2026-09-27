@@ -5,7 +5,7 @@ from property_agent.evaluation.validation import _validate_listing, _validate_pr
 
 
 def screen(listings: list[Listing], profile: ConversationProfile) -> ScreenResult:
-    """仅为 v0 接口保留的兼容包装；不再由 C 判定房源合格与否。"""
+    """Compatibility wrapper retained only for the v0 interface; property eligibility is no longer determined by C."""
     _validate_profile(profile)
     eligible: list[ScreenedListing] = []
     seen: set[str] = set()

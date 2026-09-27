@@ -1,11 +1,11 @@
-"""decide_next：编排器唯一的路由决策点。
+"""decide_next: the orchestrator's single routing decision point.
 
-契约要求这是确定性纯函数：只读 DecisionState，不调模型、不写库、不生成随机 ID。
-非法字段或不可能状态抛 ContractViolation，由调用边界转成系统错误并记录 trace。
+The contract requires this to be a deterministic pure function: it only reads DecisionState, does not call models, does not write to storage, and does not generate random IDs.
+Illegal fields or impossible states raise ContractViolation, which the calling boundary converts into a system error and records in the trace.
 
-业务路线交给 C 的 `part_c.decide_next`：review 通过后尽量执行 evaluate 的
-`next_action`。结构校验、尚未搜索的准备阶段仍由本模块处理，因为 C 假定
-已经评过一轮。
+Business routing is delegated to C's `part_c.decide_next`: after review passes, it tries to execute evaluate's
+`next_action`. Structural validation and the preparation stage before any search are still handled by this module, because C assumes
+a round has already been evaluated.
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ SEARCH_STATUSES = frozenset({"not_started", "success", "partial", "error"})
 STRATEGY_KINDS = frozenset({"next_page", "alias_query", "alternate_source"})
 EVALUATION_ACTIONS = frozenset({"publish", "research", "ask_user", "finish"})
 
-# 终态与动作的原因码。字符串进入持久化与前端展示，因此集中定义。
+# Reason codes for terminal states and actions. The strings enter persistence and frontend display, so they are defined centrally.
 CANCELLED = "cancelled"
 PROFILE_SUPERSEDED = "profile_superseded"
 USER_DECLINED = "user_declined"
@@ -46,39 +46,39 @@ def _invalid_state(field_path: str, message: str) -> ContractViolation:
 def _require_int(container: Any, key: str, path: str, minimum: int) -> int:
     value = container.get(key)
     if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
-        raise _invalid_state(f"{path}.{key}", f"{path}.{key} 必须是不小于 {minimum} 的整数")
+        raise _invalid_state(f"{path}.{key}", f"{path}.{key} must be an integer not less than {minimum}")
     return value
 
 
 def _require_bool(container: Any, key: str, path: str) -> bool:
     value = container.get(key)
     if not isinstance(value, bool):
-        raise _invalid_state(f"{path}.{key}", f"{path}.{key} 必须是布尔值")
+        raise _invalid_state(f"{path}.{key}", f"{path}.{key} must be a boolean")
     return value
 
 
 def _require_text(container: Any, key: str, path: str) -> str:
     value = container.get(key)
     if not isinstance(value, str) or not value.strip():
-        raise _invalid_state(f"{path}.{key}", f"{path}.{key} 必须是非空字符串")
+        raise _invalid_state(f"{path}.{key}", f"{path}.{key} must be a non-empty string")
     return value
 
 
 def _validate_directive(directive: SearchDirective) -> None:
     path = "state.search_directive"
     if directive.get("reason_code") not in ("insufficient_candidates", "incomplete_coverage"):
-        raise _invalid_state(f"{path}.reason_code", "补搜指令的 reason_code 不在允许取值内")
+        raise _invalid_state(f"{path}.reason_code", "the reason_code of the supplementary search directive is not among the allowed values")
     _require_int(directive, "base_profile_version", path, 0)
     changes = directive.get("strategy_changes")
     if not isinstance(changes, list) or not changes:
-        raise _invalid_state(f"{path}.strategy_changes", "补搜指令必须给出至少一项策略调整")
+        raise _invalid_state(f"{path}.strategy_changes", "the supplementary search directive must provide at least one strategy adjustment")
     for index, change in enumerate(changes):
         if not isinstance(change, dict) or change.get("kind") not in STRATEGY_KINDS:
             raise _invalid_state(
-                f"{path}.strategy_changes[{index}].kind", "策略调整的 kind 不在允许取值内"
+                f"{path}.strategy_changes[{index}].kind", "the kind of the strategy adjustment is not among the allowed values"
             )
     if not isinstance(directive.get("evidence_listing_keys"), list):
-        raise _invalid_state(f"{path}.evidence_listing_keys", "evidence_listing_keys 必须是数组")
+        raise _invalid_state(f"{path}.evidence_listing_keys", "evidence_listing_keys must be an array")
 
 
 def _validate_question(question: Any, state: DecisionState) -> None:
@@ -88,29 +88,29 @@ def _validate_question(question: Any, state: DecisionState) -> None:
     _require_text(question, "reason_code", path)
     actions = question.get("allowed_actions")
     if not isinstance(actions, list) or not actions:
-        raise _invalid_state(f"{path}.allowed_actions", "待问问题必须给出至少一个允许动作")
+        raise _invalid_state(f"{path}.allowed_actions", "the pending question must provide at least one allowed action")
     proposals = question.get("proposals")
     if not isinstance(proposals, list):
-        raise _invalid_state(f"{path}.proposals", "proposals 必须是数组")
+        raise _invalid_state(f"{path}.proposals", "proposals must be an array")
     for index, proposal in enumerate(proposals):
         if proposal.get("requires_user_confirmation") is not True:
             raise _invalid_state(
                 f"{path}.proposals[{index}].requires_user_confirmation",
-                "让步提案必须标记为需要用户确认",
+                "a concession proposal must be marked as requiring user confirmation",
             )
-    # 问题必须属于当前决策视图，否则旧问题可能覆盖新需求。
+    # The question must belong to the current decision view, otherwise an old question could override a new requirement.
     if question.get("base_profile_version") != state["profile_version"]:
         raise _invalid_state(
-            f"{path}.base_profile_version", "待问问题的档案版本与本次决策视图不一致"
+            f"{path}.base_profile_version", "the profile version of the pending question is inconsistent with this decision view"
         )
     if question.get("state_version") != state["state_version"]:
-        raise _invalid_state(f"{path}.state_version", "待问问题的状态版本与本次决策视图不一致")
+        raise _invalid_state(f"{path}.state_version", "the state version of the pending question is inconsistent with this decision view")
 
 
 def validate_decision_state(state: DecisionState) -> None:
-    """只做结构与取值校验；business 语义留给路由本身。"""
+    """Performs only structural and value validation; business semantics are left to the routing itself."""
     if not isinstance(state, dict):
-        raise _invalid_state("state", "state 必须是对象")
+        raise _invalid_state("state", "state must be an object")
     _require_text(state, "run_id", "state")
     _require_int(state, "state_version", "state", 0)
     _require_int(state, "profile_version", "state", 0)
@@ -123,27 +123,27 @@ def validate_decision_state(state: DecisionState) -> None:
     _require_int(state, "eligible_count", "state", 0)
 
     if state.get("search_status") not in SEARCH_STATUSES:
-        raise _invalid_state("state.search_status", "search_status 不在允许取值内")
+        raise _invalid_state("state.search_status", "search_status is not among the allowed values")
 
     failure_code = state.get("failure_code")
     if failure_code is not None and (not isinstance(failure_code, str) or not failure_code.strip()):
-        raise _invalid_state("state.failure_code", "failure_code 必须是非空字符串或 null")
+        raise _invalid_state("state.failure_code", "failure_code must be a non-empty string or null")
 
     review = state.get("review")
     if review is not None:
         if not isinstance(review, dict) or not isinstance(review.get("passed"), bool):
-            raise _invalid_state("state.review.passed", "review.passed 必须是布尔值")
+            raise _invalid_state("state.review.passed", "review.passed must be a boolean")
         issues = review.get("issues")
         if not isinstance(issues, list):
-            raise _invalid_state("state.review.issues", "review.issues 必须是数组")
+            raise _invalid_state("state.review.issues", "review.issues must be an array")
         for index, issue in enumerate(issues):
             if not isinstance(issue, dict) or issue.get("severity") not in ("blocking", "warning"):
                 raise _invalid_state(
-                    f"state.review.issues[{index}].severity", "审查问题的 severity 不在允许取值内"
+                    f"state.review.issues[{index}].severity", "the severity of the review issue is not among the allowed values"
                 )
-        # passed 的定义是"没有阻断问题"，两者矛盾说明上游拼装有误。
+        # passed is defined as "no blocking issues"; a contradiction between the two indicates an upstream assembly error.
         if review["passed"] and _blocking_issues(review):
-            raise _invalid_state("state.review.passed", "passed=true 不能同时带阻断性审查问题")
+            raise _invalid_state("state.review.passed", "passed=true cannot be accompanied by blocking review issues")
 
     directive = state.get("search_directive")
     if directive is not None:
@@ -158,13 +158,13 @@ def validate_decision_state(state: DecisionState) -> None:
         if action not in EVALUATION_ACTIONS:
             raise _invalid_state(
                 "state.evaluation_next_action",
-                "evaluation_next_action 必须是 publish/research/ask_user/finish 或 null",
+                "evaluation_next_action must be publish/research/ask_user/finish or null",
             )
         reason = state.get("evaluation_next_reason_code")
         if not isinstance(reason, str) or not reason.strip():
             raise _invalid_state(
                 "state.evaluation_next_reason_code",
-                "提供 evaluation_next_action 时必须同时给出非空原因码",
+                "when evaluation_next_action is provided, a non-empty reason code must also be given",
             )
 
 
@@ -179,11 +179,11 @@ def _decision(
     search_directive: SearchDirective | None = None,
     pending_question: Any = None,
 ) -> RouteDecision:
-    """research 只带 directive，ask_user 只带 question，其余动作两项均为 null。"""
+    """research carries only a directive, ask_user carries only a question, and both fields are null for all other actions."""
     if action == "research" and search_directive is None:
-        raise _invalid_state("state.search_directive", "research 必须带补搜指令")
+        raise _invalid_state("state.search_directive", "research must carry a supplementary search directive")
     if action == "ask_user" and pending_question is None:
-        raise _invalid_state("state.pending_question", "ask_user 必须带待问问题")
+        raise _invalid_state("state.pending_question", "ask_user must carry a pending question")
     return {
         "action": action,  # type: ignore[typeddict-item]
         "reason_code": reason_code,
@@ -193,7 +193,7 @@ def _decision(
 
 
 def _research_available(state: DecisionState, policy: RoutingPolicy) -> bool:
-    """补搜必须保持硬条件：指令版本要对上本 run 固定的需求版本。"""
+    """A supplementary search must maintain a hard condition: the directive version must match the requirement version fixed for this run."""
     directive = state.get("search_directive")
     if directive is None or state["deadline_exhausted"]:
         return False
@@ -207,7 +207,7 @@ def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
     validate_decision_state(state)
 
     question = state.get("pending_question")
-    # C 假定已经评过一轮。尚未搜索时仍由编排层决定先问还是先搜。
+    # C assumes a round has already been evaluated. When no search has been performed yet, the orchestration layer still decides whether to ask first or search first.
     if state["search_status"] == "not_started":
         if question is not None:
             return _decision("ask_user", question["reason_code"], pending_question=question)
@@ -215,7 +215,7 @@ def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
             directive = state["search_directive"]
             return _decision("research", directive["reason_code"], search_directive=directive)
         raise _invalid_state(
-            "state.search_status", "尚未搜索且没有待问问题或可执行补搜指令，无法路由"
+            "state.search_status", "no search has been performed yet and there is no pending question or executable supplementary search directive, so routing is impossible"
         )
 
     try:

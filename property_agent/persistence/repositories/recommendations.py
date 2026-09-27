@@ -42,5 +42,5 @@ class SqlRecommendationRepository:
                 )
             ).scalar_one_or_none()
             if existing is None:
-                raise ValueError("该 run 已由不同操作发布推荐")
+                raise ValueError("This run has already had recommendations published by a different operation")
             return existing.final_result_id, True

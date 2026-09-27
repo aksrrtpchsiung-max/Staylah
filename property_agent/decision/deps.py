@@ -1,4 +1,4 @@
-"""依赖注入。业务参数不携带连接或密钥，依赖在构造服务时传入。"""
+"""Dependency injection. Business parameters do not carry connections or secrets; dependencies are passed in when constructing the service."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -36,12 +36,12 @@ class DecisionDeps:
     runs: RunRepository
     clarification: ClarificationAgent
     onboarding_handoff: OnboardingHandoff
-    # 后端限定的来源白名单；模型不能通过 alternate_source 指向名单外的站点。
+    # Backend-restricted source allowlist; the model cannot point to sites outside the list via alternate_source.
     allowed_sources: tuple[str, ...] = ("propertyguru",)
 
 
 def build_stub_deps(profile: ConversationProfile | None = None) -> DecisionDeps:
-    """开发期依赖：模块 C 与模块 B 都用替身，档案与持久化走内存实现。"""
+    """Development-time dependencies: both module C and module B use stand-ins, and archiving and persistence use in-memory implementations."""
     writer = InMemoryProfileWriter()
     if profile is not None:
         writer.put(profile)

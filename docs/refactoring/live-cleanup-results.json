@@ -2,7 +2,7 @@
   "baseline": "41f86d9",
   "alias_fix": "9ea911c",
   "date": "2026-09-27 Asia/Singapore",
-  "original_user_text": "我要在淡滨尼（Tampines）整租公寓（condo），月租不超过 SGD 3800，至少两个卧室，家具齐全。",
+  "original_user_text": "I want to rent an entire apartment (condo) in Tampines, with monthly rent not exceeding SGD 3800, at least two bedrooms, and fully furnished.",
   "runs": [
     {
       "phase": "before_cleanup",
@@ -41,7 +41,7 @@
           "issues": [
             {
               "code": "PARSE_ERROR",
-              "message": "PropertyGuru 未解析到房源，页面也未明确表示无匹配，不能当作空结果",
+              "message": "PropertyGuru did not parse any listings, and the page also does not explicitly indicate no matches, so it cannot be treated as an empty result",
               "field_path": null,
               "source": "propertyguru",
               "retryable": false,

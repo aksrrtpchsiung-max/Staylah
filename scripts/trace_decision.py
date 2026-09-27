@@ -1,16 +1,16 @@
-"""逐节点打印决策图的状态变化，用于理解 LangGraph 的执行模型。
+"""Print the state changes of the decision graph node by node, to help understand LangGraph's execution model.
 
-LangGraph 的核心约定是：节点读取完整状态，只返回**需要改动的那几个键**，框架负责合并。
-`stream_mode="updates"` 正好按这个粒度产出事件，因此这个脚本的输出可以直接对照
-nodes.py 里每个节点的 return 语句。
+LangGraph's core convention is: a node reads the full state and returns only **the keys that need to change**; the framework handles merging.
+`stream_mode="updates"` produces events at exactly this granularity, so this script's output can be compared directly against
+the return statement of each node in nodes.py.
 
-从项目根目录运行：
+Run from the project root:
 
     .venv/bin/python scripts/trace_decision.py --scenario relax --answer decline
     .venv/bin/python scripts/trace_decision.py --scenario repair
 
-不调用模型、不访问网络：模块 C 与模块 B 都用 property_agent/decision/stubs.py 的替身。
-房源夹具复用 tests/support.py，所以需要在根目录执行。
+No model calls, no network access: both module C and module B use the stand-ins from property_agent/decision/stubs.py.
+The listing fixtures reuse tests/support.py, so it must be run from the root directory.
 """
 from __future__ import annotations
 
@@ -33,11 +33,11 @@ from property_agent.decision import (
 from tests.support import build_ctx, build_outcome, load_profile, load_snapshot
 
 SCENARIOS = {
-    "publish": "3 条合格候选，直接交付",
-    "relax": "只有 2 条合格候选，向用户提出预算让步提案",
-    "research": "候选不足但还有下一页，先补搜再交付",
-    "repair": "审查发现阻断问题，用掉唯一一次修复额度",
-    "source-failure": "所有来源失败，明确终止而不是报告无房源",
+    "publish": "3 qualifying candidates, delivered directly",
+    "relax": "Only 2 qualifying candidates, propose a budget concession to the user",
+    "research": "Not enough candidates but there is a next page, search more before delivering",
+    "repair": "Review found a blocking issue, use up the single repair allowance",
+    "source-failure": "All sources failed, terminate explicitly instead of reporting no listings",
 }
 
 ANSWERS = {
@@ -49,33 +49,33 @@ ANSWERS = {
 
 
 def brief(value: object) -> str:
-    """把大对象压成一行，避免刷屏盖住状态流动本身。"""
+    """Compress large objects onto one line to avoid flooding the screen and hiding the state flow itself."""
     if isinstance(value, dict):
         if "snapshot_id" in value and "items" in value:
-            return f"ListingSnapshot(<{len(value['items'])} 条房源>)"
+            return f"ListingSnapshot(<{len(value['items'])} listings>)"
         if "action" in value and "reason_code" in value:
             return f"RouteDecision(action={value['action']!r}, reason={value['reason_code']!r})"
         if "passed" in value and "issues" in value:
             blocking = sum(1 for i in value["issues"] if i.get("severity") == "blocking")
-            return f"ReviewResult(passed={value['passed']}, 阻断 {blocking} 条)"
+            return f"ReviewResult(passed={value['passed']}, {blocking} blocking)"
         if "recommendation" in value and "assessment" in value:
             items = value["recommendation"]["ordered_items"]
             proposals = value["assessment"]["relaxation_proposals"]
-            return f"EvaluationResult(<{len(items)} 条推荐>, <{len(proposals)} 个提案>)"
+            return f"EvaluationResult(<{len(items)} recommendations>, <{len(proposals)} proposals>)"
         if "ordered_items" in value:
-            return f"Recommendation(<{len(value['ordered_items'])} 条>)"
+            return f"Recommendation(<{len(value['ordered_items'])} items>)"
         if "eligible" in value and "rejected" in value:
             return (
-                f"ScreenResult(合格 {len(value['eligible'])}"
-                f" / 不符 {len(value['rejected'])}"
-                f" / 待核实 {len(value['needs_verification'])})"
+                f"ScreenResult(eligible {len(value['eligible'])}"
+                f" / rejected {len(value['rejected'])}"
+                f" / needs verification {len(value['needs_verification'])})"
             )
         if "question_id" in value and "proposals" in value:
-            return f"PendingQuestion(id={value['question_id']!r}, {len(value['proposals'])} 个提案)"
+            return f"PendingQuestion(id={value['question_id']!r}, {len(value['proposals'])} proposals)"
         if "question_id" in value and "action" in value:
-            return f"PendingAnswer(action={value['action']!r}, 针对 {value['question_id']!r})"
+            return f"PendingAnswer(action={value['action']!r}, for {value['question_id']!r})"
         if "candidates" in value:
-            return f"RetrievalResult(<{len(value['candidates'])} 个候选>)"
+            return f"RetrievalResult(<{len(value['candidates'])} candidates>)"
         if "queried_sources" in value:
             return f"Coverage(has_more={value['has_more']})"
     if isinstance(value, list):
@@ -83,19 +83,19 @@ def brief(value: object) -> str:
             return "[]"
         if isinstance(value[0], dict) and "code" in value[0]:
             return "[" + ", ".join(str(i["code"]) for i in value) + "]"
-        return f"<{len(value)} 项>"
+        return f"<{len(value)} items>"
     text = repr(value)
     return text if len(text) <= 70 else text[:67] + "..."
 
 
 def print_update(step: int, node: str, update: dict) -> None:
-    print(f"\n[{step}] 节点 {node} 返回了 {len(update)} 个键：")
+    print(f"\n[{step}] node {node} returned {len(update)} keys:")
     for key, value in update.items():
         print(f"      {key} = {brief(value)}")
 
 
 def build_scenario(scenario: str, deps) -> dict:
-    """按场景脚本化替身的行为，再拼出图的初始状态。"""
+    """Script the stand-in's behavior per scenario, then assemble the graph's initial state."""
     profile = load_profile()
     kwargs: dict = {"eligible": 3}
 
@@ -103,7 +103,7 @@ def build_scenario(scenario: str, deps) -> dict:
         kwargs = {"eligible": 2, "include_over_budget": True}
     elif scenario == "research":
         kwargs = {"eligible": 2, "include_over_budget": True, "has_more": True}
-        # 让补搜这一次拿到足够候选，否则替身会明确报错而不是造数据。
+        # Make this extra search return enough candidates, otherwise the stand-in will explicitly error instead of fabricating data.
         deps.search_runner.outcomes.append(
             {
                 "status": "success",
@@ -122,9 +122,9 @@ def build_scenario(scenario: str, deps) -> dict:
                             "code": "UNSUPPORTED_CLAIM",
                             "listing_key": load_snapshot()["items"][0]["listing_key"],
                             "field_path": "recommendation.ordered_items[0].reasons[0]",
-                            "message": "步行 5 分钟没有来源证据。",
+                            "message": "A 5-minute walk has no source evidence.",
                             "severity": "blocking",
-                            "suggested_fix": "删除该事实或补充证据。",
+                            "suggested_fix": "Remove this fact or add supporting evidence.",
                         }
                     ],
                 },
@@ -149,7 +149,7 @@ async def main() -> None:
         "--answer",
         choices=sorted(ANSWERS),
         default="decline",
-        help="停在等待用户时用哪种动作恢复",
+        help="Which action to use to resume when stopped waiting for the user",
     )
     args = parser.parse_args()
 
@@ -158,9 +158,9 @@ async def main() -> None:
     state = build_scenario(args.scenario, deps)
     config = {"configurable": {"thread_id": state["run_id"]}}
 
-    print(f"场景：{args.scenario} —— {SCENARIOS[args.scenario]}")
-    print(f"thread_id = {config['configurable']['thread_id']}（thread_id=run_id，conversation_id 是长期会话）")
-    print(f"初始状态：{len(state)} 个键，其中 search_status={state['search_status']!r}")
+    print(f"Scenario: {args.scenario} -- {SCENARIOS[args.scenario]}")
+    print(f"thread_id = {config['configurable']['thread_id']} (thread_id=run_id, conversation_id is the long-lived session)")
+    print(f"Initial state: {len(state)} keys, of which search_status={state['search_status']!r}")
 
     step = 0
     payload: object = state
@@ -179,11 +179,11 @@ async def main() -> None:
 
         snapshot = await graph.aget_state(config)
         question = snapshot.values["pending_question"]
-        print("\n--- 图在 wait_for_user 暂停，worker 已释放 ---")
-        print(f"问题：{question['text']}")
+        print("\n--- Graph paused at wait_for_user, worker released ---")
+        print(f"Question: {question['text']}")
         print(f"question_id = {question['question_id']}")
-        print(f"state_version = {question['state_version']}（恢复时必须带上这个值）")
-        print(f"\n用 action={ANSWERS[args.answer]!r} 恢复……")
+        print(f"state_version = {question['state_version']} (this value must be included when resuming)")
+        print(f"\nResuming with action={ANSWERS[args.answer]!r}...")
         payload = Command(
             resume={
                 "client_message_id": "msg-trace-1",
@@ -191,12 +191,12 @@ async def main() -> None:
                 "expected_state_version": question["state_version"],
                 "action": ANSWERS[args.answer],
                 "proposal_id": question["proposals"][0]["proposal_id"],
-                "answer": "换个地区看看吧。",
+                "answer": "Let's try a different area.",
             }
         )
 
     final = (await graph.aget_state(config)).values
-    print("\n=== 终态 ===")
+    print("\n=== Final state ===")
     for key in (
         "status",
         "completion_reason",
@@ -207,8 +207,8 @@ async def main() -> None:
         "delivery_is_partial",
     ):
         print(f"  {key} = {final.get(key)!r}")
-    print(f"  档案当前版本 = {deps.profiles.current_version(final['profile_id'])}")
-    print(f"  已保存推荐数 = {len(deps.recommendations.saved)}")
+    print(f"  Current profile version = {deps.profiles.current_version(final['profile_id'])}")
+    print(f"  Number of saved recommendations = {len(deps.recommendations.saved)}")
 
 
 if __name__ == "__main__":

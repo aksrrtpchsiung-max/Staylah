@@ -42,7 +42,7 @@ async def main(env_file):
             print(json.dumps({"complete": False, "reason": "A did not reach confirmation",
                 "response": first.assistant_response}, ensure_ascii=False), flush=True)
             return 1
-        final = await runtime.handle_message("确认", conversation_id=conversation,
+        final = await runtime.handle_message("Confirm", conversation_id=conversation,
             user_id="refactor-verification", client_message_id=conversation + ":2")
         print(json.dumps({"stage": "ABC", "phase": final.phase, "status": final.status,
             "run_id": final.run_id, "recommendations": len((final.recommendation or {}).get("ordered_items", [])),

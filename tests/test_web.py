@@ -1,4 +1,4 @@
-"""验证网页边界：确认版本、选择上下文、重试与 A/C 图集成。"""
+"""Verify web page boundaries: confirm version, select context, retry, and A/C diagram integration."""
 import unittest
 from dataclasses import dataclass
 from types import SimpleNamespace

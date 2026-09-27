@@ -1,4 +1,4 @@
-"""B 内部将已确认需求转换为 QueryFeatures，不调用来源、不生成房源事实。"""
+"""B internally converts confirmed requirements into QueryFeatures, without calling sources or generating listing facts."""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -33,7 +33,7 @@ def _query_from_requirements(requirements) -> QueryFeatures:
             if identity not in seen:
                 entities.append(entity)
                 seen.add(identity)
-    # 序列化的是用户期望，不是检索到的事实；保留所有条件、运算符和强弱属性。
+    # What is serialized is the user's expectations, not retrieved facts; preserve all conditions, operators, and strong/weak attributes.
     summary = dict(intent=requirements['intent'], user_context=requirements['user_context'],
         listing_constraints=requirements['listing_constraints'],
         derived_data_requirements=requirements['derived_data_requirements'],
@@ -61,12 +61,12 @@ async def _prepare(value, ctx, validator):
 
 
 async def prepare_query(profile: ConversationProfile, *, ctx: RunContext) -> Result[QueryFeatures]:
-    """共享内部契约：真实 ConversationProfile 必须是当前已确认版本。"""
+    """Shared internal contract: a real ConversationProfile must be the currently confirmed version."""
     return await _prepare(profile, ctx, validate_conversation_profile)
 
 
 async def prepare_request_query(request: RequirementRequest, *, ctx: RunContext) -> Result[QueryFeatures]:
-    """公开入口内部适配器：直接读取 A 的确认请求，不伪造完整画像。"""
+    """Public entry internal adapter: directly reads A's confirmation request, without fabricating a complete profile."""
     return await _prepare(request, ctx, validate_requirement_request)
 
 
@@ -85,8 +85,8 @@ if __name__ == '__main__':
             assert actual['status'] == 'success', actual
             assert actual['data']['profile_version'] == request['profile_version']
             assert not actual['data']['unresolved'], actual
-            assert actual['data']['entities'], '当前四组业务输入均有明确居住区域'
-            # 这些是内部接口的独立业务输入，仅存在于本模块测试中；产品交接路径不做此转换。
+            assert actual['data']['entities'], 'All four current business inputs have an explicit residential area'
+            # These are independent business inputs of the internal interface, existing only in this module's tests; the product handoff path does not perform this conversion.
             profile = dict(profile_id=request['profile_id'], user_id=ctx['user_id'],
                 conversation_id=request['conversation_id'], version=request['profile_version'],
                 confirmed_version=request['profile_version'], status='confirmed', intent=request['intent'],
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                 last_user_message_at=request['confirmed_at'], confirmed_at=request['confirmed_at'])
             internal = await prepare_query(profile, ctx=ctx)
             assert internal['status'] == 'success', internal
-            assert internal['data'] == actual['data'], '两种真实契约输入必须保留相同需求'
+            assert internal['data'] == actual['data'], 'The two real contract inputs must preserve the same requirements'
             from property_agent.domain.validation import validate_planner_input, planned_attempt_id
             from property_agent.search.planning.planner import _make_menu
             from property_agent.runtime.model_client import SearchPlanSettings
@@ -107,11 +107,11 @@ if __name__ == '__main__':
             requirements = normalize_requirements(profile)
             menu, groups = _make_menu(requirements, internal['data'], [], None, ctx, SearchPlanSettings())
             assert menu and groups and planned_attempt_id(requirements, ctx)
-            assert ctx['attempt_id'] is None, 'B 内部生成轮次不能修改外部 ctx'
+            assert ctx['attempt_id'] is None, 'B internal generation rounds must not modify the external ctx'
             print(json.dumps(dict(input=dict(request=request, ctx=ctx), actual_output=actual,
                 internal_profile_input=profile, internal_query_output=internal,
                 actual_menu=menu, actual_groups=groups), ensure_ascii=False))
         assert len(INPUTS) >= 3
-        print(f'查询解析实际输入输出验证通过 {len(INPUTS)}/{len(INPUTS)}')
+        print(f'Query parsing actual input/output verification passed {len(INPUTS)}/{len(INPUTS)}')
 
     asyncio.run(main())

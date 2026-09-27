@@ -1,4 +1,4 @@
-"""B→C attempt 转换与持久化友好补搜的集成边界测试。"""
+"""Integration boundary test for B→C attempt conversion and persistence-friendly supplementary search."""
 from __future__ import annotations
 
 import copy
@@ -318,7 +318,7 @@ class SearchIntegrationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_b_search_runner_uses_checkpoint_history_and_new_identity(self):
         profile = copy.deepcopy(load_profile())
-        # 本测试聚焦补搜编排；移除调查需求可避免把无关的未核实项变成 partial。
+        # This test focuses on supplementary search orchestration; removing the investigation requirement avoids turning unrelated unverified items into partial.
         profile["derived_data_requirements"] = []
         profile["open_data_requirements"] = []
         planner = RecordingPlanner()

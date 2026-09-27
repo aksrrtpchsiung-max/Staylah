@@ -1,4 +1,4 @@
-"""LangGraph 搜索状态：只存可序列化业务数据，不存模型、Provider 或锁。"""
+"""LangGraph search state: stores only serializable business data, not models, providers, or locks."""
 from typing import TypedDict
 
 from property_agent.contracts import Issue, Listing, Result, RunContext, SearchPlan, SearchResult

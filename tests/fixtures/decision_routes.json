@@ -68,7 +68,7 @@
           "search_directive": null,
           "pending_question": {
             "question_id": "run-001:state-7:q-1",
-            "text": "是否将月租上限调整为 SGD 3600？",
+            "text": "Should the monthly rent cap be adjusted to SGD 3600?",
             "reason_code": "insufficient_candidates",
             "proposals": [
               {
@@ -76,7 +76,7 @@
                 "field": "hard_constraints.max_price",
                 "old_value": "3500.00",
                 "proposed_value": "3600.00",
-                "reason": "本次被排除的 L3 月租 3500.01；提高到 3600 可能扩大本轮匹配，仍需重新查询。",
+                "reason": "The L3 monthly rent of 3500.01 was excluded this time; raising it to 3600 may expand the current matching round, but a new query is still required.",
                 "evidence_listing_keys": [
                   "L3"
                 ],
@@ -108,7 +108,7 @@
           "search_directive": null,
           "pending_question": {
             "question_id": "run-001:state-7:q-1",
-            "text": "是否将月租上限调整为 SGD 3600？",
+            "text": "Should the monthly rent cap be adjusted to SGD 3600?",
             "reason_code": "insufficient_candidates",
             "proposals": [
               {
@@ -116,7 +116,7 @@
                 "field": "hard_constraints.max_price",
                 "old_value": "3500.00",
                 "proposed_value": "3600.00",
-                "reason": "本次被排除的 L3 月租 3500.01；提高到 3600 可能扩大本轮匹配，仍需重新查询。",
+                "reason": "The L3 monthly rent of 3500.01 was excluded this time; raising it to 3600 may expand the current matching round, but a new query is still required.",
                 "evidence_listing_keys": [
                   "L3"
                 ],
@@ -135,7 +135,7 @@
         }
       },
       "assertions": [
-        "已用完三次搜索额度，只询问用户，不创建第四次搜索。"
+        "The three search credits have been used up; only ask the user, and do not create a fourth search."
       ]
     },
     {
@@ -275,9 +275,9 @@
                 "code": "UNSUPPORTED_CLAIM",
                 "listing_key": "L1",
                 "field_path": "recommendation.ordered_items[0].reasons[1]",
-                "message": "没有支持步行 5 分钟的来源证据。",
+                "message": "There is no source evidence supporting a 5-minute walk.",
                 "severity": "blocking",
-                "suggested_fix": "删除该事实，或补充真实路线证据后重新审查。"
+                "suggested_fix": "Remove this fact, or supplement it with real route evidence and review it again."
               }
             ]
           },
@@ -327,9 +327,9 @@
                 "code": "UNSUPPORTED_CLAIM",
                 "listing_key": "L1",
                 "field_path": "recommendation.ordered_items[0].reasons[1]",
-                "message": "没有支持步行 5 分钟的来源证据。",
+                "message": "There is no source evidence supporting a 5-minute walk.",
                 "severity": "blocking",
-                "suggested_fix": "删除该事实，或补充真实路线证据后重新审查。"
+                "suggested_fix": "Remove this fact, or supplement it with real route evidence and review it again."
               }
             ]
           },

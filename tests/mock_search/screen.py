@@ -1,4 +1,4 @@
-"""旧联调入口：C.screen 仅保留 v0 形状，不再检查硬条件。"""
+"""Legacy integration entry point: C.screen only retains the v0 shape and no longer checks hard conditions."""
 from __future__ import annotations
 
 from typing import Any

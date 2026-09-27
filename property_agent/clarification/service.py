@@ -1,4 +1,4 @@
-"""追问流程的确定性安全壳。"""
+"""Deterministic safety shell for the follow-up questioning flow."""
 from __future__ import annotations
 
 import re
@@ -10,22 +10,22 @@ from property_agent.clarification.models import AnswerInterpretation
 from property_agent.contracts import PendingQuestion
 
 _ACCEPT_RE = re.compile(
-    r"(接受|同意|可以|好的|好吧|行|没问题|调高|放宽|提高|yes|ok|okay)",
+    r"\b(?:accept|agree|sure|okay|alright|fine|no problem|increase|relax|raise|yes|ok)\b",
     re.IGNORECASE,
 )
 _DECLINE_RE = re.compile(
-    r"(不接受|不同意|不要调整|不放宽|不提高|维持原条件|保持原样|算了吧|no\b)",
+    r"\b(?:do not accept|do not agree|do not adjust|do not relax|do not raise|keep the original conditions|keep as is|forget it|no thanks)\b|\bno\b(?!\s+problem)",
     re.IGNORECASE,
 )
 _CANCEL_RE = re.compile(
-    r"(取消(?:找房|任务|搜索)?|停止(?:找房|任务|搜索)?|结束任务|不找了|cancel|stop)",
+    r"\b(?:cancel(?: house hunting| task| search)?|stop(?: house hunting| task| search)?|end task|stop looking)\b",
     re.IGNORECASE,
 )
 
 
 @dataclass(frozen=True)
 class ClarificationAgent:
-    """组合模型 adapter，并对输出施加不可绕过的程序校验。"""
+    """Combine model adapters and apply non-bypassable programmatic validation to the output."""
 
     polisher: QuestionPolisher
     interpreter: AnswerInterpreter
@@ -72,7 +72,7 @@ class ClarificationAgent:
 def deterministic_interpret(
     text: str, question: PendingQuestion
 ) -> AnswerInterpretation:
-    """网络或结构化输出失败时的保守分类。"""
+    """Conservative classification when network or structured output fails."""
     if _CANCEL_RE.search(text):
         return AnswerInterpretation(action="cancel")
     if _DECLINE_RE.search(text):
@@ -90,7 +90,7 @@ def _sanitize_interpretation(
     question: PendingQuestion,
     interpretation: AnswerInterpretation,
 ) -> AnswerInterpretation:
-    """模型不能把模糊话术或未知 proposal 变成授权动作。"""
+    """The model must not turn vague wording or unknown proposals into authorized actions."""
     if interpretation.action == "cancel":
         return (
             interpretation
@@ -119,7 +119,7 @@ def _sanitize_interpretation(
 
 
 def _preserves_proposal_values(text: str, question: PendingQuestion) -> bool:
-    """润色结果至少要保留每项调整的新旧值，防止语义漂移。"""
+    """The polished result must retain at least the old and new values of each adjustment to prevent semantic drift."""
     if not text:
         return False
     for proposal in question.get("proposals") or []:

@@ -32,7 +32,7 @@ class FulfillmentService(Protocol):
 
 
 class BCTransition(TypedDict):
-    """首次 B 履约之后交给外层编排的明确路线。"""
+    """The explicit route handed to the outer orchestration after the first B fulfillment."""
 
     route: Literal["decision", "clarification"]
     outcome: AttemptOutcome | None

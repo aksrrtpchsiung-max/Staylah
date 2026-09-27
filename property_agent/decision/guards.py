@@ -1,11 +1,11 @@
-"""程序侧护栏：模块 C 的输出在进入路由之前必须先过这一层。
+"""Program-side guardrail: the output of module C must pass through this layer before entering routing.
 
-模型可以建议"再翻一页"或"把预算提到 3600"，但不能借这两种输出绕过硬条件：
-- 补搜指令只允许改变查找方法，必须挂在本 run 固定的需求版本上；
-- 让步提案必须是真正的放宽、必须针对白名单字段、必须等用户明确答复才生效。
+The model may suggest "turn one more page" or "raise the budget to 3600", but it cannot use these two kinds of output to bypass hard conditions:
+- A supplementary search instruction may only change the lookup method, and must be attached to the requirement version fixed for this run;
+- A concession proposal must be a genuine relaxation, must target whitelisted fields, and must take effect only after the user gives an explicit answer.
 
-非法输出在这里被丢弃并记录 issue，不向 decide_next 传递——否则一次模型抖动
-就会变成 INTERNAL_ERROR。
+Illegal output is discarded here and an issue is recorded, and is not passed to decide_next -- otherwise a single model jitter
+would turn into INTERNAL_ERROR.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ from property_agent.results import make_issue
 
 DIRECTIVE_REASONS = frozenset({"insufficient_candidates", "incomplete_coverage"})
 
-# 每种策略调整必须带的字段。联合类型本身不能表达"改预算"，白名单再确认一次。
+# The fields each strategy adjustment must carry. The union type itself cannot express "change budget", so the whitelist confirms once more.
 STRATEGY_REQUIRED_KEYS = {
     "next_page": ("query_id", "cursor"),
     "alias_query": ("entity_id", "alias"),
@@ -37,7 +37,7 @@ STRATEGY_REQUIRED_KEYS = {
 def sanitize_proposals(
     proposals: Sequence[Any] | None, profile: ConversationProfile
 ) -> tuple[list[RelaxationProposal], list[Issue]]:
-    """返回可以拿去问用户的提案，以及被拒绝原因。提案本身绝不在这里生效。"""
+    """Return the proposal that can be taken to ask the user, along with the rejection reasons. The proposal itself never takes effect here."""
     issues: list[Issue] = []
     accepted: list[RelaxationProposal] = []
     seen_ids: set[str] = set()
@@ -45,18 +45,18 @@ def sanitize_proposals(
     for index, proposal in enumerate(proposals or []):
         path = f"assessment.relaxation_proposals[{index}]"
         if not isinstance(proposal, dict):
-            issues.append(make_issue("INVALID_OUTPUT", "让步提案必须是对象", field_path=path))
+            issues.append(make_issue("INVALID_OUTPUT", "concession proposal must be an object", field_path=path))
             continue
 
         proposal_id = proposal.get("proposal_id")
         if not isinstance(proposal_id, str) or not proposal_id.strip():
             issues.append(
-                make_issue("INVALID_OUTPUT", "提案缺少 proposal_id", field_path=f"{path}.proposal_id")
+                make_issue("INVALID_OUTPUT", "proposal is missing proposal_id", field_path=f"{path}.proposal_id")
             )
             continue
         if proposal_id in seen_ids:
             issues.append(
-                make_issue("INVALID_OUTPUT", "提案 ID 重复", field_path=f"{path}.proposal_id")
+                make_issue("INVALID_OUTPUT", "proposal ID is duplicated", field_path=f"{path}.proposal_id")
             )
             continue
 
@@ -64,7 +64,7 @@ def sanitize_proposals(
             issues.append(
                 make_issue(
                     "CONSTRAINT_CHANGE_NOT_ALLOWED",
-                    "放宽硬条件必须标记为需要用户确认",
+                    "relaxing a hard condition must be marked as requiring user confirmation",
                     field_path=f"{path}.requires_user_confirmation",
                 )
             )
@@ -75,7 +75,7 @@ def sanitize_proposals(
             issues.append(
                 make_issue(
                     "CONSTRAINT_CHANGE_NOT_ALLOWED",
-                    f"字段 {field!r} 不在可放宽白名单内",
+                    f"field {field!r} is not in the relaxable whitelist",
                     field_path=f"{path}.field",
                 )
             )
@@ -85,16 +85,16 @@ def sanitize_proposals(
             current = read_relaxable_value(profile, field)
         except KeyError:
             issues.append(
-                make_issue("INVALID_OUTPUT", "提案字段在档案中不存在", field_path=f"{path}.field")
+                make_issue("INVALID_OUTPUT", "proposal field does not exist in the profile", field_path=f"{path}.field")
             )
             continue
 
-        # 提案必须基于用户当前确认的值构造，否则可能把旧结论套到新需求上。
+        # The proposal must be constructed based on the value the user currently confirmed, otherwise an old conclusion may be applied to a new requirement.
         if proposal.get("old_value") != current:
             issues.append(
                 make_issue(
                     "STATE_CONFLICT",
-                    "提案的 old_value 与当前档案不一致",
+                    "the proposal's old_value is inconsistent with the current profile",
                     field_path=f"{path}.old_value",
                 )
             )
@@ -104,7 +104,7 @@ def sanitize_proposals(
             issues.append(
                 make_issue(
                     "CONSTRAINT_CHANGE_NOT_ALLOWED",
-                    "提案不是可识别的放宽方向",
+                    "the proposal is not a recognizable relaxation direction",
                     field_path=f"{path}.proposed_value",
                 )
             )
@@ -122,17 +122,17 @@ def sanitize_directive(
     profile_version: int,
     allowed_sources: Sequence[str],
 ) -> tuple[SearchDirective | None, list[Issue]]:
-    """补搜指令通过则原样返回；任何一项不合法就整条丢弃。"""
+    """If the supplementary search instruction passes, it is returned as is; if any item is invalid, the whole thing is discarded."""
     path = "assessment.search_directive"
     if directive is None:
         return None, []
     if not isinstance(directive, dict):
-        return None, [make_issue("INVALID_OUTPUT", "补搜指令必须是对象", field_path=path)]
+        return None, [make_issue("INVALID_OUTPUT", "supplementary search instruction must be an object", field_path=path)]
 
     if directive.get("reason_code") not in DIRECTIVE_REASONS:
         return None, [
             make_issue(
-                "INVALID_OUTPUT", "补搜指令的 reason_code 非法", field_path=f"{path}.reason_code"
+                "INVALID_OUTPUT", "the supplementary search instruction's reason_code is invalid", field_path=f"{path}.reason_code"
             )
         ]
 
@@ -140,7 +140,7 @@ def sanitize_directive(
         return None, [
             make_issue(
                 "STATE_CONFLICT",
-                "补搜指令挂在别的需求版本上",
+                "the supplementary search instruction is attached to a different requirement version",
                 field_path=f"{path}.base_profile_version",
             )
         ]
@@ -150,7 +150,7 @@ def sanitize_directive(
         return None, [
             make_issue(
                 "INVALID_OUTPUT",
-                "补搜指令必须给出至少一项策略调整",
+                "the supplementary search instruction must provide at least one strategy adjustment",
                 field_path=f"{path}.strategy_changes",
             )
         ]
@@ -163,7 +163,7 @@ def sanitize_directive(
             return None, [
                 make_issue(
                     "CONSTRAINT_CHANGE_NOT_ALLOWED",
-                    f"策略调整 {kind!r} 不在允许的查找方法内",
+                    f"strategy adjustment {kind!r} is not among the allowed lookup methods",
                     field_path=f"{change_path}.kind",
                 )
             ]
@@ -171,14 +171,14 @@ def sanitize_directive(
             if not isinstance(change.get(key), str) or not change[key].strip():
                 return None, [
                     make_issue(
-                        "INVALID_OUTPUT", f"{kind} 缺少 {key}", field_path=f"{change_path}.{key}"
+                        "INVALID_OUTPUT", f"{kind} is missing {key}", field_path=f"{change_path}.{key}"
                     )
                 ]
         if kind == "alternate_source" and change["source"] not in allowed_sources:
             return None, [
                 make_issue(
                     "SOURCE_UNAVAILABLE",
-                    f"来源 {change['source']!r} 不在后端允许范围内",
+                    f"source {change['source']!r} is not within the range allowed by the backend",
                     field_path=f"{change_path}.source",
                 )
             ]
@@ -187,7 +187,7 @@ def sanitize_directive(
         return None, [
             make_issue(
                 "INVALID_OUTPUT",
-                "evidence_listing_keys 必须是数组",
+                "evidence_listing_keys must be an array",
                 field_path=f"{path}.evidence_listing_keys",
             )
         ]
@@ -198,9 +198,9 @@ def sanitize_directive(
 def prepare_for_display(
     recommendation: Recommendation, *, display_limit: int, eligible_keys: set[str]
 ) -> tuple[Recommendation, list[Issue]]:
-    """发布前的最后一道程序检查：展示上限、名次连续、候选归属。
+    """The last programmatic check before publishing: display limit, consecutive ranks, candidate ownership.
 
-    这里不重排模型给出的顺序，只截断和拒绝越界候选。
+    This does not reorder the sequence given by the model, only truncates and rejects out-of-range candidates.
     """
     issues: list[Issue] = []
     items = list(recommendation.get("ordered_items") or [])
@@ -210,7 +210,7 @@ def prepare_for_display(
             issues.append(
                 make_issue(
                     "INVALID_OUTPUT",
-                    f"推荐引用了不在 B 移交候选内的 {item.get('listing_key')!r}",
+                    f"the recommendation references {item.get('listing_key')!r} which is not among the candidates handed over by B",
                     field_path=f"recommendation.ordered_items[{index}].listing_key",
                 )
             )
@@ -218,7 +218,7 @@ def prepare_for_display(
     ranks = [item.get("rank") for item in items]
     if ranks != list(range(1, len(items) + 1)):
         issues.append(
-            make_issue("INVALID_OUTPUT", "推荐名次不是从 1 开始的连续整数", field_path="recommendation.ordered_items")
+            make_issue("INVALID_OUTPUT", "recommendation ranks are not consecutive integers starting from 1", field_path="recommendation.ordered_items")
         )
 
     if issues:
@@ -229,7 +229,7 @@ def prepare_for_display(
         trimmed["ordered_items"] = items[:display_limit]
         trimmed["limitations"] = [
             *recommendation.get("limitations", []),
-            f"本次仅展示前 {display_limit} 条，B 候选共 {len(items)} 条。",
+            f"This time only the first {display_limit} items are displayed, and B has {len(items)} candidates in total.",
         ]
         return trimmed, []  # type: ignore[return-value]
 

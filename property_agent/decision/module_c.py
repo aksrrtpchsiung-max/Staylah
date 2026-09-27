@@ -1,4 +1,4 @@
-"""正式模块 C：直接实现 EvaluationModule，签名与 property_agent.contracts 一致。"""
+"""Formal module C: directly implements EvaluationModule, with signatures consistent with property_agent.contracts."""
 from __future__ import annotations
 
 from property_agent.evaluation import service as part_c
@@ -18,7 +18,7 @@ from property_agent.contracts import (
 
 
 class PartCEvaluationModule:
-    """调用仓库根目录 ``part_c.evaluate`` / ``part_c.review``。"""
+    """Calls ``part_c.evaluate`` / ``part_c.review`` in the repository root directory."""
 
     async def evaluate(
         self,

@@ -1,7 +1,7 @@
-"""2：先搜索、后补充的搜索管理 Agent；模型只能在当前阶段内选择任务。
+"""2: A search management Agent that searches first and enriches later; the model can only choose tasks within the current phase.
 
-模型使用 config.py 的 ainvoke 消息接口，不依赖网关尚未验证的 bind_tools。
-运行本文件使用真实网关和浏览器，检查 2→3a 的搜索、筛选和按需详情。
+The model uses the ainvoke message interface from config.py and does not rely on the gateway's not-yet-verified bind_tools.
+Running this file uses the real gateway and browser to check the search, filtering, and on-demand details of 2→3a.
 """
 import asyncio
 from copy import deepcopy
@@ -25,11 +25,11 @@ class SearchSupervisor:
     def __init__(self, dispatcher, *, model=None, max_retries=1, model_timeout_seconds=8,
                  max_model_calls=3):
         if type(max_retries) is not int or not 0 <= max_retries <= 3:
-            raise ValueError('max_retries 必须是 0–3')
+            raise ValueError('max_retries must be 0–3')
         if not 0 < model_timeout_seconds <= 60:
-            raise ValueError('模型决策超时必须在 0–60 秒内')
+            raise ValueError('model decision timeout must be within 0–60 seconds')
         if type(max_model_calls) is not int or max_model_calls <= 0:
-            raise ValueError('max_model_calls 必须是正整数')
+            raise ValueError('max_model_calls must be a positive integer')
         self.dispatcher, self.model = dispatcher, model
         self.max_retries = max_retries
         self.model_timeout_seconds = model_timeout_seconds
@@ -37,9 +37,9 @@ class SearchSupervisor:
         self._model_disabled = False
 
     def hard_rejections(self, state, listing):
-        """只跳过有证据的硬失败；缺失、冲突和软偏好仍允许补查。
+        """Skip only hard failures that have evidence; missing, conflicting, and soft preferences may still be rechecked.
 
-        不删除候选，最终逐项检查仍交给汇总/C；这里只控制是否继续花费检索额度。
+        Do not delete candidates; the final item-by-item check is still left to the summary/C; here we only control whether to continue spending retrieval budget.
         """
         request = state.get('requirement_request')
         if request is not None:
@@ -47,7 +47,7 @@ class SearchSupervisor:
                 [c for c in request['listing_constraints'] if c['strength'] == 'hard'],
                 filters=state['plan']['required_filters']) if c['status'] == 'fail']
         else:
-            # 独立 search(plan) 没有 SourceReference，不伪造用户条件/证据。
+            # The standalone search(plan) has no SourceReference, so do not fabricate user conditions/evidence.
             filters = state['plan']['required_filters']
             def known(field):
                 value = listing
@@ -72,17 +72,17 @@ class SearchSupervisor:
                 if actual is not None and expected is not None and (
                         actual != expected if operator == 'eq' else
                         actual < expected if operator == 'gte' else actual > expected):
-                    failures.append(dict(field=field, status='fail', reason='不满足搜索计划硬条件',
+                    failures.append(dict(field=field, status='fail', reason='does not satisfy the search plan hard conditions',
                         evidence_ids=[e['evidence_id'] for e in listing['evidence'] if e['field'] == field]))
-        # 契约明确禁止推荐已下架房源；原候选继续保留给 C 核对。
+        # The contract explicitly prohibits recommending delisted listings; the original candidates remain for C to verify.
         if listing['listing_status'] == 'inactive' and any(
                 e['field'] == 'listing_status' and e['value'] == 'inactive' for e in listing['evidence']):
-            failures.append(dict(field='listing_status', status='fail', reason='房源已下架',
+            failures.append(dict(field='listing_status', status='fail', reason='listing has been delisted',
                 evidence_ids=[e['evidence_id'] for e in listing['evidence'] if e['field'] == 'listing_status']))
         return failures
 
     def available_tasks(self, state):
-        """只开放一个阶段；执行前的二次核对也使用同一阶段限制。"""
+        """Only one phase is open; the pre-execution secondary check also uses the same phase restriction."""
         tasks = []
         budget = self.dispatcher.budget
         has_budget = budget.pages_used < state['plan']['page_limit'] and budget.candidates_used < state['plan']['candidate_limit']
@@ -92,16 +92,16 @@ class SearchSupervisor:
             cached = self.dispatcher.history.get_page(state['plan'], qid, progress['cursor'])
             if has_budget or cached is not None:
                 tasks.append(task('search_page', query_id=qid, cursor=progress['cursor']))
-        # 包括仍能复用的真实页面：有搜索任务时，绝不开放详情、定位等补充能力。
+        # Includes real pages that can still be reused: when there is a search task, never open supplementary capabilities such as details or locating.
         if tasks:
             return tasks
 
-        # 搜索完成后按实际缺口派工；注册 Provider 不等于用户要求调用它。
+        # After the search is complete, dispatch work according to the actual gaps; registering a Provider does not mean the user requested calling it.
         completed = set(state['completed_tasks'])
         requirements = [r for r in investigation_requirements(state.get('requirement_request') or {})
                         if supports_requirement(r)]
         for key, listing in state['listings'].items():
-            # 搜索卡片先筛一次；详情补齐字段后再次筛，避免继续定位/配套调查。
+            # Filter the search cards once first; filter again after details fill in fields, to avoid continuing locating/amenity investigation.
             if self.hard_rejections(state, listing):
                 continue
             detail = task('read_detail', listing_key=key)
@@ -110,7 +110,7 @@ class SearchSupervisor:
                             listing_key=key, requirement_id=r['requirement_id'])
                        for r in sorted(requirements, key=lambda r: {'high': 0, 'medium': 1, 'low': 2}[r['priority']])]
             pending = [t for t in pending if t['task_id'] not in completed]
-            # 地图调查需要地址时才从详情补地址，不把详情设为所有能力的固定前置。
+            # Only fetch the address from details when map investigation needs an address; do not make details a fixed prerequisite for all capabilities.
             address_needed = bool(pending) and not request_from_listing(listing)['query']
             if (gaps or address_needed) and detail['task_id'] not in completed:
                 tasks.append(detail)
@@ -126,7 +126,7 @@ class SearchSupervisor:
         return tasks
 
     def detail_gaps(self, state, listing):
-        """明确列出 guru 详情有能力补充的未知需求字段；已知/冲突不反复读取。"""
+        """Explicitly list the unknown requirement fields that guru details are capable of supplementing; known/conflicting ones are not read repeatedly."""
         capability = self.dispatcher.listings[listing['source']]
         fields = getattr(capability.provider, 'detail_fields', frozenset())
         request = state.get('requirement_request')
@@ -136,7 +136,7 @@ class SearchSupervisor:
             return sorted({c['field'] for c in checks if c['status'] == 'unknown' and c['field'] in fields
                            and c['field'] + ':conflict' not in listing['field_issues']
                            and not (c['field'].startswith('price.') and listing['price']['status'] == 'conflict')})
-        # 独立 search(plan) 只检查其真实给出的条件；不虚构 RequirementRequest。
+        # The standalone search(plan) only checks the conditions it actually provides; do not fabricate a RequirementRequest.
         filters = state['plan']['required_filters']
         required = [('price.amount', filters['max_price']), ('bedrooms', filters['min_bedrooms']),
                     ('attributes.listing_scope', filters['rental_scope'])]
@@ -151,7 +151,7 @@ class SearchSupervisor:
         return gaps
 
     def task_context(self, state, selected):
-        """向 Agent 和计时日志提供每次补查的具体原因，避免只给不透明任务 ID。"""
+        """Provide the Agent and timing log with the specific reason for each recheck, avoiding giving only an opaque task ID."""
         key = selected.get('listing_key')
         if key is None:
             return dict(query_id=selected['query_id'], cursor=selected['cursor'])
@@ -172,27 +172,27 @@ class SearchSupervisor:
                     if (failures := self.hard_rejections(state, listing))}
         for key, failures in screened.items():
             if state.get('screened_out', {}).get(key) != failures:
-                logging.getLogger('search.audit').info('跳过硬条件失败候选的后续补查',
+                logging.getLogger('search.audit').info('skipping follow-up recheck of candidates that failed hard conditions',
                     extra={'audit': dict(event='screened_out', listing_key=key, failures=failures)})
         try:
             self.dispatcher.budget.work_seconds(state['ctx'])
         except ProviderError:
             return dict(selected_task=None, stop_reason='deadline', screened_out=screened, issues=state['issues'] + [
-                issue('TIMEOUT', '搜索已到执行时限，预留汇总时间并保留已取得的房源', source=None)])
+                issue('TIMEOUT', 'search has reached its execution time limit; reserve summary time and keep the listings already obtained', source=None)])
         tasks = self.available_tasks(state)
         phase = 'search' if tasks and tasks[0]['kind'] == 'search_page' else 'enrich'
         pending = any(not q['done'] and not q['blocked'] for q in state['queries'].values())
         problems = state['issues'][:]
-        # 在进入补充阶段时就记录额度中断，之后即使超时也不会丢失搜索未完成的原因。
+        # Record the budget interruption when entering the enrichment phase, so that even if it times out later, the reason the search was incomplete is not lost.
         if phase == 'enrich' and pending and not any(p['code'] == 'BUDGET_EXHAUSTED' for p in problems):
-            problems.append(issue('BUDGET_EXHAUSTED', '本次页数或候选额度用完，保留后续游标', source=None))
+            problems.append(issue('BUDGET_EXHAUSTED', 'the page or candidate budget for this run is used up; keep the subsequent cursor', source=None))
         if not tasks:
             return dict(selected_task=None, stop_reason='budget' if pending else 'complete', issues=problems, screened_out=screened)
         selected = tasks[0]
-        reason = '搜索阶段：先执行硬条件搜索' if phase == 'search' else '补充阶段：按依赖补充候选信息'
-        # 只有一个可执行任务时无需再花一次模型往返来选择同一个任务。
+        reason = 'search phase: execute hard-condition search first' if phase == 'search' else 'enrichment phase: supplement candidate information by dependency'
+        # When there is only one executable task, there is no need to spend another model round trip to choose the same task.
         if len(tasks) > 1 and self.model is not None and not self._model_disabled and self.model_calls < self.max_model_calls:
-            # 限定一次决策的菜单长度；不向模型发送网页原文或任何密钥。
+            # Limit the menu length for one decision; do not send the model the original web page text or any keys.
             menu = tasks[:64]
             payload = dict(phase=phase, available_tasks=menu,
                            task_context={t['task_id']: self.task_context(state, t) for t in menu},
@@ -207,7 +207,7 @@ class SearchSupervisor:
                 async with asyncio.timeout(min(self.model_timeout_seconds, self.dispatcher.budget.work_seconds(state['ctx']))):
                     self.model_calls += 1
                     reply = await self.model.ainvoke([
-                        {'role': 'system', 'content': '你是搜索管理 Agent，只负责当前这一次任务选择，程序随后才会调用真实工具。调度分两阶段：phase=search 时只能选择 3a 的 search_page，按既定硬条件先搜索并收集候选，不能提前补充信息；phase=enrich 时搜索阶段已结束，只能对已取得的候选选择菜单中的补充任务：read_detail（3a 详情）、locate（3b 定位）、amenities（3c 配套）或 travel（3d 出行），依赖关系由程序保证。进入补充阶段不代表搜索完整完成，以 queries_completed 为准；额度耗尽或查询受阻时仍可补充已有候选，候选不代表已满足全部硬条件。阶段切换和停止由程序决定，不得改写或放宽硬条件。只能从 available_tasks 复制一个 task_id，禁止执行或模拟任务，禁止编造房源、坐标、工具结果和后续对话。只输出一行 JSON，恰好包含 task_id 和 reason 两个非空字符串，reason 不超过30字。不用Markdown。JSON结束后输出 <END_DECISION> 并立即结束。'},
+                        {'role': 'system', 'content': 'You are the search management Agent, responsible only for this one task selection; the program will then call the real tools. Scheduling has two phases: when phase=search, you may only choose the 3a search_page task, search first according to the established hard conditions and collect candidates, and must not supplement information in advance; when phase=enrich, the search phase has ended, and you may only choose supplementary tasks from the menu for the candidates already obtained: read_detail (3a details), locate (3b locating), amenities (3c amenities), or travel (3d travel); dependency relationships are guaranteed by the program. Entering the enrichment phase does not mean the search is fully complete; use queries_completed as the criterion; when the budget is exhausted or the query is blocked, existing candidates may still be enriched, and candidates do not mean all hard conditions have been satisfied. Phase switching and stopping are decided by the program, and the hard conditions must not be rewritten or relaxed. You may only copy one task_id from available_tasks; executing or simulating tasks is prohibited, and fabricating listings, coordinates, tool results, and subsequent dialogue is prohibited. Output only one line of JSON, containing exactly two non-empty strings, task_id and reason; reason must not exceed 30 characters. Do not use Markdown. After the JSON ends, output <END_DECISION> and end immediately.'},
                         {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)}],
                         stream=False, stop=['<END_DECISION>'])
                 content = reply.content
@@ -223,31 +223,31 @@ class SearchSupervisor:
                 selected = next(t for t in menu if t['task_id'] == decision['task_id'])
                 reason = decision['reason'][:500]
             except (ValueError, StopIteration, AttributeError):
-                problems.append(issue('INVALID_OUTPUT', '管理模型返回了无效任务，已改用固定调度', source='model'))
+                problems.append(issue('INVALID_OUTPUT', 'the management model returned an invalid task; fixed scheduling has been used instead', source='model'))
                 self._model_disabled = True
             except Exception as exc:
                 code = 'TIMEOUT' if isinstance(exc, TimeoutError) else 'MODEL_UNAVAILABLE'
-                problems.append(issue(code, f'管理模型调用失败（{type(exc).__name__}），已改用固定调度', source='model', retryable=True))
+                problems.append(issue(code, f'management model call failed ({type(exc).__name__}); fixed scheduling has been used instead', source='model', retryable=True))
                 self._model_disabled = True
             finally:
-                logging.getLogger('search.audit').info('管理模型决策完成', extra={'audit': dict(
+                logging.getLogger('search.audit').info('management model decision completed', extra={'audit': dict(
                     event='supervisor_model', duration_ms=round((monotonic() - model_started) * 1000),
                     phase=phase, fallback=self._model_disabled, available_count=len(tasks))})
         return dict(selected_task=selected, decision_reason=reason, issues=problems, screened_out=screened)
 
     async def execute(self, state):
-        # 二次核对，不能让模型输出直接成为外部调用参数。
+        # Secondary check; the model output must not directly become external call parameters.
         selected = state['selected_task']
         if selected not in self.available_tasks(state):
             return dict(selected_task=None, stop_reason='invalid_state', issues=state['issues'] + [
-                issue('INVALID_STATE', '选择的任务已经不可执行', source=None)])
+                issue('INVALID_STATE', 'the selected task is no longer executable', source=None)])
         started = monotonic()
         try:
             async with asyncio.timeout(self.dispatcher.budget.work_seconds(state['ctx'])):
                 result = await self.dispatcher.execute(selected, state)
         except (TimeoutError, ProviderError) as exc:
             problem = exc.issue if isinstance(exc, ProviderError) else issue(
-                'TIMEOUT', '任务达到执行时限，预留时间汇总已有结果', source=None)
+                'TIMEOUT', 'the task has reached its execution time limit; reserve time to summarize existing results', source=None)
             result = dict(status='error', data=None, issues=[problem])
         updated = deepcopy(state)
         tid, kind = selected['task_id'], selected['kind']
@@ -263,9 +263,9 @@ class SearchSupervisor:
             attempt=attempts, reason=state['decision_reason'], duration_ms=round((monotonic() - started) * 1000),
             listing_key=selected.get('listing_key'), context=self.task_context(state, selected))
         updated['history'].append(record)
-        logging.getLogger('search.audit').info('检索任务完成', extra={'audit': dict(event='task', **record)})
+        logging.getLogger('search.audit').info('retrieval task completed', extra={'audit': dict(event='task', **record)})
         retryable = any(p['retryable'] for p in result['issues'])
-        # partial 搜索页已有事实和游标，不重取；详情/定位失败可有界重试。
+        # The partial search page already has facts and a cursor, so do not refetch; detail/locate failures may be retried with bounds.
         retry = retryable and attempts <= self.max_retries and (kind != 'search_page' or result['data'] is None)
         if retry:
             delay = max((p['retry_after_seconds'] or 0 for p in result['issues']), default=0)
@@ -291,10 +291,10 @@ class SearchSupervisor:
                 progress['blocked'] = not progress['done'] and next_cursor is None
                 if next_cursor is not None and next_cursor in progress['seen_cursors']:
                     progress['blocked'] = True
-                    progress['cursor'] = None  # 已知循环游标不能继续交给 A 当作可用续页。
-                    updated['task_issues'][tid].append(issue('RETRIEVAL_DEGRADED', '来源重复返回已经执行过的游标，已停止该查询', source=source))
+                    progress['cursor'] = None  # A known looping cursor must not continue to be handed to A as a usable continuation page.
+                    updated['task_issues'][tid].append(issue('RETRIEVAL_DEGRADED', 'the source repeatedly returned a cursor that has already been executed; this query has been stopped', source=source))
                 if progress['blocked'] and not updated['task_issues'][tid]:
-                    updated['task_issues'][tid].append(issue('RETRIEVAL_DEGRADED', '来源未提供可继续的可靠游标', source=source))
+                    updated['task_issues'][tid].append(issue('RETRIEVAL_DEGRADED', 'the source did not provide a reliable cursor that can continue', source=source))
             elif not retry:
                 progress['blocked'] = True
         elif kind == 'read_detail':
@@ -338,7 +338,7 @@ if __name__ == '__main__':
     from time import monotonic
 
     class AuditedModel:
-        """检查每次真实模型调用的任务菜单；不替换模型回复或工具结果。"""
+        """Check the task menu of each real model call; do not replace model replies or tool results."""
         def __init__(self, model):
             self.model = model
             self.decisions = []
@@ -348,17 +348,17 @@ if __name__ == '__main__':
             phase = payload['phase']
             kinds = {t['kind'] for t in payload['available_tasks']}
             assert (phase == 'search' and kinds == {'search_page'}) or (
-                phase == 'enrich' and kinds and kinds <= {'read_detail', 'locate', 'amenities', 'travel'}), '任务菜单跨越阶段'
-            assert not (phase == 'search' and any(d['phase'] == 'enrich' for d in self.decisions)), '补充后又返回搜索'
+                phase == 'enrich' and kinds and kinds <= {'read_detail', 'locate', 'amenities', 'travel'}), 'task menu crosses phases'
+            assert not (phase == 'search' and any(d['phase'] == 'enrich' for d in self.decisions)), 'returned to search after enrichment'
             self.decisions.append(dict(phase=phase, kinds=sorted(kinds),
                                        candidate_count=payload['candidate_count']))
-            print(f'真实决策：{phase}，候选 {payload["candidate_count"]}，任务 {sorted(kinds)}', file=sys.stderr, flush=True)
+            print(f'real decision: {phase}, candidates {payload["candidate_count"]}, tasks {sorted(kinds)}', file=sys.stderr, flush=True)
             return await self.model.ainvoke(messages, **kwargs)
 
-    parser = argparse.ArgumentParser(description='真实 2→3a 联调；缺少真实依赖时失败，不使用虚拟响应')
-    parser.add_argument('--live', action='store_true', help='兼容旧命令；现在默认就是 live')
-    parser.add_argument('--input', type=Path, help='至少三个 {plan, ctx} 的真实搜索输入，省略时使用三组实际区域查询')
-    parser.add_argument('--output', type=Path, help='可选：保存本次真实调用的输入、执行历史及输出 JSON')
+    parser = argparse.ArgumentParser(description='real 2→3a integration; fails when real dependencies are missing, and does not use virtual responses')
+    parser.add_argument('--live', action='store_true', help='compatible with the old command; now the default is live')
+    parser.add_argument('--input', type=Path, help='at least three real search inputs of {plan, ctx}; when omitted, three sets of actual area queries are used')
+    parser.add_argument('--output', type=Path, help='optional: save the input, execution history, and output JSON of this real call')
     args = parser.parse_args()
 
     async def main():
@@ -366,7 +366,7 @@ if __name__ == '__main__':
             loaded = json.loads(args.input.read_text())
             cases = loaded if isinstance(loaded, list) else [loaded]
             if len(cases) < 3 or any(c['plan']['source_mode'] != 'live' or c['ctx']['source_mode'] != 'live' for c in cases):
-                parser.error('需要至少三组 live 输入，不使用虚拟响应')
+                parser.error('at least three sets of live input are required; virtual responses are not used')
         else:
             cases = []
             for name, maximum in [('Tampines', 4000), ('Clementi', 4500), ('Punggol', 4000)]:
@@ -374,11 +374,11 @@ if __name__ == '__main__':
                 plan = dict(plan_id=identity, profile_version=1, attempt_id=identity, intent='rent',
                     required_filters=dict(currency='SGD', max_price=maximum, price_period='month',
                         rental_scope='whole_unit', locations=[name.upper()], min_bedrooms=2),
-                    # 相同查询用不同 ID 进入计划，第二项复用真实页面。
-                    # 即使已有候选且额度用完，也必须先完成此搜索任务再读详情。
+                    # The same query enters the plan with different IDs; the second item reuses the real page.
+                    # Even if candidates already exist and the budget is used up, this search task must be completed before reading details.
                     queries=[dict(query_id='q-' + name.lower() + suffix, source='propertyguru', text=name, cursor=None)
                              for suffix in ('', '-reuse')],
-                    page_limit=1, candidate_limit=1, source_mode='live', reason='真实联调：先搜索及复用页面，再补充候选信息')
+                    page_limit=1, candidate_limit=1, source_mode='live', reason='real integration: search and reuse pages first, then enrich candidate information')
                 ctx = dict(user_id='live-check', run_id=identity, conversation_id=identity, attempt_id=identity,
                     trace_id=identity, call_id=identity, source_mode='live',
                     deadline_at=(datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat())
@@ -390,23 +390,23 @@ if __name__ == '__main__':
             started = monotonic()
             try:
                 service = create_live_search_service()
-                print(f'开始真实阶段测试：{case["plan"]["queries"][0]["text"]}', file=sys.stderr, flush=True)
+                print(f'starting real phase test: {case["plan"]["queries"][0]["text"]}', file=sys.stderr, flush=True)
                 audit = AuditedModel(service.model)
                 service.model = audit
                 state = await service.run(case['plan'], ctx=case['ctx'])
                 result = aggregate(state, started)
-                # 所有返回均来自真实服务；检查模型菜单和实际调用顺序两层约束。
+                # All returns come from the real service; check both the model menu and the actual call order constraints.
                 order = [h['kind'] for h in state['history']]
                 first_enrich = next((i for i, kind in enumerate(order) if kind != 'search_page'), len(order))
                 phase_order_verified = bool(order) and order[0] == 'search_page' and 'search_page' not in order[first_enrich:]
                 queries_complete = all(q['done'] for q in state['queries'].values())
                 incomplete_reported = queries_complete or (result['status'] != 'success'
                     and result['data'] is not None and not result['data']['coverage']['queries_completed'])
-                # 默认三组必须实际经过“已有房源，但仍要继续处理搜索任务”的边界。
+                # The default three sets must actually pass through the boundary of "listings already exist, but the search task must still continue to be processed".
                 search_with_candidates = sum(h['kind'] == 'search_page' and h['status'] in ('success', 'partial')
                                              for h in state['history']) >= 2
                 kinds = {h['kind'] for h in state['history'] if h['status'] == 'success'}
-                # 这些原始计划没有配套/通勤需求，不应仅因注册 Provider 就查询地图。
+                # These original plans have no amenity/commute requirements, so the map should not be queried merely because a Provider is registered.
                 accepted = ({'search_page', 'read_detail'} <= kinds
                     and not ({'locate', 'amenities', 'travel'} & set(order))
                     and not any(p['source'] == 'model' for p in result['issues'])
@@ -423,7 +423,7 @@ if __name__ == '__main__':
             print(json.dumps(record, ensure_ascii=False), flush=True)
         if args.output:
             args.output.write_text(json.dumps(records, ensure_ascii=False, indent=2))
-        print(f'真实 2→3a 链路通过 {passed}/{len(cases)}；搜索和详情实际成功且没有无需求地图调用才通过。')
+        print(f'real 2→3a chain passed {passed}/{len(cases)}; it passes only if search and details actually succeed and there are no map calls without requirements.')
         return 0 if passed == len(cases) else 1
 
     raise SystemExit(asyncio.run(main()))

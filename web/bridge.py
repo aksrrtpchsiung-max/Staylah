@@ -9,7 +9,7 @@ from property_agent.requirements.workflow_constants import DEFAULT_USER_ID
 from .cards import RecommendationCards
 
 class WebBridge(RecommendationCards):
-    """按浏览器会话串行调用既有编排；仅接受服务端已返回的房源标识。"""
+    """Invoke the existing orchestration serially per browser session; only accept property identifiers already returned by the server."""
 
     PROGRESS_LABELS = {
         ('A', 'requirement_turn'): 'Understanding your requirements…',
@@ -189,7 +189,7 @@ class WebBridge(RecommendationCards):
                         'This request timed out and was stopped. Please retry or narrow your search.'))
 
     async def cancel(self, token, payload):
-        """不等待会话锁；取消实际任务，记录提前到达的取消以防请求竞态。"""
+        """Do not wait for the session lock; cancel the actual task and record early-arriving cancellations to guard against request races."""
         session = self._session(token)
         message_id = self._message_id(payload)
         if message_id in session['replies']:
@@ -205,7 +205,7 @@ class WebBridge(RecommendationCards):
         return {'status': 'cancelled'}
 
     async def progress(self, token, payload):
-        """返回当前请求的真实 A/B/C stage，不暴露输入、模型输出或内部推理。"""
+        """Return the true A/B/C stage of the current request without exposing inputs, model outputs, or internal reasoning."""
         session = self._session(token)
         message_id = self._message_id(payload)
         current = session.get('progress')
@@ -278,7 +278,7 @@ class WebBridge(RecommendationCards):
             confirmed_title = ' '.join(str(confirmation.get('summary') or '').split())
             text = 'confirm'
         if keys:
-            # 既有 handle_message 仅支持 text；用可信快照构造本轮参考上下文。
+            # The existing handle_message only supports text; build this round's reference context from a trusted snapshot.
             context = [session['cards'][k] for k in dict.fromkeys(keys)]
             text += '\n\nSelected homes for this question (reference data, not new requirements):\n' + json.dumps(context, ensure_ascii=False)
         from property_agent.evaluation_trace import capture_trace

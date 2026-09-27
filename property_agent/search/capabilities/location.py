@@ -1,7 +1,7 @@
-"""3b：带来源的地址线索 → 标准地址、坐标、精度及歧义。
+"""3b: Address clues with provenance -> standardized address, coordinates, precision, and ambiguity.
 
-不修改 Listing.location_id，不从标题/周边设施猜房源位置。
-运行真实定位输入输出：.venv/bin/python -m property_agent.search.capabilities.location
+Do not modify Listing.location_id, and do not guess the property location from the title or nearby amenities.
+Run real geolocation input/output: .venv/bin/python -m property_agent.search.capabilities.location
 """
 import asyncio
 from copy import deepcopy
@@ -35,7 +35,7 @@ def address_identity(value):
 
 
 def request_from_listing(listing: Listing) -> LocationRequest:
-    """只使用明确标注的位置字段；不扫描附近地铁、介绍或标题中的数字。"""
+    """Use only explicitly labeled location fields; do not scan nearby subway stations, descriptions, or numbers in the title."""
     validate_listing(listing)
     values = {'address': [], 'postal_code': [], 'building': []}
     excerpts = []
@@ -64,7 +64,7 @@ def request_from_listing(listing: Listing) -> LocationRequest:
             except ValueError:
                 continue
             if isinstance(info, dict):
-                # 仅访问明确地址键；不递归抓取 nearby/place 等其他地点。
+                # Access only explicit address keys; do not recursively fetch other locations such as nearby/place.
                 for name, content in info.items():
                     mapped = labels.get(re.sub(r'[^a-z]', '', name.lower()))
                     if mapped:
@@ -77,7 +77,7 @@ def request_from_listing(listing: Listing) -> LocationRequest:
         match = re.search(r'\b(?:Singapore|S)\s*(\d{6})\b', address, flags=re.I)
         if match:
             add('postal_code', match.group(1), address)
-    # 相互冲突的原始地址留作缺口，不能悄悄挑一个。
+    # Conflicting raw addresses are left as gaps; do not quietly pick one.
     conflicting = any(len({normalized(v) for v in group}) > 1 for group in values.values())
     chosen = {key: group[0] if group else None for key, group in values.items()}
     query = chosen['postal_code'] or chosen['address'] or chosen['building'] or ''
@@ -111,11 +111,11 @@ class LocationCapability:
             validate_context(ctx)
             validate_type(LocationRequest, request, 'location_request')
             if self.provider.source_mode != ctx['source_mode']:
-                fail('ctx.source_mode', '定位 Provider 与上下文模式不同')
+                fail('ctx.source_mode', 'Geolocation Provider differs from context mode')
             if request['postal_code'] is not None and not re.fullmatch(r'\d{6}', request['postal_code']):
-                fail('location_request.postal_code', '需要六位新加坡邮编')
+                fail('location_request.postal_code', 'A six-digit Singapore postal code is required')
             if not request['query'].strip() or not request['excerpt'].strip():
-                problem = issue('RETRIEVAL_DEGRADED', '缺少明确房源地址，或原始地址存在冲突', source=self.provider.source)
+                problem = issue('RETRIEVAL_DEGRADED', 'Missing an explicit property address, or the raw addresses conflict', source=self.provider.source)
                 return _wrap(_blank('insufficient', ['address:insufficient_or_conflicting']), [problem], ctx, started)
             async with asyncio.timeout(remaining_seconds(ctx)):
                 scope = tuple(ctx[k] for k in ('user_id', 'run_id', 'conversation_id', 'attempt_id', 'source_mode'))
@@ -130,9 +130,9 @@ class LocationCapability:
                             for candidate in matches['candidates']:
                                 lat, lon = candidate['latitude'], candidate['longitude']
                                 if not (math.isfinite(lat) and math.isfinite(lon) and 1.1 <= lat <= 1.6 and 103.5 <= lon <= 104.2):
-                                    fail('geocoding.coordinates', '不是新加坡范围内的有效坐标')
+                                    fail('geocoding.coordinates', 'Not valid coordinates within Singapore')
                                 if not candidate['address'].strip() or not candidate['source_url'].strip():
-                                    fail('geocoding', '定位结果必须有地址与来源')
+                                    fail('geocoding', 'Geolocation results must have an address and a source')
                                 timestamp(candidate['observed_at'], 'geocoding.observed_at')
                         except ContractViolation as exc:
                             raise ProviderError(issue('INVALID_OUTPUT', str(exc), source=self.provider.source, field_path=exc.field_path)) from exc
@@ -140,7 +140,7 @@ class LocationCapability:
                             self._cache[key] = deepcopy(matches)
             data = self._match(request, matches)
             problems = [] if data['status'] == 'resolved' else [issue('RETRIEVAL_DEGRADED',
-                '地址未得到唯一可靠匹配：' + ', '.join(data['gaps']), source=self.provider.source)]
+                'Address did not get a unique reliable match: ' + ', '.join(data['gaps']), source=self.provider.source)]
             validate_type(LocationResult, data, 'location_result')
             return _wrap(data, problems, ctx, started)
         except ContractViolation as exc:
@@ -150,7 +150,7 @@ class LocationCapability:
             return _wrap(_blank('unavailable', ['location:' + problem['code']]), [problem], ctx, started)
         except TimeoutError:
             return _wrap(_blank('unavailable', ['location:TIMEOUT']),
-                         [issue('TIMEOUT', '定位达到截止时间', source=self.provider.source, retryable=True)], ctx, started)
+                         [issue('TIMEOUT', 'Geolocation reached the deadline', source=self.provider.source, retryable=True)], ctx, started)
 
     def _match(self, request, matches):
         candidates = list({json.dumps(c, sort_keys=True): c for c in matches['candidates']}.values())
@@ -177,18 +177,18 @@ class LocationCapability:
                 elif (matched and request['postal_code']
                       and re.fullmatch(r'(?:STREET|AVENUE|DRIVE|ROAD) \d+[A-Z]?', address)
                       and normalized(candidate['road']).endswith(' ' + address)):
-                    # 来源可能仅标注 St 96；精确邮编相同且道路后缀相符才能补全。
-                    # 完整门牌或道路冲突仍由下面的分支拒绝。
+                    # The source may only label St 96; it can be completed only if the exact postal code matches and the road suffix agrees.
+                    # Complete house number or road conflicts are still rejected by the branch below.
                     pass
                 else:
-                    continue  # 即使邮编对上，明确的门牌/道路矛盾也不能确认。
+                    continue  # Even if the postal code matches, an explicit house number/road contradiction cannot be confirmed.
             if request['building']:
                 if normalized(request['building']) != normalized(candidate['building']):
                     continue
                 matched, precision = True, 'building'
             if matched:
                 eligible.append((candidate, precision))
-        # 相同地址、坐标的重复记录不制造歧义；多楼栋项目仍保留歧义。
+        # Duplicate records with the same address and coordinates do not create ambiguity; multi-building projects still retain ambiguity.
         unique = {(normalized(c['address']), c['latitude'], c['longitude']): (c, p) for c, p in eligible}
         if len(unique) != 1:
             return _blank('ambiguous', ['location:multiple_matches' if unique else 'location:unverified_match'], candidates)
@@ -200,7 +200,7 @@ class LocationCapability:
         identity = json.dumps([payload, chosen['observed_at']], ensure_ascii=False, sort_keys=True)
         evidence = dict(evidence_id='location:' + hashlib.sha256(identity.encode()).hexdigest()[:24],
                         field='location', value=payload, source_url=chosen['source_url'],
-                        observed_at=chosen['observed_at'], excerpt=f"地址依据：{request['excerpt']}\n地图返回：{chosen['address']}")
+                        observed_at=chosen['observed_at'], excerpt=f"Address basis: {request['excerpt']}\nMap returned: {chosen['address']}")
         return dict(status='resolved', standard_address=chosen['address'], latitude=chosen['latitude'],
                     longitude=chosen['longitude'], precision=precision, candidates=candidates, evidence=[evidence], gaps=[])
 
@@ -211,8 +211,8 @@ if __name__ == '__main__':
     from uuid import uuid4
     from property_agent.search.providers.onemap import OneMapProvider
 
-    parser = argparse.ArgumentParser(description='3b 真实定位输入输出；需要 OneMap 凭据')
-    parser.add_argument('--input', type=Path, help='真实 3a 返回的 Listing 数组或 SearchResult JSON 文件')
+    parser = argparse.ArgumentParser(description='3b real geolocation input/output; requires OneMap credentials')
+    parser.add_argument('--input', type=Path, help='Listing array or SearchResult JSON file returned by real 3a')
     args = parser.parse_args()
 
     async def main():
@@ -223,12 +223,12 @@ if __name__ == '__main__':
                 payload = payload.get('items', [])
             requests = [request_from_listing(item) for item in payload]
         else:
-            # 只有待查询的真实邮编，没有写死任何预期地址或坐标。
+            # Only the real postal code to query; no expected address or coordinates are hardcoded.
             requests = [dict(query=postal, address=None, postal_code=postal, building=None,
-                             source_url=None, excerpt='定位查询邮编：' + postal)
+                             source_url=None, excerpt='Geolocation query postal code: ' + postal)
                         for postal in ('200640', '307987', '049213')]
         if len(requests) < 3:
-            parser.error('至少需要三条真实定位输入')
+            parser.error('At least three real geolocation inputs are required')
         capability = LocationCapability(OneMapProvider.from_env())
         passed = 0
         for request in requests:
@@ -239,7 +239,7 @@ if __name__ == '__main__':
             result = await capability.locate(request, ctx=ctx)
             passed += result['status'] == 'success' and result['data']['status'] == 'resolved'
             print(json.dumps(dict(input=request, output=result), ensure_ascii=False), flush=True)
-        print(f'真实 3b 定位通过 {passed}/{len(requests)}；缺口和失败不会替换成虚拟坐标。')
+        print(f'Real 3b geolocation passed {passed}/{len(requests)}; gaps and failures will not be replaced with virtual coordinates.')
         return 0 if passed == len(requests) else 1
 
     raise SystemExit(asyncio.run(main()))

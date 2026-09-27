@@ -1,4 +1,4 @@
-"""B 的公开入口 fulfill_requirements；其余函数供 B 内部调用与独立联调。"""
+"""Public entry point of B, fulfill_requirements; the remaining functions are for internal calls within B and independent integration testing."""
 
 from property_agent.runtime.paths import PROJECT_ROOT
 import os
@@ -20,7 +20,7 @@ from property_agent.search.providers.base import ProviderError, issue
 
 
 def create_live_planner_service(*, env_file=None, model=None, settings=None):
-    """构造 1 的独立服务；计划生成不依赖浏览器或 OneMap 凭据。"""
+    """Construct the standalone service for 1; plan generation does not depend on a browser or OneMap credentials."""
     from property_agent.runtime.model_client import (create_chat_model, load_model_settings, load_search_plan_settings,
                         load_search_execution_settings)
     from dataclasses import replace
@@ -40,7 +40,7 @@ def create_live_planner_service(*, env_file=None, model=None, settings=None):
 async def build_search_plan(profile: ConversationProfile, query: QueryFeatures,
                             previous_attempts: list[AttemptSummary], directive: SearchDirective | None,
                             *, ctx: RunContext) -> Result[SearchPlan]:
-    """B 内部计划接口；只有通过校验的计划才可进入 search。"""
+    """Internal planning interface of B; only plans that pass validation may proceed to search."""
     from property_agent.runtime.model_client import ModelConfigurationError
     started = monotonic()
     try:
@@ -57,12 +57,12 @@ async def build_search_plan(profile: ConversationProfile, query: QueryFeatures,
     except ProviderError as exc:
         problem = exc.issue
     except Exception:
-        problem = issue('INTERNAL_ERROR', '计划服务初始化或调用失败', source=None)
+        problem = issue('INTERNAL_ERROR', 'Failed to initialize or call the planning service', source=None)
     return error_result(problem, ctx, started)
 
 
 def create_live_search_service(*, env_file=None, model=None) -> SearchService:
-    """默认使用 DeepSeek、guru_search 和 OneMap；创建时不联网。"""
+    """By default uses DeepSeek, guru_search, and OneMap; no network access at creation time."""
     from property_agent.runtime.model_client import create_chat_model, load_model_settings, load_search_execution_settings
     from dataclasses import replace
     from property_agent.search.providers.guru_search import GuruSearchProvider
@@ -89,10 +89,10 @@ def create_live_search_service(*, env_file=None, model=None) -> SearchService:
 
 def create_live_fulfillment_service(*, env_file=None, model=None, settings=None,
                                     page_limit=None, candidate_limit=None):
-    """构造完整 B 服务，依赖延迟到需要执行检索时初始化。
+    """Construct the complete B service; dependencies are deferred until retrieval needs to be executed.
 
-    页数、候选额度属于 B 内部配置，不加入 A 的业务请求。
-    OneMap 未配置或暂时不可用时由执行层记录缺口，保留已取得的房源。
+    The page count and candidate quota are internal configurations of B and are not added to A's business request.
+    When OneMap is not configured or temporarily unavailable, the execution layer records the gap and retains the listings already obtained.
     """
     from dataclasses import replace
     from property_agent.runtime.model_client import load_search_plan_settings
@@ -113,25 +113,25 @@ def create_live_fulfillment_service(*, env_file=None, model=None, settings=None,
 
 async def fulfill_requirements(request: RequirementRequest, *,
                                ctx: RunContext) -> Result[RequirementFulfillment]:
-    """A→B 唯一公开业务入口；ctx 原样传递，所有阶段遵守同一截止时间。"""
+    """The only public business entry point from A to B; ctx is passed through unchanged, and all stages observe the same deadline."""
     return await create_live_fulfillment_service().fulfill_requirements(request, ctx=ctx)
 
 
 async def prepare_query(profile: ConversationProfile, *, ctx: RunContext) -> Result[QueryFeatures]:
-    """B 内部查询准备接口；A 只需发送 RequirementRequest。"""
+    """Internal query preparation interface of B; A only needs to send a RequirementRequest."""
     from property_agent.search.planning.query import prepare_query as prepare
     return await prepare(profile, ctx=ctx)
 
 
 async def search(plan: SearchPlan, *, ctx: RunContext) -> Result[SearchResult]:
-    """便捷 live 入口；批量调用应复用 create_live_search_service() 的实例。"""
+    """Convenient live entry point; batch calls should reuse the instance from create_live_search_service()."""
     from property_agent.runtime.model_client import ModelConfigurationError
     started = monotonic()
     try:
         validate_plan(plan, ctx)
         remaining_seconds(ctx)
         if ctx['source_mode'] == 'mock':
-            problem = issue('SOURCE_UNAVAILABLE', 'mock 模式请构造 SearchService 并注入模拟来源响应', source=None)
+            problem = issue('SOURCE_UNAVAILABLE', 'In mock mode, construct a SearchService and inject simulated source responses', source=None)
         else:
             result = await create_live_search_service().search(plan, ctx=ctx)
             result['meta']['duration_ms'] = max(0, int((monotonic() - started) * 1000))
@@ -143,7 +143,7 @@ async def search(plan: SearchPlan, *, ctx: RunContext) -> Result[SearchResult]:
     except ProviderError as exc:
         problem = exc.issue
     except Exception:
-        problem = issue('INTERNAL_ERROR', '搜索服务初始化或调用失败', source=None)
+        problem = issue('INTERNAL_ERROR', 'Failed to initialize or call the search service', source=None)
     return error_result(problem, ctx, started)
 
 

@@ -16,7 +16,7 @@ class SqlQuestionRepository:
         with self.sessions.begin() as session:
             run = session.get(AgentRunRow, run_id)
             if run is None:
-                raise KeyError(f"run 不存在: {run_id}")
+                raise KeyError(f"run does not exist: {run_id}")
             statement = pg_insert(RunQuestionRow).values(
                 run_id=run_id,
                 question_id=question["question_id"],
@@ -39,7 +39,7 @@ class SqlQuestionRepository:
             saved = session.get(RunQuestionRow, (run_id, question["question_id"]))
             assert saved is not None
             if saved.question != question:
-                raise ValueError("相同 question_id 对应了不同内容")
+                raise ValueError("the same question_id corresponds to different content")
             return copy.deepcopy(saved.question)
 
     def mark_answered(

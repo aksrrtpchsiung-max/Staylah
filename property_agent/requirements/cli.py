@@ -1,4 +1,4 @@
-"""在本地终端中交互调试 Falcon 多轮需求工作流。"""
+"""Interactively debug the Falcon multi-turn requirements workflow in a local terminal."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from .workflow_constants import DEFAULT_USER_ID
 
 @dataclass
 class DebugRuntime:
-    """保存一次 CLI 会话共享的 graph、checkpoint、repository 和显示设置。"""
+    """Store the graph, checkpoint, repository, and display settings shared by a single CLI session."""
 
     graph: Any
     repository: InMemoryProfileRepository
@@ -33,7 +33,7 @@ class DebugRuntime:
 
 
 def load_local_env(path: Path | None = None) -> Path:
-    """从被 Git 忽略的 .env.local 加载本地变量且不覆盖终端已有值。"""
+    """Load local variables from the Git-ignored .env.local without overriding existing terminal values."""
 
     env_path = path or PROJECT_ROOT / ".env.local"
     if not env_path.exists():
@@ -48,7 +48,7 @@ def load_local_env(path: Path | None = None) -> Path:
 
 
 def build_debug_runtime(thread_id: str, tone: ToneName) -> DebugRuntime:
-    """创建只在当前 CLI 进程内保存状态的本地调试 runtime。"""
+    """Create a local debug runtime that stores state only within the current CLI process."""
 
     repository = InMemoryProfileRepository()
     renderer = ResponseRenderer(tone=tone)
@@ -71,7 +71,7 @@ def invoke_turn(
     text: str,
     conversation_id: str,
 ) -> dict[str, Any]:
-    """在同一 thread 中执行一轮，并按需打印经过的节点。"""
+    """Execute one turn in the same thread, and print the nodes traversed as needed."""
 
     runtime.message_index += 1
     payload: dict[str, Any] = {
@@ -95,7 +95,7 @@ def invoke_turn(
 
 
 def print_turn(state: dict[str, Any]) -> None:
-    """打印用户可见回复和最小调试状态，不输出密钥或 Authorization。"""
+    """Print the user-visible reply and minimal debug state, without outputting secrets or Authorization."""
 
     print(f"\nFalcon> {state.get('assistant_response', '[no assistant_response]')}")
     profile = state.get("profile") or {}
@@ -107,13 +107,13 @@ def print_turn(state: dict[str, Any]) -> None:
 
 
 def print_json(value: Any) -> None:
-    """以 UTF-8 JSON 展示可检查的 state 子对象。"""
+    """Display the inspectable state sub-object as UTF-8 JSON."""
 
     print(json.dumps(value, ensure_ascii=False, indent=2, default=str))
 
 
 def current_state(runtime: DebugRuntime) -> dict[str, Any]:
-    """读取当前 checkpoint；尚未执行输入时返回空对象。"""
+    """Read the current checkpoint; return an empty object when no input has been executed yet."""
 
     if not runtime.has_state:
         return {}
@@ -121,7 +121,7 @@ def current_state(runtime: DebugRuntime) -> dict[str, Any]:
 
 
 def handle_command(runtime: DebugRuntime, command: str) -> bool:
-    """执行 CLI 调试命令；返回 False 表示退出循环。"""
+    """Execute a CLI debug command; returning False indicates exiting the loop."""
 
     parts = command.strip().split()
     name = parts[0].lower()
@@ -157,7 +157,7 @@ def handle_command(runtime: DebugRuntime, command: str) -> bool:
 
 
 def parse_args() -> argparse.Namespace:
-    """解析本地调试 CLI 参数。"""
+    """Parse local debug CLI arguments."""
 
     parser = argparse.ArgumentParser(description="Falcon A-side multi-turn workflow debugger")
     parser.add_argument("--thread", default="falcon-local-debug", help="LangGraph thread/conversation ID")
@@ -167,7 +167,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    """启动交互循环，保持同一 thread 的多轮 checkpoint。"""
+    """Start the interactive loop, preserving multi-turn checkpoints in the same thread."""
 
     args = parse_args()
     env_path = load_local_env()

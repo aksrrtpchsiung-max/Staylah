@@ -1,4 +1,4 @@
-"""追问模块与模型、onboarding 的接缝。"""
+"""The seam between the follow-up module and the model and onboarding."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 class QuestionPolisher(Protocol):
     async def polish(self, question: PendingQuestion) -> str:
-        """仅润色问题文本；不得改变提案、动作、版本或标识。"""
+        """Only polish the question text; must not change the proposal, action, version, or identifier."""
         ...
 
 
@@ -19,7 +19,7 @@ class AnswerInterpreter(Protocol):
     async def interpret(
         self, text: str, question: PendingQuestion
     ) -> AnswerInterpretation:
-        """把自然语言回答分类；返回值仍须由服务端按当前问题复核。"""
+        """Classify the natural language answer; the return value must still be re-verified by the server against the current question."""
         ...
 
 
@@ -32,5 +32,5 @@ class OnboardingHandoff(Protocol):
         superseded_run_id: str,
         source_message_id: str | None,
     ) -> "NextRunRequest":
-        """构造交给外部 onboarding/运行控制层的请求。"""
+        """Construct the request handed to the external onboarding/runtime control layer."""
         ...

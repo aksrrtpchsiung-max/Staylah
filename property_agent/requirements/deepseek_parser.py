@@ -1,4 +1,4 @@
-"""通过 DeepSeek JSON Output 直接生成标准化需求。"""
+"""Directly generate normalized requirements via DeepSeek JSON Output."""
 
 import json
 import os
@@ -31,32 +31,32 @@ The output must strictly follow the JSON Schema included with the user message.
 
 
 class RequirementInputError(ValueError):
-    """表示用户输入为空或消息标识缺失。"""
+    """Indicates that the user input is empty or the message identifier is missing."""
 
 
 class DeepSeekConfigurationError(RuntimeError):
-    """表示 DeepSeek 模型或 API Key 配置缺失。"""
+    """Indicates that the DeepSeek model or API Key configuration is missing."""
 
 
 class DeepSeekAPIError(RuntimeError):
-    """表示 DeepSeek 请求失败或响应不符合严格输出契约。"""
+    """Indicates that the DeepSeek request failed or the response does not conform to the strict output contract."""
 
 
 class RequirementInterpreter(Protocol):
-    """定义任意 LLM 直接生成标准化需求的统一接口。"""
+    """Defines a unified interface for any LLM to directly generate normalized requirements."""
 
     def understand(self, text: str, *, message_id: str) -> RequirementResult:
-        """将一条自然语言消息直接转换为标准化需求。"""
+        """Directly converts a single natural language message into a normalized requirement."""
 
 
 class LLMSource(StrictModel):
-    """定义 LLM 输出字段共有的逐字原文依据。"""
+    """Defines the verbatim source evidence shared by all LLM output fields."""
 
     source_text: str = Field(description="Evidence copied verbatim from the user input.", min_length=1)
 
 
 class LLMMoneyConstraint(LLMSource):
-    """定义 LLM 直接输出的标准金额约束。"""
+    """Defines the standard monetary amount constraint directly output by the LLM."""
 
     currency: Literal["SGD"] = Field(description="Currency, fixed to SGD for this project.")
     max_price: int = Field(description="Normalized integer budget ceiling.", gt=0)
@@ -66,28 +66,28 @@ class LLMMoneyConstraint(LLMSource):
 
 
 class LLMIntentConstraint(LLMSource):
-    """定义 LLM 直接输出的标准交易意图。"""
+    """Defines the standard transaction intent directly output by the LLM."""
 
     value: Intent = Field(description="Rent or buy intent.")
     strength: ConstraintStrength = Field(description="Whether the intent is hard or soft.")
 
 
 class LLMRentalScopeConstraint(LLMSource):
-    """定义 LLM 直接输出的标准租赁范围。"""
+    """Defines the standard lease scope directly output by the LLM."""
 
     value: RentalScope = Field(description="Whole unit, private room, or bedspace.")
     strength: ConstraintStrength = Field(description="Whether the rental scope is hard or soft.")
 
 
 class LLMPropertyTypeConstraint(LLMSource):
-    """定义 LLM 直接输出的标准住宅类型。"""
+    """Defines the standard residential type directly output by the LLM."""
 
     value: PropertyType = Field(description="Normalized residential property type.")
     strength: ConstraintStrength = Field(description="Whether the property type is hard or soft.")
 
 
 class LLMNumericConstraint(LLMSource):
-    """定义 LLM 直接输出的标准数值约束。"""
+    """Defines the standard numeric constraint directly output by the LLM."""
 
     operator: NumericOperator = Field(description="Equality, minimum, or maximum operator.")
     value: int = Field(description="Normalized non-negative integer.", ge=0)
@@ -95,7 +95,7 @@ class LLMNumericConstraint(LLMSource):
 
 
 class LLMLocationRequirement(LLMSource):
-    """定义 LLM 输出的地点实体和空间关系，不包含地点 ID。"""
+    """Defines the location entities and spatial relations output by the LLM, excluding location IDs."""
 
     raw_name: str = Field(description="Location entity referred to by the user.", min_length=1)
     relation: LocationRelation = Field(description="Whether the home should be in or near the location.")
@@ -104,7 +104,7 @@ class LLMLocationRequirement(LLMSource):
 
 
 class LLMCommuteRequirement(LLMSource):
-    """定义 LLM 直接输出的标准通勤需求。"""
+    """Defines the standard commute requirement directly output by the LLM."""
 
     destination: str = Field(description="Commute destination.", min_length=1)
     destination_type: DestinationType = Field(description="Business type of the destination.")
@@ -118,7 +118,7 @@ class LLMCommuteRequirement(LLMSource):
 
 
 class LLMPreferenceRequirement(LLMSource):
-    """定义 LLM 直接映射到稳定主题枚举的附加需求。"""
+    """Defines additional requirements that the LLM directly maps to stable topic enums."""
 
     topic: PreferenceTopic = Field(description="Normalized preference topic.")
     value: Any = Field(
@@ -135,14 +135,14 @@ class LLMPreferenceRequirement(LLMSource):
 
 
 class LLMProfileFact(LLMSource):
-    """定义 LLM 输出的受控 conversation 用户背景字段。"""
+    """Defines the controlled conversation user background fields output by the LLM."""
 
     field: ProfileFactField = Field(description="Occupant count, child planning, workplace, or school field.")
     value: Any = Field(description="JSON value for the selected field.")
 
 
 class LLMNormalizedOutput(StrictModel):
-    """定义发送给 DeepSeek 的最终标准化 JSON Schema。"""
+    """Defines the final normalized JSON Schema sent to DeepSeek."""
 
     intent: LLMIntentConstraint | None = None
     user_context: list[LLMProfileFact] = Field(default_factory=list)
@@ -157,7 +157,7 @@ class LLMNormalizedOutput(StrictModel):
 
 
 class DeepSeekParserConfig(StrictModel):
-    """保存不含密钥的 DeepSeek 结构化生成配置。"""
+    """Stores the DeepSeek structured generation configuration without the key."""
 
     base_url: str = Field(default="https://api.deepseek.com", description="DeepSeek API base URL.")
     model: str = Field(default="deepseek-v4-flash", description="Requested model ID.")
@@ -167,7 +167,7 @@ class DeepSeekParserConfig(StrictModel):
 
     @classmethod
     def from_runtime(cls, settings: Any | None = None) -> "DeepSeekParserConfig":
-        """用 runtime.toml 的 DeepSeek 段构造配置，密钥仍只从环境变量读取。"""
+        """Builds the configuration from the DeepSeek section of runtime.toml; the key is still read only from environment variables."""
 
         from property_agent.runtime.settings import load_runtime_settings
 
@@ -182,7 +182,7 @@ class DeepSeekParserConfig(StrictModel):
 
 
 class DeepSeekRequirementInterpreter:
-    """调用 DeepSeek 并直接返回通过验证的 NormalizedRequirement。"""
+    """Calls DeepSeek and directly returns the validated NormalizedRequirement."""
 
     def __init__(
         self,
@@ -191,14 +191,14 @@ class DeepSeekRequirementInterpreter:
         api_key: str | None = None,
         client: Any | None = None,
     ) -> None:
-        """注入无密钥配置、可选进程内密钥和测试 HTTP 客户端。"""
+        """Injects the keyless configuration, an optional in-process key, and a test HTTP client."""
 
         self._config = config or DeepSeekParserConfig.from_runtime()
         self._api_key = api_key
         self._client = client
 
     def understand(self, text: str, *, message_id: str) -> RequirementResult:
-        """调用模型一次，校验其标准化 JSON，并补充可验证原文位置。"""
+        """Calls the model once, validates its normalized JSON, and supplements verifiable source positions."""
 
         if not message_id.strip():
             raise RequirementInputError("message_id must not be empty")
@@ -224,7 +224,7 @@ class DeepSeekRequirementInterpreter:
         return RequirementResult(requirement=requirement, issues=issues, metadata=metadata)
 
     def _request_json(self, text: str, api_key: str) -> dict[str, Any]:
-        """发送包含严格 schema 的 JSON 请求且不记录 Authorization。"""
+        """Sends a JSON request containing the strict schema and does not log Authorization."""
 
         schema = json.dumps(LLMNormalizedOutput.model_json_schema(), ensure_ascii=False)
         client = self._client or httpx.Client(timeout=self._config.timeout_seconds)
@@ -266,7 +266,7 @@ class DeepSeekRequirementInterpreter:
 
     @staticmethod
     def _validate_output(response_data: dict[str, Any]) -> LLMNormalizedOutput:
-        """读取 assistant JSON 并使用严格 schema 拒绝未知或非法字段。"""
+        """Reads the assistant JSON and rejects unknown or illegal fields using the strict schema."""
 
         try:
             content = response_data["choices"][0]["message"]["content"]
@@ -284,7 +284,7 @@ class DeepSeekRequirementInterpreter:
         text: str,
         message_id: str,
     ) -> tuple[NormalizedRequirement, list[RequirementIssue]]:
-        """核验 source_text 并构造最终带 SourceSpan 的标准需求。"""
+        """Verifies source_text and constructs the final normalized requirement with SourceSpan."""
 
         issues: list[RequirementIssue] = []
         requirement = NormalizedRequirement(
@@ -315,7 +315,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> list[ProfileFactRequirement]:
-        """核验用户背景原文并构造受控的 conversation profile facts。"""
+        """Verifies the user background source text and constructs controlled conversation profile facts."""
 
         result: list[ProfileFactRequirement] = []
         for value in values:
@@ -332,7 +332,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> IntentConstraint | None:
-        """核验交易意图原文后构造最终标准意图。"""
+        """Verifies the transaction intent source text and then constructs the final standard intent."""
 
         if value is None:
             return None
@@ -348,7 +348,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> RentalScopeConstraint | None:
-        """核验租赁范围原文后构造最终标准范围。"""
+        """Verifies the lease scope source text and then constructs the final standard scope."""
 
         if value is None:
             return None
@@ -364,7 +364,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> list[PropertyTypeConstraint]:
-        """核验每个住宅类型的原文并保持用户表达顺序。"""
+        """Verifies the source text of each residential type and preserves the user's order of expression."""
 
         result: list[PropertyTypeConstraint] = []
         for value in values:
@@ -387,7 +387,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> MoneyConstraint | None:
-        """核验预算原文后构造最终标准金额。"""
+        """Verifies the budget source text and then constructs the final standard monetary amount."""
 
         if value is None:
             return None
@@ -410,7 +410,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> NumericConstraint | None:
-        """核验数值原文后构造最终比较约束。"""
+        """Verifies the numeric source text and then constructs the final comparison constraint."""
 
         if value is None:
             return None
@@ -431,7 +431,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> list[LocationRequirement]:
-        """核验地点原文并构造固定为 unresolved 的地点需求。"""
+        """Verifies the location source text and constructs a location requirement fixed to unresolved."""
 
         result: list[LocationRequirement] = []
         for value in values:
@@ -455,7 +455,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> list[CommuteRequirement]:
-        """核验通勤原文并构造最终通勤需求。"""
+        """Verifies the commute source text and constructs the final commute requirement."""
 
         result: list[CommuteRequirement] = []
         for value in values:
@@ -497,7 +497,7 @@ class DeepSeekRequirementInterpreter:
         message_id: str,
         issues: list[RequirementIssue],
     ) -> list[PreferenceRequirement]:
-        """核验偏好原文并构造最终稳定主题需求。"""
+        """Verifies the preference source text and constructs the final stable topic requirement."""
 
         result: list[PreferenceRequirement] = []
         for value in values:
@@ -523,7 +523,7 @@ class DeepSeekRequirementInterpreter:
         field: str,
         issues: list[RequirementIssue],
     ) -> SourceSpan | None:
-        """将逐字存在的 source_text 转换为可靠下标，否则丢弃字段。"""
+        """Converts a verbatim source_text into a reliable index; otherwise the field is discarded."""
 
         start = text.find(source_text)
         if start < 0:
@@ -547,7 +547,7 @@ class DeepSeekRequirementInterpreter:
 
     @staticmethod
     def _safe_usage(raw_usage: Any) -> dict[str, int]:
-        """仅保留整数 token 用量，避免把未知字段写入 checkpoint。"""
+        """Keeps only integer token usage to avoid writing unknown fields into the checkpoint."""
 
         if not isinstance(raw_usage, dict):
             return {}
@@ -560,6 +560,6 @@ class DeepSeekRequirementInterpreter:
 
     @staticmethod
     def _optional_string(value: Any) -> str | None:
-        """只接受响应中的非空字符串元数据。"""
+        """Accepts only non-empty string metadata from the response."""
 
         return value if isinstance(value, str) and value else None

@@ -1,4 +1,4 @@
-"""交互式 A→B→C 主循环。需要 PostgreSQL，并按 runtime.toml / .env 配置模型。"""
+"""Interactive A→B→C main loop. Requires PostgreSQL, and configures the model according to runtime.toml / .env."""
 from __future__ import annotations
 
 import argparse

@@ -1,4 +1,4 @@
-"""通过 OpenCLI 调用仓库内的 guru_search 适配器（JSON page/structured 模式）。"""
+"""Invoke the guru_search adapter in the repository via OpenCLI (JSON page/structured mode)."""
 import asyncio
 from copy import deepcopy
 import json
@@ -10,7 +10,7 @@ import shutil
 import sys
 from collections.abc import Sequence
 
-# 支持编辑器直接运行本文件中的真实调用检查；包导入时不修改搜索路径。
+# Supports running the real invocation checks in this file directly from an editor; does not modify the search path on package import.
 
 from property_agent.contracts import ContractViolation, HardConstraints, Listing, ListingConstraint, RunContext, SearchQuery
 from property_agent.search.execution.budget import remaining_seconds
@@ -32,12 +32,12 @@ def _matches_number(number, condition):
 
 
 def bedroom_buckets(conditions):
-    """将原始数值条件映射为 0、1、2、3、4、5+；5+ 不能伪装成精确五间。"""
+    """Map raw numeric conditions to 0, 1, 2, 3, 4, 5+; 5+ must not be disguised as exactly five rooms."""
     lower, upper = _bounds(conditions, 'bedrooms', [])
     matches = lambda n: all(_matches_number(n, c) for c in conditions)
     buckets = [n for n in range(5) if matches(n)]
     finite = next((c['value'] for c in conditions if c['operator'] == 'in'), None)
-    # 无 in 时，区间边界后最多跳过条件数个 neq 点即可找到可能的 5+ 房源。
+    # When there is no in, after the range boundary skip at most a number of neq points equal to the condition to find a possible 5+ listing.
     probes = finite if finite is not None else range(max(5, lower), max(5, lower) + len(conditions) + 1)
     if any(n >= 5 and int(n) == n and (upper is None or n <= upper) and matches(n) for n in probes):
         buckets.append(5)
@@ -50,7 +50,7 @@ def bedroom_buckets(conditions):
 class GuruSearchProvider:
     source = "propertyguru"
     source_mode = "live"
-    # 与 contract-listing.js 的详情解析能力对应；不把任意缺失字段都变成读详情任务。
+    # Corresponds to the detail parsing capability of contract-listing.js; does not turn any missing field into a read-detail task.
     detail_fields = frozenset({'price.amount', 'price.currency', 'price.period', 'bedrooms',
         'listing_status', 'listed_date', 'attributes.property_type', 'attributes.listing_scope',
         'attributes.area_sqft', 'attributes.bathrooms', 'attributes.room_type',
@@ -71,21 +71,21 @@ class GuruSearchProvider:
                 user_install = Path.home() / '.npm-global/bin/opencli'
                 command = (executable or (str(user_install) if user_install.is_file() else 'opencli'),)
         if not command or isinstance(command, str) or timeout_seconds <= 0:
-            raise ValueError("command 必须是参数数组，timeout_seconds 必须大于零")
+            raise ValueError("command must be an argument array, timeout_seconds must be greater than zero")
         self.command = tuple(command)
         self.timeout_seconds = timeout_seconds
         self._native_pages = {}
 
     async def _call(self, args: list[str], ctx: RunContext):
         timeout = min(self.timeout_seconds, remaining_seconds(ctx))
-        logging.getLogger('search.audit').info('调用真实 OpenCLI',
+        logging.getLogger('search.audit').info('Invoking real OpenCLI',
             extra={'audit': dict(event='cli_call', args=args)})
         try:
             process = await asyncio.create_subprocess_exec(
                 *self.command, "propertyguru", *args, "-f", "json",
                 stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         except OSError as exc:
-            raise ProviderError(issue("SOURCE_UNAVAILABLE", "无法启动 OpenCLI；请安装并注册 guru_search 适配器")) from exc
+            raise ProviderError(issue("SOURCE_UNAVAILABLE", "Unable to start OpenCLI; please install and register the guru_search adapter")) from exc
         try:
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout)
         except (TimeoutError, asyncio.CancelledError) as exc:
@@ -97,9 +97,9 @@ class GuruSearchProvider:
             await process.communicate()
             if isinstance(exc, asyncio.CancelledError):
                 raise
-            raise ProviderError(issue("TIMEOUT", "PropertyGuru 调用超时", retryable=True)) from exc
+            raise ProviderError(issue("TIMEOUT", "PropertyGuru invocation timed out", retryable=True)) from exc
         if process.returncode:
-            # 兼容 OpenCLI 文本/JSON 错误；不把整段浏览器日志作为公开输出。
+            # Compatible with OpenCLI text/JSON errors; does not expose the entire browser log as public output.
             message = (stderr + stdout).decode("utf-8", errors="replace").upper()
             codes = (("AUTH_REQUIRED", ("AUTH_REQUIRED", "LOGIN_WALL", "CAPTCHA")),
                      ("RATE_LIMITED", ("RATE_LIMIT", "429")),
@@ -110,42 +110,42 @@ class GuruSearchProvider:
                      ("SOURCE_UNAVAILABLE", ("EXTENSION NOT CONNECTED", "BROWSER BRIDGE", "EXTENSION_NOT_CONNECTED")))
             code = next((code for code, words in codes if any(word in message for word in words)),
                         "SOURCE_UNAVAILABLE")
-            description = ('OpenCLI Browser Bridge 未连接，请在 Chrome 安装或启用扩展'
+            description = ('OpenCLI Browser Bridge not connected, please install or enable the extension in Chrome'
                            if 'EXTENSION' in message and ('NOT CONNECTED' in message or 'CONNECT' in message)
-                           else f"PropertyGuru 命令失败：{code}")
+                           else f"PropertyGuru command failed: {code}")
             if code == "PARSE_ERROR":
-                # 只映射适配器中已知的错误文本，保留原因而不泄露整段浏览器日志。
+                # Only maps known error text in the adapter, preserving the reason without leaking the entire browser log.
                 parse_reasons = (
-                    ("NO __NEXT_DATA__", "PropertyGuru 搜索页未提供 __NEXT_DATA__，无法读取页面数据"),
-                    ("COULD NOT FIND LISTING DATA ON PAGE", "PropertyGuru 页面数据缺少 listingsData 房源字段"),
+                    ("NO __NEXT_DATA__", "PropertyGuru search page did not provide __NEXT_DATA__, unable to read page data"),
+                    ("COULD NOT FIND LISTING DATA ON PAGE", "PropertyGuru page data is missing the listingsData listing field"),
                     ("EMPTY LISTING PAYLOAD WITHOUT AN EXPLICIT NO-RESULTS STATE",
-                     "PropertyGuru 未解析到房源，页面也未明确表示无匹配，不能当作空结果"),
+                     "PropertyGuru did not parse any listings, and the page did not explicitly indicate no matches, so it cannot be treated as an empty result"),
                     ("PAGE CHANGED; CONTINUATION OFFSET IS NO LONGER VALID",
-                     "PropertyGuru 页面内容已变化，续页游标的页内偏移失效"),
+                     "PropertyGuru page content has changed, the in-page offset of the continuation cursor is no longer valid"),
                     ("DETAIL PAGE DOES NOT IDENTIFY A PROPERTYGURU LISTING",
-                     "PropertyGuru 详情页未提供有效的房源链接和 ID"),
+                     "PropertyGuru detail page did not provide a valid listing link and ID"),
                     ("DETAIL REDIRECTED TO A DIFFERENT LISTING",
-                     "PropertyGuru 详情页跳转到了另一套房源"),
-                    ("PAGE DID NOT LOAD", "PropertyGuru 页面未提供预期数据，无法解析"),
+                     "PropertyGuru detail page redirected to a different listing"),
+                    ("PAGE DID NOT LOAD", "PropertyGuru page did not provide expected data, unable to parse"),
                 )
                 description = next((reason for marker, reason in parse_reasons if marker in message), description)
             elif code == "TEMPORARY_UNAVAILABLE":
                 if "SEARCH PAGE DATA NOT READY" in message:
-                    description = "PropertyGuru 搜索页在等待时限内未提供房源数据，可在剩余额度内重试"
+                    description = "PropertyGuru search page did not provide listing data within the wait time limit, can retry within the remaining quota"
                 elif "DETAIL PAGE DATA NOT READY" in message:
-                    description = "PropertyGuru 详情页在等待时限内未提供房源数据，可在剩余额度内重试"
+                    description = "PropertyGuru detail page did not provide listing data within the wait time limit, can retry within the remaining quota"
             raise ProviderError(issue(code, description,
                                       retryable=code in {"TIMEOUT", "RATE_LIMITED", "SOURCE_UNAVAILABLE", "TEMPORARY_UNAVAILABLE"}))
         try:
             payload = json.loads(stdout)
         except (ValueError, UnicodeError) as exc:
-            raise ProviderError(issue("PARSE_ERROR", "OpenCLI 未返回有效 JSON")) from exc
-        # OpenCLI 的表格命令以一行数组封装结构化输出。
+            raise ProviderError(issue("PARSE_ERROR", "OpenCLI did not return valid JSON")) from exc
+        # OpenCLI's table command wraps structured output in a single-row array.
         if isinstance(payload, list) and len(payload) == 1 and isinstance(payload[0], dict):
             return payload[0]
         if isinstance(payload, dict):
             return payload
-        raise ProviderError(issue("PARSE_ERROR", "需要新版 guru_search 的结构化输出"))
+        raise ProviderError(issue("PARSE_ERROR", "Requires the structured output of the new guru_search version"))
 
     async def search_page(self, query: SearchQuery, *, intent: str,
                           filters: HardConstraints, limit: int,
@@ -154,10 +154,10 @@ class GuruSearchProvider:
         if query["cursor"] is not None:
             match = re.fullmatch(r"pg:v1:([1-9][0-9]*):([0-9]+)", query["cursor"])
             if not match:
-                raise ProviderError(issue("INVALID_INPUT", "无效的 PropertyGuru 分页游标", field_path="query.cursor"))
+                raise ProviderError(issue("INVALID_INPUT", "Invalid PropertyGuru pagination cursor", field_path="query.cursor"))
             page, offset = map(int, match.groups())
             if max(page, offset) > 2**53 - 1:
-                raise ProviderError(issue("INVALID_INPUT", "分页游标超出来源支持范围", field_path="query.cursor"))
+                raise ProviderError(issue("INVALID_INPUT", "Pagination cursor exceeds the range supported by the source", field_path="query.cursor"))
         args = ["search", query["text"], "--listing", "sale" if intent == "buy" else "rent",
                 "--page", str(page), "--offset", "0", "--output-mode", "full-page"]
         applied = ["transaction_type"]
@@ -180,7 +180,7 @@ class GuruSearchProvider:
                 args += ['--min', str(lower_price)]
                 if 'price.amount' not in applied:
                     applied.append('price.amount')
-            # 区间不能精确表达离散白名单或排除值，保留本地核实标记。
+            # Ranges cannot precisely express discrete whitelist or exclusion values, so retain the local verification flag.
             if any(c['operator'] in ('in', 'neq') for c in amounts):
                 unsupported.append('price.amount')
         minimum = filters['min_bedrooms']
@@ -188,18 +188,18 @@ class GuruSearchProvider:
         if bedroom_conditions:
             buckets, exact = bedroom_buckets(bedroom_conditions)
             if not buckets:
-                raise ProviderError(issue('INVALID_INPUT', '卧室硬条件没有可检索的整数取值'))
+                raise ProviderError(issue('INVALID_INPUT', 'Bedroom hard condition has no searchable integer value'))
             args += ['--bedroom-buckets', ','.join(map(str, buckets))]
             (applied if exact else unsupported).append('bedrooms')
         elif minimum is not None and minimum > 0:
             args += ['--min-bedrooms', str(minimum)]
-            # 网站最大的桶为 5+；至少六间等条件还需本地核实。
+            # The website's largest bucket is 5+; conditions such as at least six rooms still require local verification.
             (applied if minimum <= 5 else unsupported).append('bedrooms')
         scope = filters['rental_scope']
         if scope is not None:
             if intent == 'rent':
                 args += ['--rental-scope', scope]
-                # Room only 也可能含合租床位，不能宣称精确排除了 bedspace。
+                # Room only may also include shared beds, so it cannot claim to precisely exclude bedspace.
                 (applied if scope == 'whole_unit' else unsupported).append('attributes.listing_scope')
             else:
                 unsupported.append('attributes.listing_scope')
@@ -211,7 +211,7 @@ class GuruSearchProvider:
         if group:
             args += ['--property-group', group]
             if property_type == 'condo':
-                # 契约 condo 也包含 Executive Condominium；使用网站真实子类别编码。
+                # The contract condo also includes Executive Condominium; use the website's real subcategory code.
                 args += ['--property-codes', 'CONDO,EXCON']
                 applied.append('attributes.property_type')
             elif group != 'N':
@@ -223,36 +223,36 @@ class GuruSearchProvider:
         unsupported.extend(c['field_path'] for c in hard if c['field_path'] not in applied)
         applied = [field for field in applied if field not in unsupported]
         if filters["locations"]:
-            unsupported.append("location_id")  # 自由文本检索不等于规范地点 ID 筛选。
-        # 页内游标不能导致重复打开同一网页。缓存原始整页，再按本次候选额度切片；
-        # 身份、请求、条件和物理页都参与键，禁止跨用户/轮次复用。
+            unsupported.append("location_id")  # Free-text search is not equivalent to canonical location ID filtering.
+        # In-page cursors must not cause the same web page to be opened repeatedly. Cache the raw full page, then slice by this run's candidate quota;
+        # Identity, request, conditions, and physical page all participate in the key; reuse across users/rounds is prohibited.
         cache_key = json.dumps([ctx['user_id'], ctx['run_id'], ctx['conversation_id'],
             ctx['attempt_id'], ctx['source_mode'], args, filters, constraints], sort_keys=True)
         cached = self._native_pages.get(cache_key)
         payload = deepcopy(cached) if cached is not None else await self._call(args, ctx)
         try:
             if set(payload) != {"items", "next_cursor", "pagination_known", "truncated"}:
-                raise ValueError("搜索输出字段不符")
+                raise ValueError("Search output fields do not match")
             if type(payload["items"]) is not list:
-                raise ValueError("items 不是数组")
+                raise ValueError("items is not an array")
             if offset > len(payload['items']):
-                raise ValueError('页内偏移已失效，不能跳过未读取的房源')
+                raise ValueError('In-page offset is no longer valid, cannot skip unread listings')
             items, problems = [], []
             for index, raw in enumerate(payload["items"]):
                 try:
                     validate_listing(raw)
                     if raw["source"] != self.source or raw["source_mode"] != self.source_mode:
-                        raise ValueError("房源来源与 Provider 不一致")
+                        raise ValueError("Listing source is inconsistent with Provider")
                     if offset <= index < offset + limit:
                         items.append(raw)
                 except (ContractViolation, ValueError) as exc:
-                    problems.append(issue("INVALID_OUTPUT", f"已跳过无法校验的房源：{exc}"))
-            # 先验证原生分页元数据，避免将错误的来源终点缓存成成功。
+                    problems.append(issue("INVALID_OUTPUT", f"Skipped a listing that could not be validated: {exc}"))
+            # Validate native pagination metadata first, to avoid caching a wrong source endpoint as success.
             validate_type(ListingPage, dict(query_id=query['query_id'], items=[],
                 next_cursor=payload['next_cursor'], pagination_known=payload['pagination_known'],
                 truncated=payload['truncated'], applied_filters=[], unsupported_filters=[], issues=[]))
             if payload['next_cursor'] is not None and not re.fullmatch(r'pg:v1:[1-9][0-9]*:[0-9]+', payload['next_cursor']):
-                raise ValueError('返回了无效分页游标')
+                raise ValueError('Returned an invalid pagination cursor')
             remainder = offset + limit < len(payload['items'])
             result = dict(query_id=query["query_id"], items=items,
                           next_cursor=f'pg:v1:{page}:{offset + limit}' if remainder else payload['next_cursor'],
@@ -262,38 +262,38 @@ class GuruSearchProvider:
                           unsupported_filters=list(dict.fromkeys(unsupported)), issues=problems)
             validate_type(ListingPage, result)
             if result["next_cursor"] is not None and not re.fullmatch(r"pg:v1:[1-9][0-9]*:[0-9]+", result["next_cursor"]):
-                raise ValueError("返回了无效分页游标")
+                raise ValueError("Returned an invalid pagination cursor")
             if len(items) > limit:
-                raise ValueError("来源未遵守候选额度")
+                raise ValueError("Source did not comply with the candidate quota")
             if not result["pagination_known"]:
-                problems.append(issue("RETRIEVAL_DEGRADED", "页面未提供可靠的分页终点；不能认定搜索已完成"))
+                problems.append(issue("RETRIEVAL_DEGRADED", "Page did not provide a reliable pagination endpoint; the search cannot be considered complete"))
             if payload["items"][offset:offset + limit] and not items:
-                raise ValueError("全部房源均未通过契约校验")
+                raise ValueError("All listings failed contract validation")
             if not problems and cached is None:
-                # 有界、短期缓存；不改变房源的真实 fetched_at。
+                # Bounded, short-term cache; does not change the listing's real fetched_at.
                 if len(self._native_pages) >= 16:
                     self._native_pages.pop(next(iter(self._native_pages)))
                 self._native_pages[cache_key] = deepcopy(payload)
-            logging.getLogger('search.audit').info('PropertyGuru 搜索页', extra={'audit': dict(
+            logging.getLogger('search.audit').info('PropertyGuru search page', extra={'audit': dict(
                 event='native_page', cache_hit=cached is not None, page=page, offset=offset,
                 args=args, returned=len(items), native_count=len(payload['items']))})
             return result
         except (ContractViolation, ValueError, TypeError, KeyError) as exc:
-            raise ProviderError(issue("PARSE_ERROR", f"搜索结果无法解析：{exc}")) from exc
+            raise ProviderError(issue("PARSE_ERROR", f"Search results could not be parsed: {exc}")) from exc
 
     async def read_detail(self, listing: Listing, *, ctx: RunContext) -> ListingDetail:
-        # 搜索已给出真实详情链接时直接使用，避免再次依赖无 slug 的数字 ID 跳转。
+        # When the search has already provided a real detail link, use it directly, avoiding another reliance on a slug-less numeric ID redirect.
         url = listing['source_url'] or ''
         identifier = (url if url.startswith('https://www.propertyguru.com.sg/listing/')
                       else listing['source_listing_id'])
         if not identifier:
-            raise ProviderError(issue("INVALID_INPUT", "房源缺少来源 ID 和链接"))
+            raise ProviderError(issue("INVALID_INPUT", "Listing is missing source ID and link"))
         payload = await self._call(["detail", identifier, "--output-mode", "structured"], ctx)
         try:
             validate_type(ListingDetail, payload)
             timestamp(payload["fetched_at"], "detail.fetched_at")
         except ContractViolation as exc:
-            raise ProviderError(issue("PARSE_ERROR", f"详情不符合内部接口：{exc}")) from exc
+            raise ProviderError(issue("PARSE_ERROR", f"Detail does not conform to the internal interface: {exc}")) from exc
         return payload
 
 
@@ -319,7 +319,7 @@ if __name__ == '__main__':
                 print(json.dumps(dict(input=dict(query=query, filters=filters, ctx=ctx), output=output, details=details), ensure_ascii=False), flush=True)
             except ProviderError as exc:
                 print(json.dumps(dict(input=dict(query=query, filters=filters, ctx=ctx), error=exc.issue), ensure_ascii=False), flush=True)
-        print(f'真实 guru_search 调用通过 {passed}/3')
+        print(f'Real guru_search invocation passed {passed}/3')
         return 0 if passed==3 else 1
 
     raise SystemExit(asyncio.run(main()))

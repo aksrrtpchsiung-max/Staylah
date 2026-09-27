@@ -28,7 +28,7 @@ class SqlConversationFavoriteRepository:
     ) -> ConversationRow | None:
         conversation = session.get(ConversationRow, conversation_id)
         if conversation is not None and conversation.user_id != user_id:
-            raise PermissionError("conversation 不属于当前用户")
+            raise PermissionError("conversation does not belong to the current user")
         return conversation
 
     def counts_by_conversation(

@@ -1,1 +1,1 @@
-"""房产推荐 Agent：需求理解、搜索调查、评估推荐与持久会话。"""
+"""Real estate recommendation Agent: requirement understanding, search investigation, evaluation recommendation, and persistent sessions."""

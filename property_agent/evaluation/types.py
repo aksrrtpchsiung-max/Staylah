@@ -25,7 +25,7 @@ MAX_RECOMMENDATIONS = 10
 
 
 class KeywordMatcherError(RuntimeError):
-    """LLM 关键词匹配器不可用或返回了不符合约定的内容。"""
+    """The LLM keyword matcher is unavailable or returned content that does not conform to the contract."""
 
     def __init__(self, message: str, *, failure_kind: str = "INVALID_SCORE_SCHEMA") -> None:
         super().__init__(message)
@@ -33,7 +33,7 @@ class KeywordMatcherError(RuntimeError):
 
 
 class EvaluationReviewModelError(RuntimeError):
-    """LLM 评估或审查器不可用，或没有遵守固定 JSON 输出。"""
+    """The LLM evaluator or reviewer is unavailable, or did not adhere to the fixed JSON output."""
 
     def __init__(self, message: str, *, failure_kind: str = "MODEL_ERROR") -> None:
         super().__init__(message)
@@ -42,22 +42,22 @@ class EvaluationReviewModelError(RuntimeError):
 
 @dataclass(frozen=True)
 class KeywordMatch:
-    """单套房源的 LLM 语义评分结果。"""
+    """The LLM semantic scoring result for a single listing."""
 
     score: float
     matched_terms: list[str]
 
 
 class KeywordMatcher(Protocol):
-    """可注入的 LLM 匹配器；业务函数不携带 API client 或 API Key。"""
+    """An injectable LLM matcher; business functions do not carry an API client or API Key."""
 
     async def match(self, query: QueryFeatures, listings: list[Listing]) -> dict[str, KeywordMatch]:
-        """返回 listing_key -> 已验证的需求满足度分数。"""
+        """Returns listing_key -> verified requirement satisfaction scores."""
 
 
 @dataclass(frozen=True)
 class EvaluationDecision:
-    """LLM 给 evaluate 的选择与路线建议；会再经过本地约束验证。"""
+    """The LLM's choice and route suggestions for evaluate; they will then undergo local constraint validation."""
 
     selected_listing_keys: list[str]
     enough_candidates: bool
@@ -68,7 +68,7 @@ class EvaluationDecision:
 
 
 class EvaluationReviewModel(Protocol):
-    """C 的评估与审查模型。可用 fake 实现注入测试，不把 API Key 传进业务函数。"""
+    """C's evaluation and review model. A fake implementation can be injected for testing, without passing the API Key into business functions."""
 
     async def evaluate(
         self,
@@ -79,7 +79,7 @@ class EvaluationReviewModel(Protocol):
         coverage: Coverage,
         policy: RoutingPolicy,
     ) -> EvaluationDecision:
-        """选择可展示的候选，并建议下一步。"""
+        """Selects displayable candidates and suggests the next step."""
 
     async def review(
         self,
@@ -88,4 +88,4 @@ class EvaluationReviewModel(Protocol):
         listings: list[Listing],
         policy: RoutingPolicy,
     ) -> list[ReviewIssue]:
-        """独立核查 evaluation，返回固定 contract 的问题列表。"""
+        """Independently verifies the evaluation and returns a list of issues under a fixed contract."""

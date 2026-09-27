@@ -163,11 +163,11 @@ def _deterministic_retrieval_fallback(
 async def retrieve(
     query: QueryFeatures, eligible_listings: list[Listing], *, top_k: int, ctx: RunContext
 ) -> Result[RetrievalResult]:
-    """让 DeepSeek 对 B 返回的最多 12 套候选逐套打分，再由 Python 排序。
+    """Have DeepSeek score each of the up to 12 candidate sets returned by B individually, then have Python sort them.
 
-    C 不在这里判断房源合格与否，也不因字段未知而删除候选。分数降序排列；同分时
-    月租已知且更低的房源优先，价格未知的排在已知价格之后。模型不可用或没有返回
-    完整评分时，改用可披露的本地结构化约束评分，并返回 partial 而不是中断流程。
+    C does not judge here whether a listing is qualified, nor does it remove candidates because a field is unknown. Scores are sorted in descending order; when scores are tied,
+    listings with a known and lower monthly rent take priority, and listings with unknown price are placed after those with known prices. If the model is unavailable or does not return
+    a complete score, fall back to a disclosable local structured-constraint score and return partial instead of interrupting the flow.
     """
     started = perf_counter()
     if not isinstance(top_k, int) or isinstance(top_k, bool) or top_k <= 0:

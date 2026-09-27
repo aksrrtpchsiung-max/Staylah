@@ -10,7 +10,7 @@ from property_agent.evaluation.types import KeywordMatch, KeywordMatcherError
 
 
 class DeepSeekKeywordMatcher:
-    """通过共享 DeepSeek 客户端只对 B 候选打分。"""
+    """Score only the B candidates through the shared DeepSeek client."""
 
     def __init__(
         self,
@@ -37,11 +37,11 @@ class DeepSeekKeywordMatcher:
         except KeywordMatcherError as exc:
             if exc.failure_kind != "REQUEST_FAILED":
                 raise
-            # 网关偶尔会返回没有最终 content 的成功响应；只重试一次相同评分请求。
+            # The gateway occasionally returns a successful response with no final content; retry the same scoring request only once.
             matches = await self._request_scores(query, listings, repair=True)
         missing = [listing for listing in listings if listing["listing_key"] not in matches]
         if missing:
-            # 只重试缺失／非法的条目，避免一条格式问题使整批有效评分全部作废。
+            # Retry only the missing or invalid entries, so that one formatting problem does not invalidate the entire batch of valid scores.
             matches.update(await self._request_scores(query, missing, repair=True))
         still_missing = [listing["listing_key"] for listing in listings if listing["listing_key"] not in matches]
         if still_missing:

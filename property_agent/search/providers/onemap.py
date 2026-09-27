@@ -1,8 +1,8 @@
-"""OneMap Search API 适配；Token/凭据留在 Provider，绝不进入图状态。
+"""OneMap Search API adapter; Token/credentials stay in the Provider and never enter graph state.
 
-官方接口：https://www.onemap.gov.sg/apidocs/search
-鉴权：https://www.onemap.gov.sg/apidocs/authentication
-运行真实查询检查：.venv/bin/python -m providers.onemap
+Official API: https://www.onemap.gov.sg/apidocs/search
+Authentication: https://www.onemap.gov.sg/apidocs/authentication
+Run a real query check: .venv/bin/python -m providers.onemap
 """
 
 from property_agent.runtime.paths import PROJECT_ROOT
@@ -36,7 +36,7 @@ class OneMapProvider:
         if (not math.isfinite(timeout_seconds) or timeout_seconds <= 0
                 or type(max_pages) is not int or max_pages < 1
                 or not math.isfinite(request_interval) or request_interval < 0.2):
-            raise ValueError('需要正超时、正分页上限，调用间隔至少 0.2 秒')
+            raise ValueError('Requires a positive timeout, a positive pagination limit, and a call interval of at least 0.2 seconds')
         self._token, self._email, self._password = token.strip(), email.strip(), password
         self._expires_at = 0.0
         self._transport = transport
@@ -59,7 +59,7 @@ class OneMapProvider:
 
     def check_configuration(self):
         if not self._token and not (self._email and self._password):
-            raise self._error('AUTH_REQUIRED', '真实定位缺少配置：请在 .env 填写 ONEMAP_TOKEN 或 ONEMAP_EMAIL / ONEMAP_PASSWORD')
+            raise self._error('AUTH_REQUIRED', 'Real geocoding is missing configuration: please fill in ONEMAP_TOKEN or ONEMAP_EMAIL / ONEMAP_PASSWORD in .env')
 
     async def _request(self, client, method, path, ctx, *, allow_list=False, **kwargs):
         delay = max(0, self._next_request - monotonic())
@@ -70,38 +70,38 @@ class OneMapProvider:
             response = await client.request(method, path,
                 timeout=min(self.timeout_seconds, remaining_seconds(ctx)), **kwargs)
         except httpx.TimeoutException:
-            raise self._error('TIMEOUT', 'OneMap 请求超时', True) from None
+            raise self._error('TIMEOUT', 'OneMap request timed out', True) from None
         except httpx.HTTPError:
-            raise self._error('SOURCE_UNAVAILABLE', '无法连接 OneMap', True) from None
+            raise self._error('SOURCE_UNAVAILABLE', 'Unable to connect to OneMap', True) from None
         if response.status_code == 429:
-            problem = issue('RATE_LIMITED', 'OneMap 调用频率受限', source=self.source, retryable=True)
+            problem = issue('RATE_LIMITED', 'OneMap call rate limited', source=self.source, retryable=True)
             retry_after = response.headers.get('Retry-After', '')
             if retry_after.isdigit():
                 problem['retry_after_seconds'] = int(retry_after)
             raise ProviderError(problem)
         if response.status_code in (401, 403):
-            raise self._error('AUTH_REQUIRED', 'OneMap Token 无效或无访问权限')
+            raise self._error('AUTH_REQUIRED', 'OneMap Token is invalid or lacks access permission')
         if response.status_code >= 500:
-            raise self._error('SOURCE_UNAVAILABLE', 'OneMap 服务暂时不可用', True)
+            raise self._error('SOURCE_UNAVAILABLE', 'OneMap service is temporarily unavailable', True)
         if response.is_error:
-            raise self._error('SOURCE_UNAVAILABLE', f'OneMap 返回 HTTP {response.status_code}')
+            raise self._error('SOURCE_UNAVAILABLE', f'OneMap returned HTTP {response.status_code}')
         try:
             payload = response.json()
         except ValueError:
-            raise self._error('PARSE_ERROR', 'OneMap 响应不是 JSON') from None
+            raise self._error('PARSE_ERROR', 'OneMap response is not JSON') from None
         if allow_list and isinstance(payload, list):
             return payload, str(response.url)
         if not isinstance(payload, dict):
-            raise self._error('PARSE_ERROR', 'OneMap 响应不是对象')
-        # 官方 Search 鉴权失败可能仍返回 HTTP 200，不能当成没有匹配。
+            raise self._error('PARSE_ERROR', 'OneMap response is not an object')
+        # Official Search authentication failures may still return HTTP 200, so they must not be treated as no matches.
         if payload.get('error'):
             description = str(payload['error']).lower()
             code = 'AUTH_REQUIRED' if any(s in description for s in ('token', 'auth', 'credential')) else 'SOURCE_UNAVAILABLE'
-            raise self._error(code, f'OneMap 请求失败：{code}')
+            raise self._error(code, f'OneMap request failed: {code}')
         return payload, str(response.url)
 
     async def query(self, path, params, *, ctx, allow_list=False):
-        """地图能力共用鉴权/串行限速；刷新只处理一次实际鉴权失败。"""
+        """Map capabilities share authentication/serial rate limiting; refresh handles an actual authentication failure only once."""
         self.check_configuration()
         try:
             async with asyncio.timeout(remaining_seconds(ctx)):
@@ -119,10 +119,10 @@ class OneMapProvider:
                                     raise
                                 await self._authenticate(client, ctx)
         except TimeoutError:
-            raise self._error('TIMEOUT', '地图请求达到截止时间', True) from None
+            raise self._error('TIMEOUT', 'Map request reached its deadline', True) from None
 
     async def route(self, origin, destination, *, mode, transit_mode, departure_at, ctx):
-        """保留线路各段；公共交通总时长包含等待与换乘，不用距离推算耗时。"""
+        """Preserve each leg of the route; total public transit duration includes waiting and transfers, so do not estimate duration from distance."""
         start = f"{origin['latitude']},{origin['longitude']}"
         end = f"{destination['latitude']},{destination['longitude']}"
         params = dict(start=start, end=end, routeType=mode)
@@ -168,7 +168,7 @@ class OneMapProvider:
                     departure_at=None, arrival_at=None, time_dependent=False, source_url=url, observed_at=observed))
             return sorted(routes, key=lambda route: route['duration_seconds'])
         except (KeyError, TypeError, ValueError, OverflowError):
-            raise self._error('PARSE_ERROR', 'OneMap 路线缺少有效时间、距离或线路信息') from None
+            raise self._error('PARSE_ERROR', 'OneMap route is missing valid time, distance, or route information') from None
 
     async def nearby(self, origin, category, radius_m, *, ctx):
         from property_agent.search.providers.osm import distance_m
@@ -179,9 +179,9 @@ class OneMapProvider:
                 dict(latitude=origin['latitude'], longitude=origin['longitude'], radius_in_meters=radius_m),
                 ctx=ctx, allow_list=True)
             if not isinstance(rows, list):
-                raise self._error('PARSE_ERROR', 'OneMap 交通设施响应不是数组')
+                raise self._error('PARSE_ERROR', 'OneMap transport facility response is not an array')
         elif category == 'park':
-            # 全国点位列表很小；读取完整列表再按圆形半径过滤，不把矩形范围当圆形。
+            # The nationwide point list is small; read the full list and then filter by circular radius, and do not treat a rectangular extent as a circle.
             data, url = await self.query('/api/public/themesvc/retrieveTheme', {'queryName': 'nationalparks'}, ctx=ctx)
             try:
                 meta, *features = data['SrchResults']
@@ -193,13 +193,13 @@ class OneMapProvider:
                         raise ValueError
                     lat, lon = map(float, feature['LatLng'].split(','))
                     if re.search(r'\bPG\b|PLAYGROUND|FITNESS CORNER', feature['NAME'], re.I):
-                        continue  # Parks 主题也收录游乐场，不能代替用户要求的公园。
+                        continue  # The Parks theme also includes playgrounds, which cannot substitute for the park the user requested.
                     rows.append(dict(id=feature['NAME'] + ':' + feature['LatLng'], name=feature['NAME'],
                                      lat=lat, lon=lon, road=None))
             except (KeyError, ValueError, TypeError):
-                raise self._error('PARSE_ERROR', 'OneMap 公园点位数据不完整') from None
+                raise self._error('PARSE_ERROR', 'OneMap park point data is incomplete') from None
         else:
-            raise self._error('INVALID_INPUT', '该类别应交给学校/超市来源')
+            raise self._error('INVALID_INPUT', 'This category should be handled by the school/supermarket source')
         try:
             items = []
             for row in rows:
@@ -215,11 +215,11 @@ class OneMapProvider:
             return dict(items=sorted(items, key=lambda item: item['straight_line_distance_m']),
                         complete=True, source_url=url, observed_at=observed)
         except (KeyError, ValueError, TypeError):
-            raise self._error('PARSE_ERROR', 'OneMap 设施名称或坐标无效') from None
+            raise self._error('PARSE_ERROR', 'OneMap facility name or coordinates are invalid') from None
 
     async def _authenticate(self, client, ctx):
         if not self._email or not self._password:
-            raise self._error('AUTH_REQUIRED', '请配置 ONEMAP_TOKEN 或 OneMap 邮箱和密码')
+            raise self._error('AUTH_REQUIRED', 'Please configure ONEMAP_TOKEN or OneMap email and password')
         data, _ = await self._request(client, 'POST', '/api/auth/post/getToken', ctx,
                                      json={'email': self._email, 'password': self._password})
         try:
@@ -228,12 +228,12 @@ class OneMapProvider:
             if not isinstance(token, str) or not token.strip() or not math.isfinite(expiry) or expiry <= time():
                 raise ValueError
         except (KeyError, TypeError, ValueError):
-            raise self._error('PARSE_ERROR', 'OneMap 未返回有效 Token 或到期时间') from None
+            raise self._error('PARSE_ERROR', 'OneMap did not return a valid Token or expiry time') from None
         self._token, self._expires_at = token, expiry
 
     async def geocode(self, query: str, *, ctx: RunContext) -> GeocodeMatches:
         if not isinstance(query, str) or not query.strip():
-            raise self._error('INVALID_INPUT', '定位查询不能为空')
+            raise self._error('INVALID_INPUT', 'Geocoding query cannot be empty')
         self.check_configuration()
         try:
             async with asyncio.timeout(remaining_seconds(ctx)):
@@ -280,13 +280,13 @@ class OneMapProvider:
                                         block=field('BLK_NO'), road=field('ROAD_NAME'), building=field('BUILDING'),
                                         latitude=lat, longitude=lon, source_url=url, observed_at=observed_at))
                             except (KeyError, ValueError, TypeError, OverflowError):
-                                raise self._error('PARSE_ERROR', 'OneMap 地址、坐标或分页信息不完整') from None
+                                raise self._error('PARSE_ERROR', 'OneMap address, coordinates, or pagination information is incomplete') from None
                             if total <= page:
                                 complete = len(candidates) == found
                                 break
                         return dict(candidates=candidates, complete=complete)
         except TimeoutError:
-            raise self._error('TIMEOUT', '定位达到本次执行截止时间', True) from None
+            raise self._error('TIMEOUT', 'Geocoding reached the deadline for this execution', True) from None
 
 
 if __name__ == '__main__':
@@ -295,7 +295,7 @@ if __name__ == '__main__':
     from datetime import timedelta
     from uuid import uuid4
 
-    parser = argparse.ArgumentParser(description='OneMap 真实地址查询；需要本地 .env 凭据，不使用预设响应')
+    parser = argparse.ArgumentParser(description='OneMap real address query; requires local .env credentials and does not use preset responses')
     parser.add_argument('--queries', nargs='+', default=['200640', '307987', '049213'])
     args = parser.parse_args()
 
@@ -313,7 +313,7 @@ if __name__ == '__main__':
                 print(json.dumps(dict(input=dict(query=query, ctx=ctx), output=output), ensure_ascii=False), flush=True)
             except ProviderError as exc:
                 print(json.dumps(dict(input=dict(query=query, ctx=ctx), error=exc.issue), ensure_ascii=False), flush=True)
-        print(f'真实 OneMap 查询通过 {passed}/{len(args.queries)}；失败不算验收通过。')
+        print(f'Real OneMap query passed {passed}/{len(args.queries)}; failures do not count as acceptance passing.')
         return 0 if passed == len(args.queries) else 1
 
     raise SystemExit(asyncio.run(main()))

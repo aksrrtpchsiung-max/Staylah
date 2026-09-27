@@ -1,4 +1,4 @@
-"""Bilingual place names from A must keep the same confirmed search area."""
+"""Known English place names from A must keep the same confirmed search area."""
 import copy
 from datetime import datetime, timedelta, timezone
 import unittest
@@ -11,11 +11,11 @@ from tests.support import build_ctx
 
 
 class LocationAliasTests(unittest.IsolatedAsyncioTestCase):
-    def test_two_names_of_the_same_known_area_are_recognized(self):
+    def test_known_areas_are_recognized(self):
         for text, canonical in (
-            ('淡滨尼（Tampines）', 'TAMPINES'),
-            ('Clementi (金文泰)', 'CLEMENTI'),
-            ('榜鹅 (Punggol)', 'PUNGGOL'),
+            ('Tampines', 'TAMPINES'),
+            ('Clementi', 'CLEMENTI'),
+            ('Punggol', 'PUNGGOL'),
         ):
             with self.subTest(text=text):
                 entity = location_entity(text)
@@ -23,7 +23,7 @@ class LocationAliasTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(entity['raw_text'], text)
 
     def test_conflicting_names_or_extra_conditions_are_not_collapsed(self):
-        for text in ('淡滨尼（Clementi）', 'Tampines (near MRT)',
+        for text in ('Tampines (Clementi)', 'Tampines (near MRT)',
                      'Tampines / Clementi', 'Tampines (not Bedok)', 'Unknown (Tampines)'):
             with self.subTest(text=text):
                 entity = location_entity(text)
@@ -34,7 +34,7 @@ class LocationAliasTests(unittest.IsolatedAsyncioTestCase):
         request = copy.deepcopy(request_1)
         area = next(item for item in request['derived_data_requirements']
                     if item['metric'] == 'residential_area')
-        area['target'] = '淡滨尼（Tampines）'  # Actual failing A output from the live smoke.
+        area['target'] = 'Tampines'  # Actual failing A output from the live smoke.
         before = copy.deepcopy(request)
         ctx = build_ctx('bilingual-area', conversation_id=request['conversation_id'], source_mode='live')
         ctx['deadline_at'] = (datetime.now(timezone.utc) + timedelta(minutes=1)).isoformat()

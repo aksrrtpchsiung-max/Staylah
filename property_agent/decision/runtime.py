@@ -1,4 +1,4 @@
-"""使用 PostgreSQL checkpoint 的 decision graph 生命周期。"""
+"""Decision graph lifecycle using PostgreSQL checkpoint."""
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -13,7 +13,7 @@ from property_agent.persistence.database import checkpoint_database_uri
 
 
 def thread_config(run_id: str, *, recursion_limit: int = 30) -> dict[str, Any]:
-    """一次业务 run 对应一个稳定 LangGraph thread。"""
+    """One business run corresponds to one stable LangGraph thread."""
     return {
         "configurable": {"thread_id": run_id},
         "recursion_limit": recursion_limit,
@@ -27,7 +27,7 @@ async def postgres_decision_graph(
     checkpoint_uri: str | None = None,
     setup: bool = True,
 ) -> AsyncIterator[Any]:
-    """连接在 graph 使用期间保持打开；退出 context 后安全关闭。"""
+    """The connection stays open while the graph is in use; it is safely closed after exiting the context."""
     uri = checkpoint_uri or checkpoint_database_uri()
     async with AsyncPostgresSaver.from_conn_string(uri) as checkpointer:
         if setup:

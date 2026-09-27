@@ -42,7 +42,7 @@ class ConversationOrchestrator(RequirementFlow, SearchFlow, DecisionFlow):
         deadline_seconds: int = 300,
     ) -> None:
         if source_mode not in {"live", "mock"}:
-            raise ValueError("source_mode 只能是 live 或 mock")
+            raise ValueError("source_mode must be either live or mock")
         self.a_graph = a_graph
         self.decision_graph = decision_graph
         self.search_runner = search_runner
@@ -67,8 +67,8 @@ class ConversationOrchestrator(RequirementFlow, SearchFlow, DecisionFlow):
         if not clean:
             raise ValueError("user message must not be empty")
         self.chat.ensure_conversation(conversation_id, user_id=user_id)
-        # client_message_id 是客户端重试时保持稳定的幂等键；若同时传入两个 ID，
-        # 也优先用它作为消息主键，避免同一客户端消息产生两个业务 turn。
+        # client_message_id is the idempotency key kept stable when the client retries; if two IDs are passed at the same time,
+        # it is also preferred as the message primary key, to avoid the same client message producing two business turns.
         user_message_id = client_message_id or message_id or f"msg-{uuid4().hex}"
         self.chat.append_message(
             conversation_id,
@@ -100,7 +100,7 @@ class ConversationOrchestrator(RequirementFlow, SearchFlow, DecisionFlow):
                 message_id=user_message_id,
             )
 
-        # C 的 ask_user 已经把 pending_question 写入 messages，这里不再重复。
+        # C's ask_user has already written pending_question into messages, so it is not repeated here.
         if result.assistant_response and result.phase != "waiting_user":
             self.chat.append_message(
                 conversation_id,
@@ -113,13 +113,13 @@ class ConversationOrchestrator(RequirementFlow, SearchFlow, DecisionFlow):
         return result
 
     async def _remember_turn(self, message_id: str, result: TurnResult) -> None:
-        """把已完成 turn 的结果放进 A checkpoint，供客户端安全重试。"""
+        """Put the result of the completed turn into the A checkpoint, for the client to retry safely."""
 
         config = self._a_config(result.conversation_id)
         snapshot = await self.a_graph.aget_state(config)
         processed = dict((snapshot.values or {}).get("processed_turns") or {})
         processed[message_id] = asdict(result)
-        # checkpoint 不是无限聊天档案；消息正文仍保存在 messages 表中。
+        # checkpoint is not an unlimited chat archive; the message body is still stored in the messages table.
         while len(processed) > 100:
             processed.pop(next(iter(processed)))
         await self.a_graph.aupdate_state(config, {"processed_turns": processed})

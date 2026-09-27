@@ -6,7 +6,7 @@ from property_agent.requirements.constants import FURNISHING_RULES, FURNISHING_V
 
 
 def normalized_requirement_to_patch(requirement: NormalizedRequirement) -> list[dict[str, Any]]:
-    """把已验证的 LLM 标准需求转换为共享 contract 的 profile patch。"""
+    """Convert the validated LLM standard requirements into a profile patch for the shared contract."""
 
     changes: list[ProfileChangeModel] = []
     message_id = requirement.message_id
@@ -90,7 +90,7 @@ def _listing_constraint(
     priority: str,
     source: Any,
 ) -> dict[str, Any]:
-    """构造具有稳定字段级 ID 的 ListingConstraint 字典。"""
+    """Build a ListingConstraint dictionary with stable field-level IDs."""
 
     return {
         "constraint_id": f"constraint:{field_path}",
@@ -104,7 +104,7 @@ def _listing_constraint(
 
 
 def _derived_requirements(requirement: NormalizedRequirement) -> list[dict[str, Any]]:
-    """把地点、通勤和非 Listing 偏好转换为 B 可消费的派生数据需求。"""
+    """Convert location, commute, and non-Listing preferences into derived data requirements consumable by B."""
 
     values: list[dict[str, Any]] = []
     for location in requirement.locations:
@@ -139,7 +139,7 @@ def _derived_requirements(requirement: NormalizedRequirement) -> list[dict[str, 
 
 
 def _open_data_requirement(preference: PreferenceRequirement) -> dict[str, Any]:
-    """按逐字原文构造一条非阻塞的 best-effort 开放需求。"""
+    """Build a non-blocking best-effort open requirement from the verbatim original text."""
 
     source = preference.source
     return {
@@ -156,7 +156,7 @@ def _open_data_requirements(
     requirement: NormalizedRequirement,
     extra_preferences: list[PreferenceRequirement] | None = None,
 ) -> list[dict[str, Any]]:
-    """把无法映射到稳定字段的偏好保存为非阻塞 best-effort 需求。"""
+    """Save preferences that cannot be mapped to stable fields as non-blocking best-effort requirements."""
 
     values: list[dict[str, Any]] = []
     for preference in requirement.preferences:
@@ -164,7 +164,7 @@ def _open_data_requirements(
             continue
         source = preference.source
         source_text = source.text.casefold()
-        if requirement.commute and ("commute" in source_text or "通勤" in source_text):
+        if requirement.commute and ("commute" in source_text or "commute" in source_text):
             continue
         values.append(_open_data_requirement(preference))
     for preference in extra_preferences or []:
@@ -183,7 +183,7 @@ def _derived(
     priority: str,
     source: Any,
 ) -> dict[str, Any]:
-    """构造具有稳定语义身份的 DerivedDataRequirement 字典。"""
+    """Build a DerivedDataRequirement dictionary with a stable semantic identity."""
 
     identity = f"{category}:{target or 'none'}:{metric}"
     return {
@@ -201,15 +201,15 @@ def _derived(
 
 
 def _furnishing_value(preference: PreferenceRequirement) -> tuple[str, str] | None:
-    """把家具偏好收敛成 Listing.furnishing 的枚举取值；无法判断时返回 None。
+    """Reduce furnishing preferences to the enum values of Listing.furnishing; return None when undeterminable.
 
-    逐字原文优先，模型给出的值只作为兜底，避免布尔 True 直接进入共享契约。
+    Verbatim original text takes priority; model-provided values serve only as a fallback, preventing boolean True from entering the shared contract directly.
     """
 
     value = preference.value
     haystack = preference.source.text.casefold()
     if isinstance(value, str):
-        # 模型偶尔写成 "fully-furnished" 这类变体，一并参与关键词判断。
+        # The model occasionally writes variants like "fully-furnished", which also participate in keyword matching.
         haystack = f"{value.casefold()}\n{haystack}"
     for operator, normalized, keywords in FURNISHING_RULES:
         if any(keyword in haystack for keyword in keywords):
@@ -228,10 +228,10 @@ def _furnishing_value(preference: PreferenceRequirement) -> tuple[str, str] | No
 def _preference_listing_constraints(
     requirement: NormalizedRequirement,
 ) -> tuple[list[dict[str, Any]], list[PreferenceRequirement]]:
-    """把可直接匹配 Listing 字段的稳定偏好主题转换为约束。
+    """Convert stable preference topics that can directly match Listing fields into constraints.
 
-    取值固定的主题在这里写死取值；需要透传模型取值的主题必须显式规一化，否则会把
-    共享契约不允许的值交给 B。无法规一化的家具偏好返回给调用方降级处理。
+    Topics with fixed values are hardcoded here; topics that need to pass through model values must be explicitly normalized, otherwise they will pass
+    values not allowed by the shared contract to B. Furnishing preferences that cannot be normalized are returned to the caller for degraded handling.
     """
 
     mapping: dict[PreferenceTopic, tuple[str, Any]] = {

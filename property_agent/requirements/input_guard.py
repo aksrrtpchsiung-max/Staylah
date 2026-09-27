@@ -13,14 +13,14 @@ from property_agent.requirements.support import _error_update
 
 
 class InputGuard(Protocol):
-    """定义输入有效性和新加坡住房相关性的判定接口。"""
+    """Defines the interface for determining input validity and Singapore housing relevance."""
 
     def check(self, text: str, *, workflow_status: str) -> InputGuardDecision:
-        """返回输入结构与业务范围判定，不生成任何 profile 字段。"""
+        """Returns the input structure and business scope determination without generating any profile fields."""
 
 
 class DeepSeekInputGuard:
-    """使用 DeepSeek JSON Output 判断输入是否属于 Falcon 住房服务范围。"""
+    """Uses DeepSeek JSON Output to determine whether the input falls within the Falcon housing service scope."""
 
     def __init__(
         self,
@@ -29,14 +29,14 @@ class DeepSeekInputGuard:
         api_key: str | None = None,
         client: Any | None = None,
     ) -> None:
-        """注入无密钥配置、可选进程内密钥和测试 HTTP 客户端。"""
+        """Injects a keyless configuration, an optional in-process key, and a test HTTP client."""
 
         self._config = config or DeepSeekParserConfig.from_runtime()
         self._api_key = api_key
         self._client = client
 
     def check(self, text: str, *, workflow_status: str) -> InputGuardDecision:
-        """校验长度，并让模型只返回 valid 与 housing_related 两个布尔值。"""
+        """Validates the length and makes the model return only the two boolean values valid and housing_related."""
 
         if not text.strip() or len(text) > MAX_INPUT_CHARS:
             return InputGuardDecision(valid=False, housing_related=False)
@@ -88,12 +88,12 @@ def make_validate_input_node(
     guard: InputGuard,
     renderer: ResponseRenderer | None = None,
 ) -> Callable[[RequirementGraphState], dict[str, Any]]:
-    """创建输入合法性与住房相关性检查节点。"""
+    """Creates a node for checking input legality and housing relevance."""
 
     response_renderer = renderer or ResponseRenderer()
 
     def validate_input(state: RequirementGraphState) -> dict[str, Any]:
-        """拒绝非法或无关输入，并返回用户指定的固定 Falcon 提示。"""
+        """Rejects illegal or irrelevant input and returns the user-specified fixed Falcon prompt."""
 
         text = state.get("current_input", "")
         if not state.get("message_id", "").strip():

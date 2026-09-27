@@ -1,4 +1,4 @@
-"""公开 LLM 直接需求理解模型、实现和 LangGraph 节点。"""
+"""Public LLM direct requirement understanding model, implementation, and LangGraph node."""
 
 from .deepseek_parser import (
     DeepSeekAPIError,

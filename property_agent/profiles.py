@@ -1,7 +1,7 @@
-"""ConversationProfile 的程序侧读写：确认档案、放宽硬条件、读取当前约束值。
+"""Program-side read/write for ConversationProfile: confirm the profile, relax hard constraints, read current constraint values.
 
-模块 C 与 decision 图都直接使用冻结的 ConversationProfile，不再经过适配层。
-旧版 UserProfile 夹具只在加载边界转换成确认档案。
+Module C and the decision graph both use the frozen ConversationProfile directly, no longer going through an adapter layer.
+The legacy UserProfile fixture is converted into a confirmed profile only at the loading boundary.
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from property_agent.contracts import (
     SourceReference,
 )
 
-# 可以向用户提议放宽的字段。路径对应 C 写入的 RelaxationProposal.field。
+# Fields that can be proposed to the user for relaxation. The path corresponds to RelaxationProposal.field written by C.
 RELAXABLE_FIELDS = frozenset({
     "listing_constraints.price.amount",
     "listing_constraints.bedrooms",
@@ -50,7 +50,7 @@ _QUERYABLE_PREFERENCE_FIELDS = {
 
 
 def empty_source(message_id: str = "legacy-profile") -> SourceReference:
-    """旧档案只保存消息 ID；缺失的逐字原文保持为空，不伪造用户引用。"""
+    """The legacy profile stores only message IDs; missing verbatim text remains empty, and user quotes are not fabricated."""
     return {"message_id": message_id, "text": "", "start": 0, "end": 0}
 
 
@@ -62,7 +62,7 @@ def listing_field_path(proposal_field: str) -> str:
 
 
 def read_relaxable_value(profile: ConversationProfile, field: str) -> JsonValue:
-    """读取可放宽硬条件的当前值；与 C 的提案字段路径对齐。"""
+    """Read the current values of relaxable hard constraints; aligned with the proposal field paths in C."""
     field_path = listing_field_path(field)
     values = [
         constraint["value"]
@@ -84,7 +84,7 @@ def read_relaxable_value(profile: ConversationProfile, field: str) -> JsonValue:
 
 
 def is_relaxation(field: str, old: JsonValue, proposed: JsonValue) -> bool:
-    """只认确定的放宽方向，其余一律不认。"""
+    """Only definite relaxation directions are recognized; all others are rejected."""
     if field == "listing_constraints.price.amount":
         return (
             isinstance(old, int)
@@ -107,10 +107,10 @@ def apply_relaxation(
     proposal: RelaxationProposal,
     source_message_id: str,
 ) -> ConversationProfile:
-    """按提案更新对应 hard listing_constraint，并保持档案仍为 confirmed。"""
+    """Update the corresponding hard listing_constraint according to the proposal, and keep the profile still confirmed."""
     field = proposal["field"]
     if field not in RELAXABLE_FIELDS:
-        raise ValueError(f"字段不在可放宽白名单: {field}")
+        raise ValueError(f"Field is not in the relaxable whitelist: {field}")
     field_path = listing_field_path(field)
     updated = copy.deepcopy(profile)
     found = False
@@ -124,7 +124,7 @@ def apply_relaxation(
         found = True
         break
     if not found:
-        raise ValueError(f"档案中没有可放宽的硬条件: {field}")
+        raise ValueError(f"No relaxable hard constraint in the profile: {field}")
     updated["version"] = int(updated["version"]) + 1
     updated["confirmed_version"] = updated["version"]
     updated["status"] = "confirmed"
@@ -141,9 +141,9 @@ def from_legacy_user_profile(
     conversation_id: str | None = None,
     timestamp: str = "2026-09-15T12:00:00+08:00",
 ) -> ConversationProfile:
-    """把旧版冻结档案投影成 confirmed ConversationProfile。
+    """Project the legacy frozen profile into a confirmed ConversationProfile.
 
-    只用于夹具和迁移期输入。若已经是新档案，直接复制并补齐确认字段。
+    Used only for fixtures and migration-period input. If it is already a new profile, copy it directly and fill in the confirmation fields.
     """
     if "listing_constraints" in profile:
         confirmed = copy.deepcopy(profile)

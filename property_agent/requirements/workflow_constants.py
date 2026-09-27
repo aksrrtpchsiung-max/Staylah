@@ -1,6 +1,6 @@
-"""保存 workflow 与回复模板共享、不可随语气变化的产品常量。"""
+"""Stores product constants shared by the workflow and reply templates that must not vary with tone."""
 
-# 单用户开发阶段的可信调用身份。接入登录后由认证上下文替换此默认值。
+# Trusted caller identity for the single-user development phase. After login is integrated, this default value will be replaced by the authentication context.
 DEFAULT_USER_ID = "local-development-user"
 
 FALCON_SCOPE_MESSAGE = (

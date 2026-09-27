@@ -1,7 +1,7 @@
-"""A→B 的 LangGraph：解析需求、制定计划、执行检索、汇总需求覆盖。
+"""LangGraph for A to B: parse requirements, create a plan, execute retrieval, and summarize requirement coverage.
 
-原始 RequirementRequest 始终保留在当前图状态中；不把它伪造成完整画像，
-不跨 conversation 缓存条件。历史、重试与分页由 B 的内部服务管理。
+The original RequirementRequest is always retained in the current graph state; do not falsify it into a complete profile,
+and do not cache conditions across conversations. History, retries, and pagination are managed by B's internal services.
 """
 from copy import deepcopy
 from functools import wraps
@@ -33,14 +33,14 @@ class FulfillmentState(TypedDict):
 
 
 class FulfillmentService:
-    """依赖通过构造注入；每次调用拥有独立状态、额度及检索缓存。"""
+    """Dependencies are injected via the constructor; each invocation has independent state, quota, and retrieval cache."""
 
     def __init__(self, *, planner=None, search_service=None,
                  planner_factory=None, search_factory=None):
         if planner is None and planner_factory is None:
-            raise ValueError('需要计划服务或计划服务工厂')
+            raise ValueError('A planning service or planning service factory is required')
         if search_service is None and search_factory is None:
-            raise ValueError('需要搜索服务或搜索服务工厂')
+            raise ValueError('A search service or search service factory is required')
         self.planner, self.search_service = planner, search_service
         self.planner_factory, self.search_factory = planner_factory, search_factory
 
@@ -53,7 +53,7 @@ class FulfillmentService:
                     try:
                         return await function(state)
                     finally:
-                        logging.getLogger('search.audit').info('履约阶段完成', extra={'audit': dict(
+                        logging.getLogger('search.audit').info('Fulfillment phase completed', extra={'audit': dict(
                             event='stage', stage=name, duration_ms=round((monotonic() - before) * 1000))})
                 return measured
             return decorate
@@ -66,7 +66,7 @@ class FulfillmentService:
                 return {'result': prepared}
             query = prepared['data']
             if query['unresolved']:
-                # 尚未检索的派生需求是 unverified；开放需求仍不阻塞。
+                # Derived requirements not yet retrieved are unverified; open requirements still do not block.
                 data = dict(request_id=request['request_id'], profile_version=request['profile_version'],
                     status='needs_clarification', search_result=None,
                     coverage=dict(fulfilled_requirement_ids=[], unsupported_requirement_ids=[],
@@ -79,7 +79,7 @@ class FulfillmentService:
 
         @timed('plan')
         async def plan(state):
-            # 先完成输入及澄清检查，再读取模型配置；不要求 A 提供历史或策略。
+            # Complete input and clarification checks first, then read the model configuration; do not require A to provide history or policy.
             remaining_seconds(state['ctx'])
             planner = self.planner if self.planner is not None else self.planner_factory()
             planned = await planner.build_for_request(
@@ -114,7 +114,7 @@ class FulfillmentService:
         return builder.compile()
 
     async def run(self, request: RequirementRequest, *, ctx: RunContext) -> FulfillmentState:
-        """内部联调返回各阶段真实输入输出；外部调用 fulfill_requirements。"""
+        """Internal integration testing returns the real inputs and outputs of each phase; external calls use fulfill_requirements."""
         from property_agent.runtime.model_client import ModelConfigurationError
         started = monotonic()
         state = dict(request=deepcopy(request), ctx=deepcopy(ctx), query=None,
@@ -137,7 +137,7 @@ class FulfillmentService:
         except ProviderError as exc:
             problem = exc.issue
         except Exception:
-            problem = issue('INTERNAL_ERROR', '需求履行流程发生未处理错误', source=None)
+            problem = issue('INTERNAL_ERROR', 'An unhandled error occurred in the requirement fulfillment process', source=None)
         state['result'] = error_result(problem, ctx, started)
         return state
 

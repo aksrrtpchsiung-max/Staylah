@@ -15,12 +15,12 @@ def handle_confirmation(
     *,
     renderer: ResponseRenderer | None = None,
 ) -> dict[str, Any]:
-    """确定性识别确认和取消；其余文本作为需求修订重新解析。"""
+    """Deterministically recognize confirmation and cancellation; all other text is re-parsed as a requirement revision."""
 
     response_renderer = renderer or ResponseRenderer()
-    normalized = state.get("current_input", "").strip().lower().rstrip("。.!！")
-    confirmations = {"yes", "y", "confirm", "confirmed", "是", "是的", "确认", "正确", "没问题"}
-    cancellations = {"cancel", "取消", "不找了", "结束", "停止"}
+    normalized = state.get("current_input", "").strip().lower().rstrip(".!")
+    confirmations = {"yes", "y", "confirm", "confirmed", "yes indeed", "correct", "no problem"}
+    cancellations = {"cancel", "not looking anymore", "end", "stop"}
     if normalized in confirmations:
         return {"workflow_route": "persist_confirmed_profile"}
     if normalized in cancellations:
@@ -41,7 +41,7 @@ def generate_confirmation(
     *,
     renderer: ResponseRenderer | None = None,
 ) -> dict[str, Any]:
-    """从 profile 确定性生成确认摘要，避免摘要与 JSON 条件不一致。"""
+    """Deterministically generate a confirmation summary from the profile to avoid inconsistency between the summary and the JSON conditions."""
 
     response_renderer = renderer or ResponseRenderer()
     profile = copy.deepcopy(state["profile"])
@@ -67,10 +67,10 @@ def make_persist_confirmed_profile_node(
     repository: ProfileRepository,
     clock: Callable[[], str] = utc_now,
 ) -> Callable[[RequirementGraphState], dict[str, Any]]:
-    """创建用户确认后原子持久化 profile 的节点。"""
+    """Create a node that atomically persists the profile after user confirmation."""
 
     def persist_confirmed_profile(state: RequirementGraphState) -> dict[str, Any]:
-        """校验 confirmation version，保存 confirmed profile，失败时禁止交给 B。"""
+        """Validate the confirmation version, save the confirmed profile, and prohibit handing off to B on failure."""
 
         profile = copy.deepcopy(state.get("profile") or {})
         confirmation = state.get("confirmation") or {}
@@ -117,7 +117,7 @@ def build_requirement_request(
     *,
     renderer: ResponseRenderer | None = None,
 ) -> dict[str, Any]:
-    """从 confirmed profile 构造 A 到 B 的最小化固定请求，但不调用 B。"""
+    """Construct the minimal fixed request from A to B from the confirmed profile, but do not call B."""
 
     response_renderer = renderer or ResponseRenderer()
     profile = ConversationProfileModel.model_validate(state["profile"])

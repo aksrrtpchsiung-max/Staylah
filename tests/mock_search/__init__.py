@@ -1,6 +1,6 @@
-"""用合成 SearchResult 夹具代替真实搜索，供联调 decision / 追问 / 持久化。
+"""Use synthetic SearchResult fixtures instead of real search, for integration testing of decision / follow-up questions / persistence.
 
-这不是生产 search/screen 实现。其他团队替换 SearchRunner 后，decision 图无需改动。
+This is not a production search/screen implementation. After other teams replace SearchRunner, the decision graph needs no changes.
 """
 
 from tests.mock_search.pipeline import (

@@ -52,7 +52,7 @@ async def capture():
         snapshots[name] = normalize(result)
         if name == "question":
             snapshots["resume_answer"] = normalize(await graph.ainvoke(
-                Command(resume={"client_message_id": "baseline-reply", "text": "不用了"}), config))
+                Command(resume={"client_message_id": "baseline-reply", "text": "No thanks"}), config))
 
     part_c.configure_keyword_matcher(UnavailableModel())
     part_c.configure_evaluation_review_model(UnavailableModel())

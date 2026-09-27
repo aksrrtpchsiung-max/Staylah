@@ -11,10 +11,10 @@ from property_agent.evaluation.types import EvaluationDecision, EvaluationReview
 
 
 class DeepSeekEvaluationReviewModel:
-    """通过共享 DeepSeek 客户端完成 C 的评估和独立复核。
+    """Complete C's evaluation and independent review through a shared DeepSeek client.
 
-    模型只拿到结构化、截断后的候选摘要；它不能自行加入新房源、修改硬条件，或生成
-    没有来源支撑的事实性理由。所有输出都会在本地严格验证。
+    The model only receives a structured, truncated candidate summary; it cannot add new listings on its own, modify hard constraints, or generate
+    factual justifications without source support. All outputs are strictly validated locally.
     """
 
     def __init__(

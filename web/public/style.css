@@ -1002,7 +1002,7 @@ h1 em {
   }
 }
 
-/* 更清晰的边界，同时保留浅色半透明材质。 */
+/* Clearer boundaries while preserving the light translucent material. */
 :root {
   --border: rgba(129, 155, 166, 0.32);
   --muted: #61777f;

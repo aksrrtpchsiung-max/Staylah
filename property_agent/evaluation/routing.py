@@ -20,7 +20,7 @@ def _route(
 
 
 def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
-    """执行 evaluate 的路线建议，但不绕过 review、次数、截止时间和用户意愿。"""
+    """Execute the route suggested by evaluate, but do not bypass review, count limits, deadlines, or user intent."""
     _validate_policy(policy)
     for field in ("state_version", "profile_version", "current_profile_version", "search_attempts_used", "repairs_used", "eligible_count"):
         value = state.get(field)
@@ -52,8 +52,8 @@ def decide_next(state: DecisionState, policy: RoutingPolicy) -> RouteDecision:
             return _route("repair", "review_blocked")
         return _route("stop", "repair_exhausted")
 
-    # evaluate 是路线的主要决策者。下面只检查该路线目前仍是否可执行；例如 review
-    # 已通过但搜索次数已耗尽时，不能继续 research。
+    # evaluate is the primary decision-maker for the route. Below, only check whether the route is still executable; for example, review
+    # has passed but the search count is exhausted, research cannot continue.
     if evaluation_action == "publish" and state["eligible_count"] >= policy["min_matches"]:
         return _route("publish", evaluation_reason or "enough_matches")
     if (

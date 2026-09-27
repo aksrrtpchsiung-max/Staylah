@@ -41,19 +41,19 @@ FURNISHING_VALUES = frozenset({"fully", "partially", "unfurnished"})
 FURNISHING_RULES: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ("eq", "unfurnished", (
         "unfurnished", "not furnished", "no furniture", "without furniture",
-        "无家具", "不带家具", "不配家具", "不要家具",
+        "no furniture needed",
     )),
     ("eq", "fully", (
         "fully furnished", "full furnished", "fully-furnished",
-        "家具齐全", "全装修", "精装修", "拎包入住",
+        "fully renovated", "finely renovated", "move-in ready",
     )),
     ("eq", "partially", (
         "partially furnished", "partly furnished", "semi furnished", "semi-furnished",
-        "部分家具", "部分家私", "半装修",
+        "some furniture", "semi-renovated",
     )),
-    # 只说“有家具/带家具”时只是“不能没有家具”，用 neq 才不会误杀家具齐全的房源。
+    # When only "has furniture/furnished" is stated, it merely means "cannot be without furniture"; use neq so that fully furnished listings are not wrongly excluded.
     ("neq", "unfurnished", (
-        "带家具", "有家具", "配家具", "家具", "家私", "furnished", "furniture",
+        "furnished", "has furniture", "with furniture", "furniture", "furnishings",
     )),
 )
 

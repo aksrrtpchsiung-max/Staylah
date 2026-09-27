@@ -1,4 +1,4 @@
-"""把其他团队实现与 PostgreSQL/追问 Agent 组装成 decision 依赖。"""
+"""Assemble other teams' implementations with the PostgreSQL/follow-up Agent into decision dependencies."""
 from __future__ import annotations
 
 import os

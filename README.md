@@ -1,14 +1,14 @@
 # Falcon — Singapore Property Agent
 
-Falcon 是一个面向新加坡租房与买房场景的多 Agent 工作流。系统把需求理解、真实房源搜索、候选评估和追问决策串成一条可持久化的 A → B → C 会话，并通过 PostgreSQL 保存画像、消息、运行状态和 LangGraph checkpoint。
+Falcon is a multi-agent workflow for Singapore rental and home-buying scenarios. The system strings requirement understanding, real listing search, candidate evaluation, and follow-up decision-making into a persistable A → B → C session, and uses PostgreSQL to store profiles, messages, run states, and LangGraph checkpoints.
 
-## 当前能力
+## Current Capabilities
 
-- **A · Requirement Understanding**：从多轮对话提取结构化住房需求，处理冲突、澄清与用户确认。
-- **B · Search and Investigation**：调用 PropertyGuru、OneMap 和 OpenStreetMap，完成搜索、详情读取、地址定位、周边设施与通勤调查。
-- **C · Evaluation and Decision**：对 B 返回的候选进行语义检索打分、推荐评估和证据复核，并决定发布、补搜、追问或结束；不再重复筛选硬条件。
-- **Orchestration**：连接 A、B、C；支持 B → A 澄清、C → B 补搜和 Decision interrupt/resume。
-- **Persistence**：使用 PostgreSQL 保存业务数据，并使用 `AsyncPostgresSaver` 保存 A/C 图状态。
+- **A · Requirement Understanding**: Extract structured housing requirements from multi-turn conversations, handling conflicts, clarifications, and user confirmation.
+- **B · Search and Investigation**: Call PropertyGuru, OneMap, and OpenStreetMap to complete search, detail retrieval, address geolocation, nearby amenities, and commute investigation.
+- **C · Evaluation and Decision**: Perform semantic retrieval scoring, recommendation evaluation, and evidence review on the candidates returned by B, and decide whether to publish, search further, ask follow-up questions, or end; no longer re-filtering hard conditions.
+- **Orchestration**: Connect A, B, and C; support B → A clarification, C → B supplementary search, and Decision interrupt/resume.
+- **Persistence**: Use PostgreSQL to store business data, and use `AsyncPostgresSaver` to store A/C graph states.
 
 ```mermaid
 flowchart LR
@@ -23,50 +23,50 @@ flowchart LR
     C -. run/checkpoint .-> P
 ```
 
-共享业务契约唯一定义在 `property_agent/contracts.py`，原根目录兼容入口已在真实链路通过后删除。
-旧编号和新实现的唯一对应清单见 [模块对应表](模块对应表.md)。正式产品入口是：
+The shared business contract is defined solely in `property_agent/contracts.py`; the original root-directory compatibility entry points have been removed after the real pipeline passed.
+For the sole mapping list between the old numbering and the new implementation, see [Module Mapping Table](MODULE_MAPPING.md). The official product entry point is:
 
 ```bash
 .venv/bin/python -m property_agent.orchestration --conversation demo-001
 ```
 
-## 代码组织
+## Code Organization
 
-正式业务实现集中在 `property_agent/`：`requirements` 负责需求理解，`search` 负责搜索调查，
-`evaluation` 负责检索、评估、复核，`decision` 和 `orchestration` 负责决策与整个会话。
-跨模块规则在 `domain`，数据库在 `persistence`，配置与模型客户端在 `runtime`。
-网页入口在 `web/`，PropertyGuru 网站工具仍在 `guru_search/`。
+The official business implementation is concentrated in `property_agent/`: `requirements` handles requirement understanding, `search` handles search investigation,
+`evaluation` handles retrieval, evaluation, and review, while `decision` and `orchestration` handle decision-making and the entire session.
+Cross-module rules are in `domain`, the database is in `persistence`, and configuration and model clients are in `runtime`.
+The web entry point is in `web/`, and the PropertyGuru website tool remains in `guru_search/`.
 
-完整目录见 [项目目录](项目目录.md)，业务流程见 [架构说明](docs/architecture.md)。
-旧编号目录和根目录兼容文件已经移除，代码和脚本统一使用新路径；对应关系只维护在
-[模块对应表](模块对应表.md)。
+For the complete directory, see [Project Directory](PROJECT_STRUCTURE.md); for business flows, see [Architecture Documentation](docs/architecture.md).
+The old numbered directories and root-directory compatibility files have been removed, and code and scripts uniformly use the new paths; the correspondence is maintained only in
+[Module Mapping Table](MODULE_MAPPING.md).
 
-## 本地启动
+## Local Startup
 
-### 1. Python 环境
+### 1. Python Environment
 
-项目要求 Python 3.11 或更高版本：
+The project requires Python 3.11 or higher:
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -e .
 ```
 
-### 2. 配置密钥
+### 2. Configure Keys
 
-复制模板并填写本地值：
+Copy the template and fill in local values:
 
 ```bash
 cp .env.example .env
 ```
 
-核心变量：
+Core variables:
 
 ```dotenv
-# A、B、C 共用：需求理解、搜索规划、语义排序与复核
+# Shared by A, B, and C: requirement understanding, search planning, semantic ranking, and review
 DEEPSEEK_API_KEY=
 
-# OneMap：二选一，也可以同时配置
+# OneMap: choose one, or configure both
 ONEMAP_TOKEN=
 ONEMAP_EMAIL=
 ONEMAP_PASSWORD=
@@ -76,11 +76,11 @@ DATABASE_URL=postgresql+psycopg://property_agent:property_agent_dev@127.0.0.1:54
 LANGGRAPH_CHECKPOINT_DB_URI=postgresql://property_agent:property_agent_dev@127.0.0.1:5432/property_agent
 ```
 
-模型 ID、网关 URL、超时、搜索页数和候选额度统一放在 [`runtime.toml`](runtime.toml)。进程环境变量可以覆盖配置文件；真实密钥只应保存在 `.env`。
+Model IDs, gateway URLs, timeouts, search page counts, and candidate quotas are uniformly placed in [`runtime.toml`](runtime.toml). Process environment variables can override the configuration file; real keys should only be stored in `.env`.
 
 ### 3. PropertyGuru / OpenCLI
 
-真实房源搜索需要 Node.js 20+、OpenCLI 和已连接的 Browser Bridge：
+Real listing search requires Node.js 20+, OpenCLI, and a connected Browser Bridge:
 
 ```bash
 npm install -g @jackwener/opencli@1.8.7
@@ -89,58 +89,58 @@ cp guru_search/cli/propertyguru/{search,detail,contract-listing}.js ~/.opencli/c
 opencli doctor
 ```
 
-`opencli doctor` 应显示 daemon 和浏览器扩展均已连接。适配器使用持久 PropertyGuru 会话，B 会依次读取搜索页和房源详情；详情读取成功后才会把房源状态记录为 active。
+`opencli doctor` should show that both the daemon and the browser extension are connected. The adapter uses a persistent PropertyGuru session, and B will read search pages and listing details in sequence; only after detail retrieval succeeds will the listing status be recorded as active.
 
 ### 4. PostgreSQL
 
-启动项目自带的 PostgreSQL 并初始化业务表与 checkpoint 表：
+Start the project's bundled PostgreSQL and initialize the business tables and checkpoint tables:
 
 ```bash
 docker compose up -d --wait
 .venv/bin/python scripts/init_postgres.py
 ```
 
-如果本机 `5432` 端口已被现有 PostgreSQL 容器占用，请复用该数据库并修改 `.env` 中的两个数据库 URI，不要再启动第二个占用相同端口的容器。
+If the local `5432` port is already occupied by an existing PostgreSQL container, reuse that database and modify the two database URIs in `.env`; do not start a second container occupying the same port.
 
-### 5. 运行完整 CLI
+### 5. Run the Full CLI
 
 ```bash
 .venv/bin/python -m property_agent.orchestration --conversation demo-001
 ```
 
-每个 `conversation` 都有独立 checkpoint。需要从空白会话重新测试时，请换一个 ID，例如 `demo-002`。输入 `/quit` 退出。
+Each `conversation` has an independent checkpoint. When you need to retest from a blank session, use a different ID, for example `demo-002`. Enter `/quit` to exit.
 
-网页连接同一条完整链路：
+The web page connects to the same complete pipeline:
 
 ```bash
 .venv/bin/python -m web.server --live
 ```
 
-省略 `--live` 可预览固定示例；详见 [网页说明](web/README.md)。
+Omitting `--live` previews fixed examples; see [Web Documentation](web/README.md) for details.
 
-## 模型降级行为
+## Model Degradation Behavior
 
-- A 依赖 DeepSeek；缺少密钥时无法完成真实需求解析。
-- B 的模型计划或监督调用失败时，会在额度和截止时间内使用确定性调度继续执行，并保留 issue。
-- C.retrieve 优先使用 DeepSeek 完成需求满足度打分；模型不可用、输出截断或评分不完整时，使用本地结构化约束评分继续流程，并以 `partial + MODEL_UNAVAILABLE` 披露降级。evaluate/review 也可按各自的确定性边界降级。
-- 房源事实只来自 Provider 及对应 evidence；模型不能创建房源、修改硬条件或放行无证据事实。
+- A depends on DeepSeek; without a key, real requirement parsing cannot be completed.
+- When B's model planning or supervision call fails, it will continue execution using deterministic scheduling within the quota and deadline, and retain the issue.
+- C.retrieve prioritizes using DeepSeek to complete requirement satisfaction scoring; when the model is unavailable, output is truncated, or scoring is incomplete, it uses local structured constraint scoring to continue the flow, and discloses the degradation as `partial + MODEL_UNAVAILABLE`. evaluate/review can also degrade according to their respective deterministic boundaries.
+- Listing facts come only from the Provider and corresponding evidence; the model cannot create listings, modify hard conditions, or allow facts without evidence.
 
-## 测试
+## Testing
 
-完整离线测试不需要外部密钥：
+The complete offline test suite does not require external keys:
 
 ```bash
 .venv/bin/python -m unittest discover -s tests
 ```
 
-PostgreSQL 集成测试（先配置隔离测试库，禁止使用日常数据库）：
+PostgreSQL integration tests (configure an isolated test database first; using the daily database is prohibited):
 
 ```bash
 TEST_DATABASE_URL=postgresql+psycopg://refactor@127.0.0.1:55438/postgres \
   .venv/bin/python -m unittest tests.test_postgres_integration
 ```
 
-常用单模块检查：
+Common single-module checks:
 
 ```bash
 .venv/bin/python -m unittest tests.test_a_b_integration
@@ -149,13 +149,13 @@ TEST_DATABASE_URL=postgresql+psycopg://refactor@127.0.0.1:55438/postgres \
 .venv/bin/python -m unittest tests.test_orchestration
 ```
 
-真实来源检查会访问 DeepSeek、PropertyGuru、OneMap 或 OpenStreetMap，不能用来替代离线回归测试；具体命令见 [开发与诊断](docs/development.md)。
+Real-source checks will access DeepSeek, PropertyGuru, OneMap, or OpenStreetMap, and cannot be used to replace offline regression tests; for specific commands, see [Development and Diagnostics](docs/development.md).
 
-## 文档
+## Documentation
 
-- [模块对应表](模块对应表.md)：唯一的原分工、编号与新代码位置清单。
-- [目录与架构](docs/architecture.md)：当前业务边界与流程。
-- [开发与诊断](docs/development.md)：模型配置、B 接入与真实调用命令。
-- [C 函数说明](docs/evaluation.md)与[追问集成](docs/clarification-integration.md)。
-- [网页 HTTP API](web/README.md)与[评测工具](evaluation_suite/README.md)。
-- [验收及回退](docs/refactoring/acceptance.md)。
+- [Module Mapping Table](MODULE_MAPPING.md): the sole list of original divisions of work, numbering, and new code locations.
+- [Directory and Architecture](docs/architecture.md): current business boundaries and flows.
+- [Development and Diagnostics](docs/development.md): model configuration, B integration, and real invocation commands.
+- [C Function Documentation](docs/evaluation.md) and [Clarification Integration](docs/clarification-integration.md).
+- [Web HTTP API](web/README.md) and [Evaluation Tool](evaluation_suite/README.md).
+- [Acceptance and Rollback](docs/refactoring/acceptance.md).

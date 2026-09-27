@@ -1,4 +1,4 @@
-"""为 A-side 住房知识问答提供受限网页搜索和来源约束的答案生成。"""
+"""Provide restricted web search and source-constrained answer generation for A-side housing knowledge Q&A."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ SearchPurpose = Literal["answer_housing_question", "refine_user_requirements"]
 
 
 class HousingSearchResult(StrictModel):
-    """保存网页搜索返回的标题、链接和摘要。"""
+    """Store the title, link, and snippet returned by web search."""
 
     title: str = Field(min_length=1)
     url: str = Field(min_length=1)
@@ -29,7 +29,7 @@ class HousingSearchResult(StrictModel):
 
 
 class HousingQuestionAnswer(StrictModel):
-    """保存来源约束答案以及搜索时间。"""
+    """Store the source-constrained answer along with the search time."""
 
     answer: str = Field(min_length=1)
     as_of: str = Field(min_length=1)
@@ -38,7 +38,7 @@ class HousingQuestionAnswer(StrictModel):
 
 
 class HousingWebSearchTool(Protocol):
-    """定义只能用于住房知识和需求细化的 A-side 搜索接口。"""
+    """Define the A-side search interface usable only for housing knowledge and requirement refinement."""
 
     def search(
         self,
@@ -47,11 +47,11 @@ class HousingWebSearchTool(Protocol):
         purpose: SearchPurpose,
         max_results: int = 5,
     ) -> list[HousingSearchResult]:
-        """返回住房信息搜索结果，不检索或推荐具体房源。"""
+        """Return housing information search results without retrieving or recommending specific listings."""
 
 
 class HousingQuestionAnswerer(Protocol):
-    """定义只读住房问答接口。"""
+    """Define a read-only housing Q&A interface."""
 
     def answer(
         self,
@@ -60,14 +60,14 @@ class HousingQuestionAnswerer(Protocol):
         profile_context: dict[str, Any] | None,
         requires_fresh_data: bool,
     ) -> HousingQuestionAnswer:
-        """回答住房问题，不产生或提交 profile patch。"""
+        """Answer housing questions without producing or submitting a profile patch."""
 
 
 class _DuckDuckGoLiteParser(HTMLParser):
-    """从 DuckDuckGo Lite HTML 中提取结果链接和摘要。"""
+    """Extract result links and snippets from DuckDuckGo Lite HTML."""
 
     def __init__(self) -> None:
-        """初始化当前标签状态和解析结果。"""
+        """Initialize the current tag state and parse results."""
 
         super().__init__()
         self.results: list[dict[str, str]] = []
@@ -76,7 +76,7 @@ class _DuckDuckGoLiteParser(HTMLParser):
         self._href: str = ""
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        """识别结果链接和摘要单元格。"""
+        """Identify result links and snippet cells."""
 
         values = dict(attrs)
         classes = set((values.get("class") or "").split())
@@ -89,13 +89,13 @@ class _DuckDuckGoLiteParser(HTMLParser):
             self._buffer = []
 
     def handle_data(self, data: str) -> None:
-        """收集当前结果字段中的文本。"""
+        """Collect text within the current result field."""
 
         if self._capture:
             self._buffer.append(data)
 
     def handle_endtag(self, tag: str) -> None:
-        """结束字段时保存规范化文本。"""
+        """Save normalized text when a field ends."""
 
         if tag == "a" and self._capture == "title":
             self.results.append({
@@ -111,10 +111,10 @@ class _DuckDuckGoLiteParser(HTMLParser):
 
 
 class DuckDuckGoHousingWebSearch:
-    """使用 DuckDuckGo Lite 实现无需额外密钥的受限住房网页搜索。"""
+    """Implement restricted housing web search using DuckDuckGo Lite without requiring an additional key."""
 
     def __init__(self, *, client: Any | None = None, timeout_seconds: float = 20.0) -> None:
-        """注入测试客户端或配置网络超时。"""
+        """Inject a test client or configure the network timeout."""
 
         self._client = client
         self._timeout_seconds = timeout_seconds
@@ -126,7 +126,7 @@ class DuckDuckGoHousingWebSearch:
         purpose: SearchPurpose,
         max_results: int = 5,
     ) -> list[HousingSearchResult]:
-        """强制附加新加坡住房上下文并返回有限数量结果。"""
+        """Force-append the Singapore housing context and return a limited number of results."""
 
         if purpose not in {"answer_housing_question", "refine_user_requirements"}:
             raise ValueError("Housing web search received an unsupported purpose.")
@@ -160,7 +160,7 @@ class DuckDuckGoHousingWebSearch:
 
 
 class DeepSeekHousingQuestionAnswerer:
-    """搜索网页摘要并让 DeepSeek 生成带确定性来源列表的住房答案。"""
+    """Search web snippets and have DeepSeek generate a housing answer with a deterministic source list."""
 
     def __init__(
         self,
@@ -170,7 +170,7 @@ class DeepSeekHousingQuestionAnswerer:
         api_key: str | None = None,
         client: Any | None = None,
     ) -> None:
-        """注入 A 自有搜索工具、模型配置和可选测试客户端。"""
+        """Inject A's own search tool, model configuration, and an optional test client."""
 
         self._search_tool = search_tool or DuckDuckGoHousingWebSearch()
         self._config = config or DeepSeekParserConfig.from_runtime()
@@ -184,7 +184,7 @@ class DeepSeekHousingQuestionAnswerer:
         profile_context: dict[str, Any] | None,
         requires_fresh_data: bool,
     ) -> HousingQuestionAnswer:
-        """用搜索证据回答问题，且不允许模型声明具体在售或在租房源。"""
+        """Answer questions using search evidence, and do not allow the model to claim specific listings for sale or rent."""
 
         results = self._search_tool.search(
             question,
@@ -260,7 +260,7 @@ class DeepSeekHousingQuestionAnswerer:
 
 
 def _append_sources(answer: str, results: list[HousingSearchResult]) -> str:
-    """以确定性 Markdown 链接附加经过校验的搜索来源。"""
+    """Append validated search sources as deterministic Markdown links."""
 
     lines = [answer, "", "Sources:"]
     lines.extend(f"- [{item.title}]({item.url})" for item in results[:3])
@@ -268,7 +268,7 @@ def _append_sources(answer: str, results: list[HousingSearchResult]) -> str:
 
 
 def _safe_profile_context(profile: dict[str, Any] | None) -> dict[str, Any] | None:
-    """只向问答模型提供需求语义字段，不发送用户标识和内部时间戳。"""
+    """Provide only requirement semantic fields to the Q&A model, without sending user identifiers and internal timestamps."""
 
     if not profile:
         return None
@@ -281,13 +281,13 @@ def _safe_profile_context(profile: dict[str, Any] | None) -> dict[str, Any] | No
 
 
 def _clean_text(value: str) -> str:
-    """解码 HTML 实体并压缩空白。"""
+    """Decode HTML entities and collapse whitespace."""
 
     return " ".join(html.unescape(value).split())
 
 
 def _unwrap_duckduckgo_url(value: str) -> str:
-    """从 DuckDuckGo 跳转链接中恢复原始 HTTP URL。"""
+    """Recover the original HTTP URL from a DuckDuckGo redirect link."""
 
     candidate = html.unescape(value)
     if candidate.startswith("//"):
@@ -298,6 +298,6 @@ def _unwrap_duckduckgo_url(value: str) -> str:
 
 
 def _is_http_url(value: str) -> bool:
-    """只允许返回 HTTP 或 HTTPS 来源链接。"""
+    """Only allow returning HTTP or HTTPS source links."""
 
     return urlparse(value).scheme in {"http", "https"}

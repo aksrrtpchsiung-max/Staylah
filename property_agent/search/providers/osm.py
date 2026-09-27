@@ -1,4 +1,4 @@
-"""OpenStreetMap 的学校/超市点位；只读 Overpass，有界查询，不把缺失当不存在。"""
+"""OpenStreetMap school/supermarket points; read-only Overpass, bounded queries, do not treat missing as nonexistent."""
 import asyncio
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -27,16 +27,16 @@ class OSMPlacesProvider:
 
     async def nearby(self, origin, category, radius_m, *, ctx):
         if category not in ('supermarket', 'school'):
-            raise ProviderError(issue('INVALID_INPUT', 'OSM 仅承接学校和超市查询', source=self.source))
+            raise ProviderError(issue('INVALID_INPUT', 'OSM only handles school and supermarket queries', source=self.source))
         lat, lon = origin['latitude'], origin['longitude']
         scope = tuple(ctx[k] for k in ('user_id', 'run_id', 'conversation_id', 'attempt_id', 'source_mode'))
         key = (scope, lat, lon, radius_m)
-        # 同一个房源一次查询两个类别，避免重复请求公共服务。
+        # Query both categories in one pass per listing to avoid duplicate requests to public services.
         delta_lat = radius_m / 110500
         delta_lon = radius_m / (110500 * math.cos(math.radians(lat)))
         bbox = f'{lat-delta_lat},{lon-delta_lon},{lat+delta_lat},{lon+delta_lon}'
-        # 边界框走空间索引，避免 around 对复杂校园多边形做昂贵全局距离计算。
-        # 后面按来源代表点精确过滤圆形半径，证据仍明确点位口径。
+        # Use the spatial index for the bounding box to avoid expensive global distance computations with around on complex campus polygons.
+        # Then filter precisely by circular radius using the source representative point; the evidence still clearly reflects the point-based scope.
         query = (f'[out:json][timeout:25];('
                  f'nwr["shop"="supermarket"]({bbox});'
                  f'nwr["amenity"~"^(school|kindergarten|college|university)$"]({bbox});'
@@ -49,15 +49,15 @@ class OSMPlacesProvider:
                             response = await client.get(self.endpoint, params={'data': query},
                                 headers={'User-Agent': 'HousingResearch/1.0 (read-only amenity lookup)'})
                         if response.status_code == 429:
-                            raise ProviderError(issue('RATE_LIMITED', 'OSM 查询频率受限', source=self.source, retryable=True))
+                            raise ProviderError(issue('RATE_LIMITED', 'OSM query rate limited', source=self.source, retryable=True))
                         if response.is_error:
-                            raise ProviderError(issue('SOURCE_UNAVAILABLE', f'OSM 返回 HTTP {response.status_code}',
+                            raise ProviderError(issue('SOURCE_UNAVAILABLE', f'OSM returned HTTP {response.status_code}',
                                                       source=self.source, retryable=response.status_code >= 500))
                         data = response.json()
                         if not isinstance(data, dict) or not isinstance(data.get('elements'), list):
                             raise ValueError
                         if data.get('remark'):
-                            raise ProviderError(issue('SOURCE_UNAVAILABLE', 'OSM 查询未完整执行，不能作为完整设施列表',
+                            raise ProviderError(issue('SOURCE_UNAVAILABLE', 'OSM query did not complete fully and cannot serve as a complete facility list',
                                                       source=self.source, retryable=True))
                         self._cache[key] = (data, str(response.url), datetime.now(timezone.utc).isoformat())
                     data, url, observed = self._cache[key]
@@ -73,7 +73,7 @@ class OSMPlacesProvider:
                     raise ValueError
                 distance = distance_m(lat, lon, plat, plon)
                 if distance > radius_m:
-                    continue  # 区域边界进入查询圈但中心不在圈内时不当作圈内点位。
+                    continue  # When an area boundary enters the query circle but its center is outside the circle, do not treat it as a point inside the circle.
                 name = tags.get('name:en') or tags.get('name') or tags.get('brand')
                 if not name:
                     name = 'Unnamed ' + category + ' (OSM ' + str(row['id']) + ')'
@@ -86,15 +86,15 @@ class OSMPlacesProvider:
             return deepcopy(dict(items=sorted(items, key=lambda item: item['straight_line_distance_m']),
                                  complete=True, source_url=url, observed_at=observed))
         except (TimeoutError, httpx.TimeoutException):
-            raise ProviderError(issue('TIMEOUT', 'OSM 周边查询超时', source=self.source, retryable=True)) from None
+            raise ProviderError(issue('TIMEOUT', 'OSM nearby query timed out', source=self.source, retryable=True)) from None
         except httpx.HTTPError:
-            raise ProviderError(issue('SOURCE_UNAVAILABLE', '无法访问 OSM 设施来源', source=self.source, retryable=True)) from None
+            raise ProviderError(issue('SOURCE_UNAVAILABLE', 'Unable to access OSM facility source', source=self.source, retryable=True)) from None
         except (KeyError, TypeError, ValueError):
-            raise ProviderError(issue('PARSE_ERROR', 'OSM 设施响应缺少有效字段', source=self.source)) from None
+            raise ProviderError(issue('PARSE_ERROR', 'OSM facility response is missing valid fields', source=self.source)) from None
 
 
 class NeighborhoodProvider:
-    """来源分工：OneMap 查交通/公园，OSM 查学校/超市。"""
+    """Source division of labor: OneMap for transport/parks, OSM for schools/supermarkets."""
     source = 'neighborhood'
     source_mode = 'live'
 

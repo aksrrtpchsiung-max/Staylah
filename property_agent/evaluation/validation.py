@@ -86,7 +86,7 @@ def _evidence_ids(listing: Listing, field: str) -> list[str]:
 
 
 def _listing_field_value(listing: Listing, field: str) -> Any:
-    """读取 Listing 的点分路径；来源明确表示未知或冲突时返回 None。"""
+    """Read the dotted path of the Listing; return None when the source explicitly indicates unknown or conflicting."""
     if field == "price.amount" and listing["price"].get("status") != "known":
         return None
     current: Any = listing
@@ -100,7 +100,7 @@ def _listing_field_value(listing: Listing, field: str) -> Any:
 
 
 def _constraint_matches(actual: Any, constraint: ListingConstraint) -> bool | None:
-    """返回 True/False；数据缺失或值无法比较时返回 None。"""
+    """Return True/False; return None when data is missing or values cannot be compared."""
     if actual is None:
         return None
     expected = constraint["value"]

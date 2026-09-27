@@ -1,4 +1,4 @@
-"""A-side 受限住房网页搜索工具测试。"""
+"""A-side restricted housing web search tool tests."""
 
 import unittest
 
@@ -8,10 +8,10 @@ from property_agent.requirements.housing_questions import DuckDuckGoHousingWebSe
 
 
 class HousingWebSearchTests(unittest.TestCase):
-    """验证搜索用途限制、结果解析和跳转链接还原。"""
+    """Verify search purpose restrictions, result parsing, and redirect link restoration."""
 
     def test_duckduckgo_lite_results_are_parsed(self) -> None:
-        """搜索工具应返回原始来源 URL，而不是 DuckDuckGo 跳转地址。"""
+        """The search tool should return the original source URL, not the DuckDuckGo redirect address."""
 
         page = """
         <html><body><table>
@@ -23,7 +23,7 @@ class HousingWebSearchTests(unittest.TestCase):
         """
 
         def handler(request: httpx.Request) -> httpx.Response:
-            """返回固定 DuckDuckGo Lite HTML。"""
+            """Return fixed DuckDuckGo Lite HTML."""
 
             self.assertIn("Singapore housing information", request.url.params["q"])
             return httpx.Response(200, request=request, text=page)
@@ -41,7 +41,7 @@ class HousingWebSearchTests(unittest.TestCase):
         self.assertEqual(results[0].snippet, "Median rent by property type.")
 
     def test_search_rejects_unsupported_purpose(self) -> None:
-        """A 的网页搜索不能被复用于房源检索或推荐。"""
+        """A's web search cannot be reused for property listing retrieval or recommendations."""
 
         tool = DuckDuckGoHousingWebSearch()
         with self.assertRaisesRegex(ValueError, "unsupported purpose"):

@@ -10,10 +10,10 @@ from property_agent.requirements.support import utc_now
 def make_merge_profile_node(
     clock: Callable[[], str] = utc_now,
 ) -> Callable[[RequirementGraphState], dict[str, Any]]:
-    """创建确定性合并 patch 并递增 draft version 的节点。"""
+    """Node that creates a deterministic merge patch and increments the draft version."""
 
     def merge_profile(state: RequirementGraphState) -> dict[str, Any]:
-        """创建或更新 ConversationProfile，但不改写 confirmed_version。"""
+        """Create or update the ConversationProfile, but do not rewrite confirmed_version."""
 
         now = clock()
         changes = state.get("validated_patch", [])
@@ -64,14 +64,14 @@ def make_merge_profile_node(
 
 
 def _upsert(items: list[dict[str, Any]], new_item: dict[str, Any], key: Callable[[dict[str, Any]], Any]) -> list[dict[str, Any]]:
-    """按稳定语义键直接替换旧项，不要求用户再次确认冲突策略。"""
+    """Directly replace the old item by stable semantic key, without requiring the user to confirm the conflict policy again."""
 
     identity = key(new_item)
     return [item for item in items if key(item) != identity] + [copy.deepcopy(new_item)]
 
 
 def _profile_fact_identity(item: dict[str, Any]) -> Any:
-    """允许一个 conversation 同时保存多个工作地或学校，其余事实仍按字段覆盖。"""
+    """Allow one conversation to store multiple workplaces or schools at the same time, while other facts are still overwritten by field."""
 
     field = item["field"]
     if field in {"occupant.workplace", "occupant.school"}:

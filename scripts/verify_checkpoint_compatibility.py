@@ -54,7 +54,7 @@ async def verify(mode, prefix):
                 else:
                     previous = await graph_a.aget_state(config_a)
                     assert previous.values["status"] == "awaiting_confirmation"
-                    result = await graph_a.ainvoke({"message_id": a_id + ":2", "current_input": "确认",
+                    result = await graph_a.ainvoke({"message_id": a_id + ":2", "current_input": "Confirm",
                         "user_id": "compat-user", "conversation_id": a_id}, config_a)
                     assert result["status"] == "ready_for_b", result["status"]
                     assert result["requirement_request"]["profile_version"] == previous.values["profile"]["version"]
@@ -75,7 +75,7 @@ async def verify(mode, prefix):
                 previous = await graph_c.aget_state(config_c)
                 assert previous.values["pending_question"]
                 result = await graph_c.ainvoke(Command(resume={
-                    "client_message_id": c_id + ":reply", "text": "不接受调整，保持原样"}), config_c)
+                    "client_message_id": c_id + ":reply", "text": "Do not accept adjustments, keep as is"}), config_c)
                 assert result["completion_reason"] == "user_declined", result["completion_reason"]
             print(f"{mode}: A confirmation and C interrupt checkpoints verified ({prefix})")
     finally:

@@ -1,4 +1,4 @@
-"""A/B/C 与 decision graph 之间的运行适配器。"""
+"""Runtime adapter between A/B/C and the decision graph."""
 
 from property_agent.integration.search import BCAttemptAdapter, BSearchRunner
 

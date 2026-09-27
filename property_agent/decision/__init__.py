@@ -1,6 +1,6 @@
-"""模块 A 的下半段：消费模块 C 的评价与审查结果，决定澄清、求让步还是交付推荐。
+"""Lower half of module A: consumes module C's evaluation and review results, deciding whether to clarify, seek concessions, or deliver a recommendation.
 
-`decide_next` 是唯一的路由决策点；其余节点只负责取数、持久化和交付。
+`decide_next` is the only routing decision point; the remaining nodes are only responsible for data retrieval, persistence, and delivery.
 """
 from property_agent.decision.decide import decide_next, validate_decision_state
 from property_agent.decision.deps import DecisionDeps, build_stub_deps

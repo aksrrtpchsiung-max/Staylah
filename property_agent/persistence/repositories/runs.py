@@ -12,7 +12,7 @@ from property_agent.persistence.repositories.profiles import _profile_values
 
 
 class SqlRunRepository:
-    """上游可用的 run 创建接口，也是 decision 状态的业务投影。"""
+    """The run creation interface available upstream, and also the business projection of the decision state."""
 
     def __init__(self, sessions: SessionFactory) -> None:
         self.sessions = sessions
@@ -22,7 +22,7 @@ class SqlRunRepository:
             profile["user_id"] != ctx["user_id"]
             or profile["conversation_id"] != ctx["conversation_id"]
         ):
-            raise PermissionError("profile 与当前 run 的用户或 conversation 不匹配")
+            raise PermissionError("profile does not match the user or conversation of the current run")
         conversation = pg_insert(ConversationRow).values(
             conversation_id=ctx["conversation_id"],
             user_id=ctx["user_id"],
@@ -49,7 +49,7 @@ class SqlRunRepository:
                 stored_conversation is None
                 or stored_conversation.user_id != ctx["user_id"]
             ):
-                raise PermissionError("conversation 不属于当前用户")
+                raise PermissionError("conversation does not belong to the current user")
             existing_profile = session.get(
                 ConversationProfileRow, profile["profile_id"]
             )
@@ -61,7 +61,7 @@ class SqlRunRepository:
                 or existing_profile.conversation_id != ctx["conversation_id"]
                 or existing_profile.version != profile["version"]
             ):
-                raise PermissionError("profile 归属或版本不匹配")
+                raise PermissionError("profile ownership or version mismatch")
             session.execute(run)
             stored = session.get(AgentRunRow, ctx["run_id"])
             if (
@@ -72,7 +72,7 @@ class SqlRunRepository:
                 or stored.profile_id != profile["profile_id"]
                 or stored.profile_version != profile["version"]
             ):
-                raise PermissionError("run 身份或 thread 映射冲突")
+                raise PermissionError("run identity or thread mapping conflict")
 
     def update(
         self,
@@ -104,7 +104,7 @@ class SqlRunRepository:
     def find_waiting_run(
         self, conversation_id: str, *, user_id: str
     ) -> dict[str, Any] | None:
-        """返回该会话当前等待用户的 run；没有则返回 None。"""
+        """Return the run of this session that is currently waiting for the user; return None if there is none."""
 
         with self.sessions() as session:
             row = session.execute(

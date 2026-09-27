@@ -9,7 +9,7 @@ from property_agent.persistence.repositories.common import SessionFactory
 
 
 class SqlChatRepository:
-    """给 onboarding 预留的聊天读写；追问节点本身只通过 QuestionRepository 写消息。"""
+    """Chat read/write reserved for onboarding; the follow-up node itself only writes messages through QuestionRepository."""
 
     def __init__(self, sessions: SessionFactory) -> None:
         self.sessions = sessions
@@ -26,7 +26,7 @@ class SqlChatRepository:
             session.execute(conversation)
             stored = session.get(ConversationRow, conversation_id)
             if stored is None or stored.user_id != user_id:
-                raise PermissionError("conversation 不属于当前用户")
+                raise PermissionError("conversation does not belong to the current user")
 
     def set_conversation_title(
         self,
@@ -148,7 +148,7 @@ class SqlChatRepository:
                 or stored.text != content
                 or stored.client_message_id != client_message_id
             ):
-                raise ValueError("相同 message_id 对应了不同内容")
+                raise ValueError("the same message_id corresponds to different content")
             return {
                 "message_id": stored.message_id,
                 "role": stored.role,  # type: ignore[typeddict-item]

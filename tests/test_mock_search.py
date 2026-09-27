@@ -96,7 +96,7 @@ class MockPipelineTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertIn("__interrupt__", interrupted)
         final = await graph.ainvoke(
-            Command(resume={"client_message_id": "msg-1", "text": "好的，我接受提高预算"}),
+            Command(resume={"client_message_id": "msg-1", "text": "Okay, I accept the budget increase"}),
             {"configurable": {"thread_id": "run-mock-relax"}},
         )
         self.assertEqual(final["completion_reason"], "profile_updated")

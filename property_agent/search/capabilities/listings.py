@@ -1,8 +1,8 @@
-"""3a：供 LangGraph 执行节点 await 的找房/详情能力。
+"""3a: Listing search/detail capabilities for LangGraph execution nodes to await.
 
-运行真实搜索/详情测试：python3 -m property_agent.search.capabilities.listings
-也支持直接运行本文件，路径解析不依赖当前工作目录。
-本模块不生成搜索计划、不决定翻页、不执行 C 的硬条件筛选。
+Run real search/detail tests: python3 -m property_agent.search.capabilities.listings
+Directly running this file is also supported; path resolution does not depend on the current working directory.
+This module does not generate search plans, does not decide pagination, and does not execute C's hard-condition filtering.
 """
 import asyncio
 from copy import deepcopy
@@ -15,8 +15,8 @@ from time import monotonic
 from typing import get_args, get_type_hints
 from urllib.parse import urlparse
 
-# 直接执行文件时 Python 只加入脚本目录，需在项目内导入前补上根目录。
-# 正常包导入及 python -m 不修改 sys.path。
+# When executing the file directly, Python only adds the script directory, so the root directory must be added before importing within the project.
+# Normal package imports and python -m do not modify sys.path.
 
 from property_agent.contracts import ContractViolation, Listing, ListingAttributes, Price, Result, RunContext, SearchPlan
 from property_agent.search.execution.budget import SearchBudget
@@ -36,7 +36,7 @@ def _fact_type(field):
 
 
 def merge_detail(listing: Listing, detail: ListingDetail) -> Listing:
-    """保留输入快照和两侧证据；冲突价格不会被后一条来源覆盖。"""
+    """Preserve the input snapshot and evidence from both sides; conflicting prices will not be overwritten by a later source."""
     validate_listing(listing)
     validate_type(ListingDetail, detail, "detail")
     timestamp(detail["fetched_at"], "detail.fetched_at")
@@ -45,7 +45,7 @@ def merge_detail(listing: Listing, detail: ListingDetail) -> Listing:
         match = re.search(r"(?:/|-)([0-9]+)/?$", urlparse(listing["source_url"]).path)
         expected_id = match.group(1) if match else None
     if expected_id is None or detail["source_listing_id"] != expected_id:
-        fail("detail.source_listing_id", "详情不属于请求的房源")
+        fail("detail.source_listing_id", "The detail does not belong to the requested listing")
     result = deepcopy(listing)
     if detail["raw_description"]:
         result["raw_description"] = detail["raw_description"]
@@ -62,14 +62,14 @@ def merge_detail(listing: Listing, detail: ListingDetail) -> Listing:
         field, value = fact["field"], fact["value"]
         schema = _fact_type(field)
         if schema is None:
-            fail(f"detail.facts.{field}", "详情字段不在 Listing 可补充字段中")
+            fail(f"detail.facts.{field}", "The detail field is not among the fields that Listing can supplement")
         validate_type(schema, value, f"detail.facts.{field}")
         if value is None or value == "unknown":
             continue
         if not fact["excerpt"].strip():
-            fail(f"detail.facts.{field}", "事实必须附带页面原文")
+            fail(f"detail.facts.{field}", "Facts must be accompanied by the original page text")
         if type(value) is int and value < 0:
-            fail(f"detail.facts.{field}", "数值不能为负数")
+            fail(f"detail.facts.{field}", "Numeric values cannot be negative")
         identity = json.dumps([field, value, detail["source_url"], detail["fetched_at"], fact["excerpt"]],
                               ensure_ascii=False, sort_keys=True)
         eid = f'{listing["listing_key"]}:detail:{hashlib.sha256(identity.encode()).hexdigest()[:20]}'
@@ -86,7 +86,7 @@ def merge_detail(listing: Listing, detail: ListingDetail) -> Listing:
         old = target[key]
         conflict_key = f"{field}:conflict"
         if conflict_key in result["field_issues"]:
-            continue  # 后续详情不能静默消除已有冲突。
+            continue  # Subsequent details must not silently eliminate existing conflicts.
         if old not in (None, "unknown", "") and old != value and field != "title":
             result["field_issues"].append(conflict_key)
             target[key] = "unknown" if "unknown" in get_args(schema) else None
@@ -130,24 +130,24 @@ class ListingsCapability:
     def _context(self, ctx):
         validate_context(ctx)
         if self.provider.source_mode != ctx["source_mode"]:
-            fail("ctx.source_mode", "上下文与注入的 Provider 模式不一致")
+            fail("ctx.source_mode", "The context is inconsistent with the injected Provider mode")
         self.budget.check(ctx)
 
     async def search_page(self, plan: SearchPlan, query_id: str, *,
                           ctx: RunContext, cursor: str | None = None, constraints=None) -> Result[ListingPage]:
-        """cursor 为管理层从上次 next_cursor 得到的续页指令；不改变计划。"""
+        """cursor is the continuation-page instruction obtained by the management layer from the previous next_cursor; it does not change the plan."""
         started = monotonic()
         try:
             validate_plan(plan, ctx)
             self._context(ctx)
             query = next((deepcopy(q) for q in plan["queries"] if q["query_id"] == query_id), None)
             if query is None:
-                fail("query_id", "查询不在计划中")
+                fail("query_id", "The query is not in the plan")
             if query["source"] != self.provider.source:
-                fail("query.source", "查询来源与 Provider 不一致")
+                fail("query.source", "The query source is inconsistent with the Provider")
             if cursor is not None:
                 if not isinstance(cursor, str) or not cursor.strip():
-                    fail("cursor", "续页游标必须是非空字符串")
+                    fail("cursor", "The continuation-page cursor must be a non-empty string")
                 query["cursor"] = cursor
             async with asyncio.timeout(self.budget.work_seconds(ctx)):
                 async with self.budget.lock:
@@ -158,17 +158,17 @@ class ListingsCapability:
                     try:
                         validate_type(ListingPage, page, "page")
                         if page["query_id"] != query_id or len(page["items"]) > limit:
-                            fail("page", "来源查询 ID 或候选额度不符")
+                            fail("page", "The source query ID or candidate quota does not match")
                         for item in page["items"]:
                             validate_listing(item)
                             if item["source_mode"] != ctx["source_mode"] or item["source"] != query["source"]:
-                                fail("page.items", "返回房源来源或模式不一致")
+                                fail("page.items", "The returned listing source or mode is inconsistent")
                     except ContractViolation as exc:
                         raise ProviderError(issue("INVALID_OUTPUT", str(exc), field_path=exc.field_path)) from exc
                     self.budget.candidates_used += len(page["items"])
             problems = list(page["issues"])
             if not page["pagination_known"] and not any(p["code"] == "RETRIEVAL_DEGRADED" for p in problems):
-                problems.append(issue("RETRIEVAL_DEGRADED", "无法确认搜索是否还有下一页"))
+                problems.append(issue("RETRIEVAL_DEGRADED", "Unable to confirm whether the search has a next page"))
             page["issues"] = problems
             return _result(page, problems, ctx, started)
         except ContractViolation as exc:
@@ -176,7 +176,7 @@ class ListingsCapability:
         except ProviderError as exc:
             return _result(None, [exc.issue], ctx, started)
         except TimeoutError:
-            return _result(None, [issue("TIMEOUT", "搜索达到截止时间", retryable=True)], ctx, started)
+            return _result(None, [issue("TIMEOUT", "Search reached the deadline", retryable=True)], ctx, started)
 
     async def read_detail(self, listing: Listing, *, ctx: RunContext) -> Result[Listing]:
         started = monotonic()
@@ -185,7 +185,7 @@ class ListingsCapability:
             validate_listing(listing)
             if (listing["source"] != self.provider.source or listing["source_mode"] != ctx["source_mode"]
                     or self.provider.source_mode != ctx["source_mode"]):
-                fail("listing.source", "房源与 Provider / 上下文不一致")
+                fail("listing.source", "The listing is inconsistent with the Provider / context")
         except ContractViolation as exc:
             return _result(None, [issue(exc.code, str(exc), field_path=exc.field_path)], ctx, started)
         try:
@@ -202,7 +202,7 @@ class ListingsCapability:
             elif isinstance(exc, ContractViolation):
                 problem = issue("INVALID_OUTPUT", str(exc), field_path=exc.field_path)
             else:
-                problem = issue("TIMEOUT", "详情达到截止时间", retryable=True)
+                problem = issue("TIMEOUT", "Detail reached the deadline", retryable=True)
             original = deepcopy(listing)
             original["field_issues"] = list(dict.fromkeys(original["field_issues"] + [f'detail:{problem["code"]}']))
             return _result(original, [problem], ctx, started)
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     from property_agent.search.providers.guru_search import GuruSearchProvider
 
     def verify_observed_details(listing):
-        """对照真实页面明确条目验收字段和证据，不预设房源或服务响应。"""
+        """Verify entry acceptance fields and evidence against the real page, without presupposing listings or service responses."""
         observed = {
             ('furnished-o', 'Fully furnished'): ('attributes.furnishing', 'fully'),
             ('furnished-o', 'Unfurnished'): ('attributes.furnishing', 'unfurnished'),
@@ -240,7 +240,7 @@ if __name__ == '__main__':
                 try:
                     date = datetime.strptime(value.removeprefix('Listed on '), '%d %b %Y').date().isoformat()
                 except ValueError:
-                    failures.append('挂牌日期原文格式变化，需要检查：' + raw)
+                    failures.append('The original format of the listing date has changed, needs checking: ' + raw)
                     continue
                 expected = ('listed_date', date)
             if expected is None:
@@ -251,22 +251,22 @@ if __name__ == '__main__':
                 actual = actual[key]
             checked += 1
             if type(actual) is not type(value) or actual != value:
-                failures.append(f'{field} 未保留明确详情事实：{raw}')
+                failures.append(f'{field} did not retain a clear detail fact: {raw}')
             if not any(e['field'] == field and type(e['value']) is type(value) and e['value'] == value
                        and ':detail:' in e['evidence_id'] for e in listing['evidence']):
-                failures.append(f'{field} 缺少对应详情证据：{raw}')
+                failures.append(f'{field} is missing corresponding detail evidence: {raw}')
         if not checked:
-            failures.append('没有取得可验证的明确详情条目')
+            failures.append('No verifiable clear detail entries were obtained')
         return checked, failures
 
-    parser = argparse.ArgumentParser(description='3a 的真实搜索/详情检查；输入 SearchPlan，输出实际 Result')
-    parser.add_argument('--input', type=Path, help='包含至少三组真实 {plan, ctx} 的 JSON 文件')
-    parser.add_argument('--output', type=Path, help='保存真实输入输出记录')
-    parser.add_argument('--photos-only', action='store_true', help='真实搜索卡片图片及汇总验收，不逐套读取详情')
+    parser = argparse.ArgumentParser(description='Real search/detail check for 3a; input SearchPlan, output actual Result')
+    parser.add_argument('--input', type=Path, help='JSON file containing at least three real {plan, ctx} groups')
+    parser.add_argument('--output', type=Path, help='Save real input/output records')
+    parser.add_argument('--photos-only', action='store_true', help='Real search card images and summary acceptance, without reading details for each listing')
     args = parser.parse_args()
 
     class PhotoVerificationProvider(GuruSearchProvider):
-        """真实 OpenCLI 调用，仅开启原始媒体诊断，不伪造服务响应。"""
+        """Real OpenCLI call, enabling only raw media diagnostics, without faking service responses."""
         async def _call(self, arguments, ctx):
             if arguments[0] == 'search':
                 payload = await super()._call([*arguments, '--include-media-source'], ctx)
@@ -275,14 +275,14 @@ if __name__ == '__main__':
             return await super()._call(arguments, ctx)
 
     async def verify_photos(cap, plan, ctx, page):
-        """独立读取同一真实搜索页，检查所有来源图片都穿过 3a 和最终汇总。"""
+        """Independently read the same real search page and check that all source images pass through 3a and the final summary."""
         from property_agent.search.aggregation.results import aggregate, merge_listing
         from property_agent.search.state import initial_state
         source = {r['id']: r for r in cap.provider.media_source}
         photo_field = 'media.search_card_photos'
         for item in page['items']:
             records = [e for e in item['evidence'] if e['field'] == photo_field]
-            assert len(records) == 1, '每套房源必须有一条搜索图片记录（无图也需记录）'
+            assert len(records) == 1, 'Each listing must have one search image record (even with no images, it must be recorded)'
             evidence = records[0]
             media = evidence['value']
             raw = source[item['source_listing_id']]
@@ -291,24 +291,24 @@ if __name__ == '__main__':
             if raw.get('thumbnail'):
                 expected.append(raw['thumbnail'])
             actual = [url for image in media['images'] for url in image['urls']]
-            assert set(actual) == set(expected), '遗漏或混入来源之外的图片链接'
-            assert len(actual) == len(set(actual)), '重复 URL 未去重'
-            assert evidence['source_url'] == item['source_url'], '图片来源串房源'
+            assert set(actual) == set(expected), 'Missing or extraneous image links from outside the source'
+            assert len(actual) == len(set(actual)), 'Duplicate URLs were not deduplicated'
+            assert evidence['source_url'] == item['source_url'], 'Image source crossed listings'
             photo_urls = [image['urls'][0] for image in media['images'] if image['kind'] == 'photo']
             source_photos = list(dict.fromkeys(e['src'] for e in raw['preview']['images']['items']))
-            assert photo_urls == source_photos, '照片顺序或照片数量发生变化'
+            assert photo_urls == source_photos, 'Photo order or photo count changed'
             reported = next((int(m['text']) for m in raw['mediaItems'] if m['mediaType'] == 'images'), None)
             assert media['reported_count'] == reported
             assert media['extracted_count'] == len(photo_urls)
             if reported == len(photo_urls):
-                assert media['status'] == 'complete', '真实完整照片应标记为 complete'
+                assert media['status'] == 'complete', 'A real complete photo should be marked as complete'
             assert [e['value'] for e in merge_listing(item, item)['evidence'] if e['field'] == photo_field] == [
-                media], '重复合并丢失图片证据'
-        # 验证同一真实物理页缓存后链接仍完整，不额外请求网页。
+                media], 'Duplicate merging lost image evidence'
+        # Verify that links remain complete after caching the same real physical page, without making additional web requests.
         query = next(q for q in plan['queries'] if q['query_id'] == page['query_id'])
         cached = await cap.provider.search_page(query, intent=plan['intent'],
             filters=plan['required_filters'], limit=len(page['items']), ctx=ctx)
-        assert cached['items'] == page['items'], '页缓存改变了图片记录'
+        assert cached['items'] == page['items'], 'Page caching changed the image records'
         state = initial_state(plan, ctx)
         state['pages'] = [page]
         state['listings'] = {item['listing_key']: item for item in page['items']}
@@ -318,7 +318,7 @@ if __name__ == '__main__':
         assert result['data'] is not None
         for item in result['data']['items']:
             original = state['listings'][item['listing_key']]
-            # 汇总会规范 observed_at 的时区格式；图片内容必须原样保留。
+            # The summary normalizes the timezone format of observed_at; image content must be preserved as-is.
             assert [e['value'] for e in item['evidence'] if e['field'] == photo_field] == [
                 e['value'] for e in original['evidence'] if e['field'] == photo_field]
         return dict(source_cards=source, aggregation_output=result)
@@ -328,7 +328,7 @@ if __name__ == '__main__':
             payload = json.loads(args.input.read_text())
             cases = payload if isinstance(payload, list) else [payload]
             if len(cases) < 3:
-                parser.error('需要至少三组真实业务输入')
+                parser.error('At least three real business input groups are required')
         else:
             cases=[]
             for area, maximum in [('Tampines', 4000), ('Clementi', 5000 if args.photos_only else 4500), ('Punggol', 4000)]:
@@ -338,7 +338,7 @@ if __name__ == '__main__':
                         rental_scope='whole_unit', locations=[area.upper()], min_bedrooms=2),
                     queries=[dict(query_id='q-'+area.lower(), source='propertyguru', text=area, cursor=None)],
                     page_limit=1, candidate_limit=20 if args.photos_only else 1,
-                    source_mode='live', reason='真实 3a 输入输出检查')
+                    source_mode='live', reason='Real 3a input/output check')
                 ctx=dict(user_id='live-check', run_id=identity, conversation_id=identity, attempt_id=identity,
                     trace_id=identity, call_id=identity, source_mode='live',
                     deadline_at=(datetime.now(timezone.utc)+timedelta(minutes=5)).isoformat())
@@ -348,7 +348,7 @@ if __name__ == '__main__':
         for case in cases:
             plan, ctx=case['plan'], case['ctx']
             if ctx['source_mode'] != 'live':
-                parser.error('验收只接受 live 输入，不使用虚拟响应')
+                parser.error('Acceptance only accepts live input, not virtual responses')
             cap=ListingsCapability(PhotoVerificationProvider() if args.photos_only else GuruSearchProvider(), SearchBudget(plan, ctx,
                 page_result_limit=20 if args.photos_only else 6))
             output=await cap.search_page(plan, plan['queries'][0]['query_id'], ctx=ctx)
@@ -362,22 +362,22 @@ if __name__ == '__main__':
                 try:
                     photo_verification = await verify_photos(cap, plan, ctx, output['data'])
                 except (AssertionError, KeyError, TypeError, ValueError, TimeoutError) as exc:
-                    failures.append('图片验收失败：' + str(exc))
+                    failures.append('Image acceptance failed: ' + str(exc))
             if output['data']:
                 page = output['data']
                 filters = plan['required_filters']
                 for item in page['items']:
                     expected_type = 'sale' if plan['intent'] == 'buy' else 'rent'
                     if item['transaction_type'] != expected_type:
-                        failures.append(item['listing_key'] + ': 交易类型与查询不符')
+                        failures.append(item['listing_key'] + ': Transaction type does not match the query')
                     price = item['price']
                     if ('price.amount' in page['applied_filters'] and price['status'] == 'known'
                             and price['currency'] == filters['currency']
                             and price['period'] == filters['price_period']
                             and price['amount'] > filters['max_price']):
-                        failures.append(item['listing_key'] + ': 搜索结果混入超预算房源')
+                        failures.append(item['listing_key'] + ': Search results include over-budget listings')
                 if page['truncated'] and not page['next_cursor']:
-                    failures.append('候选截断后必须保留真实续页游标')
+                    failures.append('After candidate truncation, the real continuation-page cursor must be retained')
             for detail in details:
                 if detail['data'] is not None:
                     checked, problems = verify_observed_details(detail['data'])
@@ -393,8 +393,8 @@ if __name__ == '__main__':
             print(json.dumps(record, ensure_ascii=False), flush=True)
         if args.output:
             args.output.write_text(json.dumps(records, ensure_ascii=False, indent=2))
-        label = '搜索图片及汇总' if args.photos_only else '搜索及详情'
-        print(f'真实 3a {label}通过 {passed}/{len(cases)}；没有真实返回就不会通过。')
+        label = 'search images and summary' if args.photos_only else 'search and details'
+        print(f'Real 3a {label} passed {passed}/{len(cases)}; it will not pass without real returns.')
         return 0 if passed==len(cases) else 1
 
     raise SystemExit(asyncio.run(main()))

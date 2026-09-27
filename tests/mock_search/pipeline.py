@@ -1,4 +1,4 @@
-"""把夹具里的 Result[SearchResult] 变成 decision 图消费的 AttemptOutcome。"""
+"""Convert the Result[SearchResult] in the fixture into the AttemptOutcome consumed by the decision graph."""
 from __future__ import annotations
 
 import copy

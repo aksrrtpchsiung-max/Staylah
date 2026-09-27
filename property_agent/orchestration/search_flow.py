@@ -79,8 +79,8 @@ class SearchFlow:
             self.runs.update(run_id, status="cancelled", completion_reason="cancelled")
             raise
         except Exception:
-            # 业务 run 已经创建但图尚未得到可恢复结果；明确结束该 run，
-            # 同一 RequirementRequest 仍可由下一条用户消息重试。
+            # The business run has already been created but the graph has not yet produced a recoverable result; explicitly end this run,
+            # The same RequirementRequest can still be retried by the next user message.
             self.runs.update(
                 run_id,
                 status="failed",
@@ -93,8 +93,8 @@ class SearchFlow:
             user_id=user_id,
             run_id=run_id,
         )
-        # 只有 Decision 已经得到可恢复结果后才把 A 请求标记为已消费。
-        # 下游抛错时保留重试机会，避免 ready_for_b 永久卡住。
+        # Only after the Decision has produced a recoverable result is the A request marked as consumed.
+        # Preserve the retry opportunity when a downstream error is thrown, to avoid ready_for_b being stuck forever.
         if result.phase != "failed":
             await self.a_graph.aupdate_state(
                 self._a_config(conversation_id),

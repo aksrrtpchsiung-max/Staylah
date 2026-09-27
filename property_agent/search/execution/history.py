@@ -1,4 +1,4 @@
-"""一次搜索中的任务身份与有效页面复用；不会跨用户共享数据。"""
+"""Task identity and valid page reuse within a single search; data is never shared across users."""
 from copy import deepcopy
 import hashlib
 import json
@@ -9,10 +9,10 @@ def fingerprint(value):
 
 
 def query_fingerprint(plan, query):
-    """可还原的跨轮查询身份，供 B 内部写入 AttemptSummary.query_fingerprints。
+    """Reconstructable cross-turn query identity, for B to internally write into AttemptSummary.query_fingerprints.
 
-    v0 的历史摘要不携带旧 SearchPlan，因此这里同时保存恢复续页所需的查询和条件。
-    不包含用户身份、密钥或房源；不能用随机 query_id 绕过重复查询检查。
+    The v0 historical summary does not carry the old SearchPlan, so the query and conditions needed to resume pagination are also stored here.
+    Does not contain user identity, keys, or listings; a random query_id cannot be used to bypass the duplicate query check.
     """
     return 'search:v1:' + json.dumps(dict(
         profile_version=plan['profile_version'], intent=plan['intent'],
@@ -44,6 +44,6 @@ class ExecutionHistory:
         return result
 
     def save_page(self, plan, query_id, cursor, result):
-        # 失败与缺口页面不缓存成后续查询的成功响应。
+        # Failed and gap pages are not cached as successful responses for subsequent queries.
         if result['status'] == 'success':
             self._pages[self.key(plan, query_id, cursor)] = deepcopy(result)

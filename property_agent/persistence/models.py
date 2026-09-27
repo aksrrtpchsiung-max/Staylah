@@ -1,4 +1,4 @@
-"""业务表模型；LangGraph checkpoint 表由官方 saver 单独管理。"""
+"""Business table models; LangGraph checkpoint tables are managed separately by the official saver."""
 from __future__ import annotations
 
 from datetime import datetime

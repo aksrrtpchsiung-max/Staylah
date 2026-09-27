@@ -3,7 +3,7 @@
 The original application baseline is Git commit `41f86d9`.
 
 - `behavior.json`: original Decision graph and C fallback outputs captured with
-  `tests/refactor_scenarios.py`. The answer “不用了” is interpreted by the original
+  `tests/refactor_scenarios.py`. The answer "No need" is interpreted by the original
   stub flow as a general answer/handoff; `resume_answer` preserves that behavior.
   Only durations are zeroed and the in-process `__interrupt__` wrapper is omitted;
   the pending question payload, identifiers, evidence and ordering remain.
@@ -13,7 +13,7 @@ The original application baseline is Git commit `41f86d9`.
 - `contract-schema.json`: all 55 TypedDict fields and required keys captured before
   removing the root alias, so schema checks do not depend on a duplicate contract.
 - `module-map.json`: machine input for retired-path and AST checks. The only
-  human-maintained module correspondence table is [模块对应表](../../../模块对应表.md).
+  human-maintained module correspondence table is the [Module Mapping Table](../../../MODULE_MAPPING.md).
 - `live_search.json`: the request/context and SearchResult from the real recording
   `evaluation_runs/test_all_20260924_133304/01_request-nus_bedroom_rent_input.json`
   and `01_request-nus_bedroom_rent_output.json`. All 12 public PropertyGuru listings

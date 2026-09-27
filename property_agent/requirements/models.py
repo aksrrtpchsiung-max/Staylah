@@ -1,4 +1,4 @@
-"""LLM 直接输出标准化需求时使用的严格共享模型。"""
+"""Strict shared model used when the LLM directly outputs standardized requirements."""
 
 from enum import Enum
 from typing import Any, Literal, TypedDict
@@ -7,27 +7,27 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class StrictModel(BaseModel):
-    """为需求理解模型统一启用未知字段拒绝策略。"""
+    """Uniformly enable the unknown-field rejection policy for requirement understanding models."""
 
     model_config = ConfigDict(extra="forbid")
 
 
 class Intent(str, Enum):
-    """表示用户希望租赁或购买住宅。"""
+    """Indicates that the user wishes to rent or purchase a residence."""
 
     RENT = "rent"
     BUY = "buy"
 
 
 class ConstraintStrength(str, Enum):
-    """区分不可自动放宽的硬条件和允许权衡的软条件。"""
+    """Distinguishes hard constraints that cannot be automatically relaxed from soft constraints that allow trade-offs."""
 
     HARD = "hard"
     SOFT = "soft"
 
 
 class PricePeriod(str, Enum):
-    """表示标准金额的计价周期。"""
+    """Indicates the pricing period for the standard amount."""
 
     MONTH = "month"
     WEEK = "week"
@@ -35,7 +35,7 @@ class PricePeriod(str, Enum):
 
 
 class RentalScope(str, Enum):
-    """表示整套、单间或床位范围。"""
+    """Indicates the whole-unit, single-room, or bed-space scope."""
 
     WHOLE_UNIT = "whole_unit"
     ROOM = "room"
@@ -43,7 +43,7 @@ class RentalScope(str, Enum):
 
 
 class PropertyType(str, Enum):
-    """表示标准化后的新加坡住宅类型。"""
+    """Indicates the standardized Singapore residential property type."""
 
     HDB = "hdb"
     CONDO = "condo"
@@ -53,7 +53,7 @@ class PropertyType(str, Enum):
 
 
 class NumericOperator(str, Enum):
-    """表示数值约束的精确、下限或上限语义。"""
+    """Indicates the exact, lower-bound, or upper-bound semantics of a numeric constraint."""
 
     EQ = "eq"
     GTE = "gte"
@@ -61,14 +61,14 @@ class NumericOperator(str, Enum):
 
 
 class LocationRelation(str, Enum):
-    """区分位于某地点内和位于某地点附近。"""
+    """Distinguishes being located within a place from being located near a place."""
 
     IN = "in"
     NEAR = "near"
 
 
 class LocationResolutionStatus(str, Enum):
-    """表示地点实体是否已经由外部地点服务解析。"""
+    """Indicates whether the place entity has already been resolved by an external place service."""
 
     UNRESOLVED = "unresolved"
     RESOLVED = "resolved"
@@ -76,7 +76,7 @@ class LocationResolutionStatus(str, Enum):
 
 
 class TravelMode(str, Enum):
-    """表示标准化后的交通方式。"""
+    """Indicates the standardized transportation mode."""
 
     WALKING = "walking"
     TRANSIT = "transit"
@@ -86,7 +86,7 @@ class TravelMode(str, Enum):
 
 
 class DestinationType(str, Enum):
-    """表示通勤目的地的业务类别。"""
+    """Indicates the business category of the commute destination."""
 
     MRT = "mrt"
     STATION = "station"
@@ -97,7 +97,7 @@ class DestinationType(str, Enum):
 
 
 class PreferencePriority(str, Enum):
-    """表示软偏好或附加条件的相对优先级。"""
+    """Indicates the relative priority of a soft preference or additional condition."""
 
     HIGH = "high"
     MEDIUM = "medium"
@@ -105,7 +105,7 @@ class PreferencePriority(str, Enum):
 
 
 class PreferenceTopic(str, Enum):
-    """限定推荐系统当前可稳定消费的偏好主题。"""
+    """Restricts the preference topics that the recommendation system can currently consume reliably."""
 
     ENSUITE_BATHROOM = "ensuite_bathroom"
     NEAR_BUS_STOP = "near_bus_stop"
@@ -124,7 +124,7 @@ class PreferenceTopic(str, Enum):
 
 
 class ProfileFactField(str, Enum):
-    """限定本 conversation 可保存的搜索相关用户背景字段。"""
+    """Restricts the search-related user background fields that this conversation can store."""
 
     OCCUPANT_COUNT = "household.occupant_count"
     HAS_CHILDREN = "household.has_children"
@@ -134,7 +134,7 @@ class ProfileFactField(str, Enum):
 
 
 class IssueCode(str, Enum):
-    """枚举直接需求理解阶段可能产生的问题。"""
+    """Enumerates the issues that may arise during the direct requirement understanding stage."""
 
     INVALID_INPUT = "invalid_input"
     MODEL_UNAVAILABLE = "model_unavailable"
@@ -146,14 +146,14 @@ class IssueCode(str, Enum):
 
 
 class ProcessingStatus(str, Enum):
-    """表示需求理解节点的最终执行状态。"""
+    """Indicates the final execution status of the requirement understanding node."""
 
     NORMALIZED = "normalized"
     FAILED = "failed"
 
 
 class SourceSpan(StrictModel):
-    """记录标准化字段在原始用户消息中的逐字依据。"""
+    """Records the verbatim evidence of standardized fields in the original user message."""
 
     message_id: str = Field(description="ID of the user message that produced the field.", min_length=1)
     text: str = Field(description="Verbatim input span supporting the field.", min_length=1)
@@ -162,7 +162,7 @@ class SourceSpan(StrictModel):
 
     @model_validator(mode="after")
     def validate_range(self) -> "SourceSpan":
-        """确保原文下标为正向且与保存的文本长度一致。"""
+        """Ensures that the source-text index is positive and consistent with the stored text length."""
 
         if self.end <= self.start:
             raise ValueError("source span end must be greater than start")
@@ -172,7 +172,7 @@ class SourceSpan(StrictModel):
 
 
 class IntentConstraint(StrictModel):
-    """表示带硬软属性和原文依据的标准交易意图。"""
+    """Indicates a standard transaction intent with hard/soft attributes and source-text evidence."""
 
     value: Intent = Field(description="Rent or buy intent.")
     strength: ConstraintStrength = Field(description="Whether the intent is hard or soft.")
@@ -180,7 +180,7 @@ class IntentConstraint(StrictModel):
 
 
 class RentalScopeConstraint(StrictModel):
-    """表示带硬软属性和原文依据的标准租赁范围。"""
+    """Indicates a standard rental scope with hard/soft attributes and source-text evidence."""
 
     value: RentalScope = Field(description="Whole unit, private room, or bedspace.")
     strength: ConstraintStrength = Field(description="Whether the rental scope is hard or soft.")
@@ -188,7 +188,7 @@ class RentalScopeConstraint(StrictModel):
 
 
 class PropertyTypeConstraint(StrictModel):
-    """表示带硬软属性和原文依据的标准住宅类型。"""
+    """Indicates a standard residential property type with hard/soft attributes and source-text evidence."""
 
     value: PropertyType = Field(description="Normalized residential property type.")
     strength: ConstraintStrength = Field(description="Whether the property type is hard or soft.")
@@ -196,7 +196,7 @@ class PropertyTypeConstraint(StrictModel):
 
 
 class MoneyConstraint(StrictModel):
-    """表示由 LLM 已转换为整数和标准周期的预算上限。"""
+    """Indicates a budget cap already converted by the LLM into an integer and standard period."""
 
     currency: Literal["SGD"] = Field(description="Currency, fixed to SGD for this project.")
     max_price: int = Field(description="Normalized integer budget ceiling.", gt=0)
@@ -207,7 +207,7 @@ class MoneyConstraint(StrictModel):
 
 
 class NumericConstraint(StrictModel):
-    """表示由 LLM 已转换为整数和比较符的数值约束。"""
+    """Indicates a numeric constraint already converted by the LLM into an integer and comparison operator."""
 
     operator: NumericOperator = Field(description="Equality, minimum, or maximum operator.")
     value: int = Field(description="Normalized non-negative integer.", ge=0)
@@ -216,7 +216,7 @@ class NumericConstraint(StrictModel):
 
 
 class LocationRequirement(StrictModel):
-    """保存 LLM 提取的地点实体和关系，等待外部地点服务解析。"""
+    """Stores the place entities and relationships extracted by the LLM, pending resolution by an external place service."""
 
     raw_name: str = Field(description="Location entity from the user input, without an invented ID.", min_length=1)
     relation: LocationRelation = Field(description="Whether the home should be in or near the location.")
@@ -229,7 +229,7 @@ class LocationRequirement(StrictModel):
 
 
 class CommuteRequirement(StrictModel):
-    """表示由 LLM 已完成枚举和分钟数转换的通勤需求。"""
+    """Indicates a commute requirement already converted by the LLM into an enumeration and minutes."""
 
     destination: str = Field(description="Commute destination from the user input.", min_length=1)
     destination_type: DestinationType = Field(description="Business type of the destination.")
@@ -244,7 +244,7 @@ class CommuteRequirement(StrictModel):
 
 
 class PreferenceRequirement(StrictModel):
-    """表示由 LLM 映射到稳定主题词表的附加需求。"""
+    """Indicates an additional requirement already mapped by the LLM to a stable topic vocabulary."""
 
     topic: PreferenceTopic = Field(description="Normalized preference topic.")
     value: Any = Field(
@@ -259,7 +259,7 @@ class PreferenceRequirement(StrictModel):
 
 
 class ProfileFactRequirement(StrictModel):
-    """表示从本轮输入提取、与找房有关的 conversation 用户背景。"""
+    """Indicates the conversation user background related to home searching extracted from the current round of input."""
 
     field: ProfileFactField = Field(description="Controlled user-context field.")
     value: Any = Field(description="JSON value for the selected field.")
@@ -267,7 +267,7 @@ class ProfileFactRequirement(StrictModel):
 
 
 class NormalizedRequirement(StrictModel):
-    """表示 LLM 直接产生并通过 Pydantic 校验的标准化用户需求。"""
+    """Indicates standardized user requirements directly produced by the LLM and validated by Pydantic."""
 
     message_id: str = Field(description="Current user-message ID.", min_length=1)
     original_text: str = Field(description="Complete unmodified user input.", min_length=1)
@@ -287,7 +287,7 @@ class NormalizedRequirement(StrictModel):
 
 
 class RequirementIssue(StrictModel):
-    """描述输入、模型服务、输出契约或原文核验问题。"""
+    """Describes input, model service, output contract, or source-text verification issues."""
 
     code: IssueCode = Field(description="Machine-readable issue code.")
     field: str = Field(description="Field path associated with the issue.", min_length=1)
@@ -295,7 +295,7 @@ class RequirementIssue(StrictModel):
 
 
 class ParserMetadata(StrictModel):
-    """记录本次结构化生成实际使用的模型和安全调用元数据。"""
+    """Records the model and safe invocation metadata actually used for this structured generation."""
 
     provider: str = Field(description="Model provider.", min_length=1)
     model: str = Field(description="Client-requested model ID.", min_length=1)
@@ -305,7 +305,7 @@ class ParserMetadata(StrictModel):
 
 
 class RequirementResult(StrictModel):
-    """封装标准化需求、问题和本次模型调用信息。"""
+    """Encapsulates the standardized requirements, issues, and model invocation information for this round."""
 
     requirement: NormalizedRequirement = Field(description="Strictly validated normalized requirement.")
     issues: list[RequirementIssue] = Field(default_factory=list, description="Non-fatal source-validation issues.")
@@ -313,14 +313,14 @@ class RequirementResult(StrictModel):
 
 
 class InputGuardDecision(StrictModel):
-    """表示输入结构是否有效以及是否属于 Falcon 找房范围。"""
+    """Indicates whether the input structure is valid and whether it falls within the Falcon home-searching scope."""
 
     valid: bool = Field(description="Whether message structure and length are valid.")
     housing_related: bool = Field(description="Whether the message relates to Singapore housing.")
 
 
 class ProfileChangeModel(StrictModel):
-    """表示 LLM 解析结果转换得到、尚未合并的 profile patch。"""
+    """Indicates a profile patch obtained from converting the LLM parsing result and not yet merged."""
 
     operation: Literal["set", "append", "remove"] = Field(description="Patch operation.")
     field: Literal[
@@ -336,7 +336,7 @@ class ProfileChangeModel(StrictModel):
 
 
 class ConversationProfileModel(StrictModel):
-    """表示 LangGraph 中可版本化、确认和持久化的 conversation 需求画像。"""
+    """Indicates a conversation requirement profile in LangGraph that can be versioned, confirmed, and persisted."""
 
     profile_id: str = Field(description="Stable conversation-profile ID.", min_length=1)
     user_id: str = Field(description="User ID used only for ownership and authorization.", min_length=1)
@@ -367,7 +367,7 @@ class ConversationProfileModel(StrictModel):
 
 
 class RequirementConfirmationModel(StrictModel):
-    """表示绑定特定 profile version 的用户确认请求。"""
+    """Indicates a user confirmation request bound to a specific profile version."""
 
     confirmation_id: str = Field(description="Confirmation-request ID.", min_length=1)
     profile_id: str = Field(description="Profile ID awaiting confirmation.", min_length=1)
@@ -377,7 +377,7 @@ class RequirementConfirmationModel(StrictModel):
 
 
 class RequirementRequestModel(StrictModel):
-    """表示 A 在用户确认后准备交给 B 的固定请求。"""
+    """Indicates the fixed request that A prepares to hand to B after user confirmation."""
 
     request_id: str = Field(description="A-to-B request ID.", min_length=1)
     schema_version: Literal["0.3-draft"] = "0.3-draft"
@@ -394,7 +394,7 @@ class RequirementRequestModel(StrictModel):
 
 
 class RequirementGraphState(TypedDict, total=False):
-    """定义 A-side 需求理解、确认、持久化和 B 请求构造状态。"""
+    """Defines the A-side requirement understanding, confirmation, persistence, and B request construction states."""
 
     current_input: str
     message_id: str

@@ -1,4 +1,4 @@
-"""离线测试和本地无模型模式使用的追问替身。"""
+"""Follow-up stand-in used for offline testing and local model-free mode."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

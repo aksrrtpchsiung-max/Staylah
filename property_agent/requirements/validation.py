@@ -9,7 +9,7 @@ from property_agent.requirements.support import _error_update
 
 
 def validate_patch(state: RequirementGraphState) -> dict[str, Any]:
-    """验证 patch 字段、操作符、来源和 JSON 结构，拒绝模型发明的字段。"""
+    """Validate patch fields, operators, provenance, and JSON structure; reject fields invented by the model."""
 
     try:
         changes = [ProfileChangeModel.model_validate(item) for item in state.get("proposed_patch", [])]
@@ -31,7 +31,7 @@ def validate_patch(state: RequirementGraphState) -> dict[str, Any]:
 
 
 def detect_conflicts(state: RequirementGraphState) -> dict[str, Any]:
-    """把同一字段的新值直接转换为覆盖旧值的 set patch。"""
+    """Convert a new value for the same field directly into a set patch that overwrites the old value."""
 
     profile = state.get("profile") or {}
     constraints = copy.deepcopy(profile.get("listing_constraints", []))
@@ -91,7 +91,7 @@ def detect_conflicts(state: RequirementGraphState) -> dict[str, Any]:
 
 
 def _validate_listing_constraint(value: Any, state: RequirementGraphState) -> None:
-    """验证单条 ListingConstraint 的字段、操作符和逐字来源。"""
+    """Validate the fields, operators, and verbatim provenance of a single ListingConstraint."""
 
     if not isinstance(value, dict):
         raise TypeError("A listing constraint must be an object.")
@@ -103,7 +103,7 @@ def _validate_listing_constraint(value: Any, state: RequirementGraphState) -> No
 
 
 def _validate_derived_requirement(value: Any, state: RequirementGraphState) -> None:
-    """验证单条派生数据需求的类别、操作符和逐字来源。"""
+    """Validate the category, operators, and verbatim provenance of a single derived data requirement."""
 
     if not isinstance(value, dict):
         raise TypeError("A derived requirement must be an object.")
@@ -115,7 +115,7 @@ def _validate_derived_requirement(value: Any, state: RequirementGraphState) -> N
 
 
 def _validate_open_data_requirement(value: Any, state: RequirementGraphState) -> None:
-    """验证开放需求只能以非阻塞 best-effort 方式进入 A/B 请求。"""
+    """Validate that open requirements can only enter A/B requests in a non-blocking best-effort manner."""
 
     if not isinstance(value, dict):
         raise TypeError("An open data requirement must be an object.")
@@ -127,7 +127,7 @@ def _validate_open_data_requirement(value: Any, state: RequirementGraphState) ->
 
 
 def _validate_profile_fact(value: Any, state: RequirementGraphState) -> None:
-    """验证用户背景字段来自受控词表且具有逐字来源。"""
+    """Validate that user background fields come from a controlled vocabulary and have verbatim provenance."""
 
     if not isinstance(value, dict):
         raise TypeError("A profile fact must be an object.")
@@ -137,7 +137,7 @@ def _validate_profile_fact(value: Any, state: RequirementGraphState) -> None:
 
 
 def _validate_source(source: Any, state: RequirementGraphState) -> None:
-    """再次确认 patch 来源属于当前消息且字符位置与原文一致。"""
+    """Confirm again that the patch provenance belongs to the current message and that character positions match the original text."""
 
     if not isinstance(source, dict) or source.get("message_id") != state.get("message_id"):
         raise ValueError("The patch source_message_id does not match the current message.")
