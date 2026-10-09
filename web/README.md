@@ -1,35 +1,18 @@
-# StayLah Web
+# StayLah web interface
 
-StayLah Web is the same-origin web entry point for the A/B/C listing workflow. The static frontend and JSON API are provided by
-`web.server`; the code does not depend on a personal directory; all commands are run from the repository root.
+The frontend and JSON API are served together by `web.server`. The browser interface supports requirement collection, property search, conversation history, and saved listings.
 
-## Environment Setup
+## Run locally
 
-1. Create a Python environment and install the project dependencies:
-
-   ```bash
-   python3.11 -m venv .venv
-   .venv/bin/python -m pip install -e .
-   ```
-
-2. Create the local configuration from the template:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-3. Configure DeepSeek, OneMap, PostgreSQL, and
-   PropertyGuru OpenCLI as described in the root [README](../README.md). Keys, database files, and the OpenCLI installation directory all remain local and are not committed to Git.
-
-## Startup Methods
-
-Preview the page and sample conversation only:
+Install the project as described in the [README](../README.md), then start a preview:
 
 ```bash
 .venv/bin/python -m web.server
 ```
 
-Connect to the real A/B/C orchestration:
+Open [localhost:8080](http://localhost:8080). Preview mode uses sample conversations and listings.
+
+For live searches, configure DeepSeek, OneMap, and the PropertyGuru browser adapter, then start PostgreSQL and the app:
 
 ```bash
 docker compose up -d --wait
@@ -37,81 +20,57 @@ docker compose up -d --wait
 .venv/bin/python -m web.server --live
 ```
 
-After the service starts, it prints the listening address for this run in the terminal. The default binding is for local development only; the port and bind address can be configured via
-CLI arguments or environment variables:
+The default address is `127.0.0.1:8080`. Change it with `--host` and `--port`, or the `STAYLAH_HOST` and `STAYLAH_PORT` environment variables. The server prints its listening address and mode at startup.
 
-```bash
-.venv/bin/python -m web.server --live --host <bind-address> --port <port>
+## Using the interface
 
-# Equivalent environment variables
-STAYLAH_HOST=<bind-address> STAYLAH_PORT=<port> .venv/bin/python -m web.server --live
-```
+Describe the home you want, answer any clarification questions, and confirm the requirements before searching. You can cancel an active search, open listing source pages, and save or remove listings using the heart button.
 
-When the team is doing joint debugging on the same network, you can bind to `0.0.0.0` and then access it via the development machine's LAN IP and the chosen port.
-Do not expose the built-in `ThreadingHTTPServer` directly to the public internet. Production deployment should be placed behind an HTTPS reverse proxy,
-and should add identity authentication, persistent sessions, access logs, and process management.
+Favorites belong to a conversation. Reopening a stored conversation restores its saved listings. Listing images come from source evidence; when an image cannot load, the interface uses a placeholder.
 
-## PropertyGuru Adapter
+## HTTP API
 
-Each developer needs to install OpenCLI on their own machine and copy the adapter from the current branch to the OpenCLI user directory:
+The interface uses same-origin JSON requests. Session-bound operations send the token in `X-Session-ID`.
 
-```bash
-npm install -g @jackwener/opencli@1.8.7
-mkdir -p ~/.opencli/clis/propertyguru
-cp guru_search/cli/propertyguru/{search,detail,contract-listing}.js ~/.opencli/clis/propertyguru/
-opencli doctor
-```
+| POST endpoint | Purpose |
+| --- | --- |
+| `/api/session` | Create or open a browser session |
+| `/api/conversations` | List conversation history |
+| `/api/turn` | Submit a conversation turn |
+| `/api/progress` | Read search progress |
+| `/api/cancel` | Cancel the active search |
+| `/api/favorites/list` | List saved properties |
+| `/api/favorites/add` | Save a returned property |
+| `/api/favorites/remove` | Remove a saved property |
 
-`opencli doctor` should confirm that both the daemon and Browser Bridge are connected. After the branch is updated, if the PropertyGuru parameters have
-changed, the copy command should be run again to avoid inconsistency between the local old adapter and the backend calls.
+Request handling is in [http.py](http.py); session and workflow integration are in [bridge.py](bridge.py). Consult these files for request fields and error responses.
 
-## Interaction Behavior
+## Deployment limitations
 
-- User bubbles adapt to content width and are constrained by the page's maximum width.
-- Additional requirements support filling in one to three items at a time and then submitting them together; selecting a room type does not send immediately.
-- Budget uses minimum and maximum input fields.
-- Condition tooltips are expanded and closed by clicking, without relying on mouse hover.
-- An in-progress search can be actively stopped by the user.
-- The thinking state rotates through prompts related to living, family, and community in Singapore.
-- Listing cards use the `media.search_card_photos` Evidence returned by B to display the cover image; if loading fails, the original placeholder image is kept.
-- The card heart button saves/unsaves per conversation; the sidebar `SAVED HOMES` shows the current session's saved items, and the saved state is restored when a historical conversation is reopened.
-- A solid heart on the right side of a historical conversation entry indicates that the conversation contains saved listings.
-- On desktop, the right edge of the sidebar can be dragged to adjust its width; the range is 260-520px, and double-clicking restores the default width.
-- User-visible text in the frontend and backend is unified in English.
+The built-in `ThreadingHTTPServer` is a development server. Browser sessions are stored in the server process, while conversation records, favorites, and workflow checkpoints are stored in PostgreSQL.
 
-## API and Security Boundaries
+The app does not provide production user authentication or web sessions shared across instances. A public deployment needs those features, HTTPS, and process management. Binding to `0.0.0.0` only changes the listening address; it does not add authentication.
 
-- `POST /api/session` creates an in-process web session.
-- `POST /api/turn` submits a message using `X-Session-ID`.
-- `POST /api/cancel` stops the active search in the current web session.
-- `POST /api/favorites/add` saves a listing already returned in the current session.
-- `POST /api/favorites/remove` removes a saved listing.
-- `POST /api/favorites/list` queries the current session's saved listings.
-- The frontend and API are same-origin; the server accepts HTTP or HTTPS Origin from the same Host.
-- The UI uses `textContent` to render model and listing text, and source links only allow HTTP(S).
-- The browser only submits listing identifiers already returned in the current session, and the server restores card data from a trusted cache.
+The API checks request origins against the host. The frontend renders model and listing text with `textContent`, and source links allow HTTP(S). These measures do not replace access control.
 
-The browser session token is still kept within the service process; conversations, messages, favorites, and LangGraph state are stored in
-PostgreSQL. Production authentication and web sessions shared across multiple instances still need to be implemented before formal deployment.
+## Files
 
-## File Structure
+| Path | Contents |
+| --- | --- |
+| `public/index.html` | Page structure |
+| `public/style.css` | Layout and styles |
+| `public/js/` | Conversations, requirements, listings, favorites, and API calls |
+| `public/app.js` | Startup and event binding |
+| `public/shortcuts.js` | Commute, MRT, and school inputs |
+| `public/mrt-stations.json` | MRT station data |
+| `server.py` | Server startup |
+| `http.py` | HTTP routing |
+| `bridge.py` | Browser sessions and orchestration |
+| `cards.py` | Listing card data |
 
-- `public/index.html`: page structure.
-- `public/style.css`: responsive visual styles.
-- `public/js/`: scripts for sessions, requirement forms, search status, cards, favorites, and the sidebar.
-- `public/app.js`: event binding and startup; all scripts are loaded in the defer order in index.html.
-- `public/shortcuts.js`: commute, MRT, and school condition input.
-- `public/mrt-stations.json`: static snapshot of MRT stations with source dates.
-- `server.py`: original startup entry point; HTTP routing is in `http.py`, session bridging is in `bridge.py`, and card conversion is in `cards.py`.
-- `../tests/test_web.py`: tests for sessions, confirmation, cancellation, selection validation, and idempotent behavior.
-
-## Verification
+## Checks
 
 ```bash
 for script in web/public/*.js web/public/js/*.js; do node --check "$script"; done
-.venv/bin/python -m unittest tests.test_web tests.test_web_assets tests.test_orchestration -q
+.venv/bin/python -m unittest tests.test_web tests.test_web_assets tests.test_orchestration
 ```
-
-Real-source checks access DeepSeek, PropertyGuru, and OneMap, and should be run separately from offline regression tests.
-
-For the original module correspondence, see [Module Correspondence Table](../MODULE_MAPPING.md); for screenshot comparison and restoration checks, see [Refactoring Acceptance](../docs/refactoring/acceptance.md).

@@ -1,36 +1,70 @@
-# Falcon Evaluation Plan (datasets not yet executed)
+# Evaluation runner
+
+This runner records requirement clarification and full property-search conversations for inspection. It combines automatic checks with manual assessment; its logs are not a benchmark score by themselves.
 
 ## Datasets
 
-- `data/clarification_10.json`: A01–A10; 3 mild, 4 moderate, 3 severe. Only assemble and invoke the A graph once, using an independent in-memory checkpoint; **B and C will not be built or invoked, and PostgreSQL is not required**. `must_ask_about` is the expected missing topic; A is not required to ask about all topics in the first round; A can ask at most three questions per round.
-- `data/full_pipeline_20.json`: F01–F20; 5 cases with 3–5 conditions, 10 cases with 5–10 conditions, and 5 cases with more than 10 conditions. `filters` are conditions manually annotated from the original text; rent/sale, area, rental range, and price also count toward the condition count. Items marked `(soft)` are preferences and should not be eliminated as hard conditions. Some preferences may not have reliable structured fields; marking them as "unknown" is allowed, but they must not be filled in out of thin air.
+| Suite | Cases | Scope |
+| --- | --- | --- |
+| `clarification` | A01–A10 | Ten incomplete requests, each passed through the requirements graph once |
+| `full` | F01–F20 | Twenty requests with different numbers of housing conditions, run through the full workflow |
 
-Both datasets contain only user requests and manual annotations, with no fabricated listings. Each sample uses an independent conversation ID to prevent cross-contamination between historical conversations.
+The datasets contain user requests and manual annotations, not property listings. Each case gets an independent conversation ID. Soft preferences are annotated separately from hard conditions.
 
-## Future Execution (not executed this time)
+The clarification suite needs a DeepSeek key and uses in-memory state. It does not construct search or evaluation services and does not need PostgreSQL.
 
-Running the A dataset only requires the DeepSeek key used by A; the full pipeline dataset also requires PostgreSQL, B's browser bridge, C's gateway key, and that `.env` / `runtime.toml` in the repository root are configured in the project's original way. The full pipeline evaluation forces `source_mode=live` and will not use simulated listings.
+The full suite needs the [live application setup](../README.md#run-with-live-data): PostgreSQL, DeepSeek, OneMap, and the PropertyGuru browser connection. It rejects configuration where `source_mode` is not `live`.
+
+## Run
+
+From the repository root:
 
 ```bash
-cd /Users/junboxia/Documents/ChatGPT/hackathon/evaluation
 .venv/bin/python -m evaluation_suite.runner --suite clarification
+.venv/bin/python -m evaluation_suite.runner --suite full --case F01
 .venv/bin/python -m evaluation_suite.runner --suite full
-# Run only a single case: --case A01 or --case F01
-# Resume from F03 while preserving completed F01/F02 in the same results directory:
-.venv/bin/python -m evaluation_suite.runner --suite full --start-at F03 \
-  --resume-dir evaluation_runs/EvalF-full-20260922T134407Z-a48c4679
 ```
 
-After A provides a confirmation summary, the full pipeline dataset automatically sends "confirm" to move the case into B/C; **this is only test process automation and does not mean A's understanding is correct**. The log saves A's profile for manual inspection. If A requests additional clarification, B asks back, or C waits for the user to accept relaxed conditions, the runner will record and stop that case, and will not fabricate answers on the user's behalf or accept relaxed conditions.
+To run a range:
 
-Logs are placed by default under the Git-ignored `evaluation_runs/`: one JSON per A case, plus `dialogue.md` and `summary.csv`; the full pipeline uses `EvalF-full-<timestamp>/`, and upon completing each case it immediately writes `Fxx.json` and `Fxx.md`, updates `summary.csv` and `progress.md`, so it can be monitored while running. The JSON contains the user request, A state, and profile; full pipeline logs additionally contain the complete Listing/coverage of each B search, the candidates handed to C, retrieve scores, evaluate/review, the complete Listing corresponding to the final recommendation, the time spent at each node, and the final status. C no longer performs a hard-condition screen, and the number of B candidates does not equal the number manually confirmed as eligible. Logs may contain real listing descriptions or personal data; do not upload them directly to GitHub; secret values from `.env` will not be read or logged.
+```bash
+.venv/bin/python -m evaluation_suite.runner --suite full --start-at F03 --end-at F05
+```
 
-## Five Metrics and Judgment Criteria
+Use `--output` to change the output parent directory. To resume a full-suite run, pass its existing directory to `--resume-dir` and select cases that have not completed:
 
-1. **A Requirement Understanding / Follow-up Success Rate** (only A01–A10): The first round should be in `awaiting_clarification`, `clarification_questions` should be non-empty, and no B handoff should be generated; manually check whether the topics asked are related to at least one genuinely missing condition in `must_ask_about`, and whether there is random guessing or omission of blocking conditions. Number of eligible cases / 10. Because all 10 cases should be followed up on, this can only measure "whether follow-up occurs when it should," and cannot detect false positives where follow-up occurs when it should not; if overall accuracy is needed, negative examples with explicit requests must be added later.
-2. **Eligible Listing Recall Rate** (only F01–F20): The logs retain B's raw listings and the candidates handed to C, deduplicated by `listing_key`, while also retaining the details of each attempt. True recall rate = `|listings found by search and manually confirmed eligible ∩ independent reference eligible full set| / |independent reference eligible full set|`. The reference full set must be established manually or through independent search under the same time window/source/query budget; since C no longer filters, `eligible_found_unique_count` is left blank, and it can only be calculated after manually verifying B's candidates; **the number of B candidates must not be passed off as the eligible count or recall rate**. The raw B count, items pending verification, failed sources, and truncation markers must be reported together.
-3. **Final Recommendation Accuracy** (only F01–F20): Manually judge each final recommendation for whether it meets all hard conditions, and record evidence/unknown items. `number of correct recommendations / number of actual recommendations`; when there is no recommendation, record N/A and do not treat it as 100%. Also check whether all recommendations come from that B snapshot; C no longer independently confirms hard conditions.
-4. **Recommendation / Ranking Quality** (only F01–F20): Compare each case's final C recommendation side by side with the candidates from the same B run. First manually judge whether the candidates meet the hard conditions, then score eligible candidates from 0–3 (0=not suitable for recommendation, 1=barely, 2=suitable, 3=very suitable), considering soft preferences, evidence, freshness, price, and unknown risks, and then calculate `nDCG@K` (K=number of recommendations, at most display_limit); you may also record the reasons why "clearly better eligible listings were missed or ranked low." When candidates are insufficient or all scores are tied, mark N/A or tied, and do not manufacture differences.
-5. **Time** (only F01–F20): A=the sum of the two A graph calls for requirement parsing and confirmation; B=query preparation, planning, and actual B searches for the initial search/follow-up search; C=the sum of retrieve, evaluate, review, and decide_next calls. Report milliseconds per case, the overall median, and P90; `wall_duration_ms` is listed separately and includes orchestration, persistence, and logging overhead, and is not equal to A+B+C. If waiting for a human answer or relaxed conditions, that waiting time does not count as model/search processing time; the case will stop in a waiting state.
+```bash
+.venv/bin/python -m evaluation_suite.runner --suite full --start-at F03 \
+  --resume-dir evaluation_runs/<existing-run-directory>
+```
 
-Additional report **End-to-End Completion Rate**: number of cases with `phase=published` and a final recommendation / 20. It is necessary to also list the number not published due to A follow-up, B clarification, C waiting for relaxation, source failure, or no eligible listings, and failures must not be lumped together with reasonable no-listing outcomes. Search coverage is affected by website availability, real-time listing and delisting, and this project's `candidate_limit` / page upper limits; during evaluation, the configuration must be fixed and the run time recorded.
+Replace the placeholder with the actual run directory. The runner refuses to overwrite completed cases. `--case` cannot be combined with `--start-at` or `--end-at`.
+
+The full suite sends a confirmation after the requirements summary so the case can proceed to search. This is test automation, not verification that the parsed requirements are correct. If the workflow needs additional clarification or approval of changed conditions, the case stops in that state instead of inventing an answer.
+
+## Output
+
+Runs are written under the Git-ignored `evaluation_runs/` directory by default.
+
+- Both suites write a JSON file per case and `summary.csv`.
+- Clarification runs also write `dialogue.md`.
+- Full runs write a Markdown file per case and update `progress.md` as cases complete.
+
+Full traces include search attempts, listings, coverage, ranking, recommendation review, and timing. Inspect the parsed profile as well as the final answer. Logs may include personal information and real listing text; review them before sharing.
+
+## Assessing results
+
+| Measure | How to assess it |
+| --- | --- |
+| Clarification success | Check that the graph asks about at least one genuinely missing topic without creating a search handoff or guessing blocking conditions |
+| Listing recall | Manually verify found listings and compare them with an independently established eligible reference set from the same time window and search scope |
+| Recommendation accuracy | Divide recommendations meeting all hard conditions by the number actually recommended; use N/A when there are none |
+| Ranking quality | Score eligible candidates from the same search run and compare their order with the recommendations, for example using nDCG@K |
+| Processing time | Report stage durations and wall time separately, with per-case values, median, and P90 |
+| Completion rate | Report cases that publish a final recommendation, separating clarification, source failure, and no-result outcomes |
+
+All clarification cases are incomplete requests, so this suite does not measure unnecessary follow-up questions on already complete requests.
+
+Search candidate counts are not eligible counts or recall. Evaluation does not independently rescreen all hard conditions, and unknown evidence should remain unknown during manual assessment. A recall estimate requires a separate reference set; the runner cannot calculate it from its own search results alone.
+
+Record the model, search limits, and run time alongside results. Live listing availability and source failures can change outcomes between runs. This document describes the evaluation procedure and does not claim measured performance.
